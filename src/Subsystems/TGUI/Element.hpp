@@ -8,9 +8,20 @@ public:
     int xLocation, yLocation, width, height;
     bool visible;
 
-private:
+protected:
     bool OnClick_enable;
     void (*OnClick_handler)(Point);
+
+    /**
+     * @brief Set the size of the element.
+     * 
+     * @param newWidth The new width of the element.
+     * @param newHeight The new height of the element.
+     */
+    virtual void setSize(int newWidth, int newHeight) {
+        width = newWidth;
+        height = newHeight;
+    }
 
 public:
     Element(int xLocation, int yLocation, int width, int height)
@@ -42,17 +53,6 @@ public:
      */
     virtual Point getPosition() {
         return Point(xLocation, yLocation);
-    }
-
-    /**
-     * @brief Set the size of the element.
-     * 
-     * @param newWidth The new width of the element.
-     * @param newHeight The new height of the element.
-     */
-    virtual void setSize(int newWidth, int newHeight) {
-        width = newWidth;
-        height = newHeight;
     }
 
     /**

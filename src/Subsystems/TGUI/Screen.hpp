@@ -5,96 +5,127 @@
 
 class Screen {
 public:
-    Screen::Screen(Activity* activity);
-    Screen::Screen(Activity* activity, int amount);
+    HyperList<Activity*> activities;
+
+    Screen(Activity* activity);
+    Screen(Activity* activity, int amount);
     ~Screen();
-    
+
     void addActivity(Activity* activity);
-    void addActivity(Activity* activity, int amount);
+    void addActivities(Activity* activity, int amount);
     void switchToActivity(int index);
 
     void render();
+    void renderAll();
+    void renderAllVisible();
     void push();
     void renderNpush();
 
     void updateTouch(int x, int y);
     void updateTouch(Point point);
 
+    void enablePush(bool enable);
+    void setPushHandler(void (*handler)(void));
+
 private:
-    HyperList<Activity*> activities;
+    void executePush();
+
     int currentActivity;
     Touch touch;
-    bool Push_enable;
-    void (*Push_handler)(void);
+    bool pushEnabled;
+    void (*pushHandler)(void);
 };
 
-Screen::Screen(Activity* activity) {
+// Constructor with a single activity
+Screen::Screen(Activity* activity) : currentActivity(0), pushEnabled(false), pushHandler(nullptr) {
     addActivity(activity);
-    switchToActivity(0);
 }
 
-Screen::Screen(Activity* activity, int amount) {
-
-    addActivity(activity, amount);
-    switchToActivity(0);
+// Constructor with multiple activities
+Screen::Screen(Activity* activity, int amount) : currentActivity(0), pushEnabled(false), pushHandler(nullptr) {
+    addActivities(activity, amount);
 }
 
-Screen::~Screen() {
-    activities.clear();
-}
 
+// Add a single activity
 void Screen::addActivity(Activity* activity) {
     activities.add(activity);
 }
 
-void Screen::addActivity(Activity* activity, int amount) {
-    activities.addFromArray(activity, amount);
+// Add multiple activities
+void Screen::addActivities(Activity* activity, int amount) {
+    for (int i = 0; i < amount; i) {
+        activities.add(activity + i);
+    }
 }
 
+// Switch to a specific activity by index
 void Screen::switchToActivity(int index) {
-        if (index >= 0 && index < activities.size()) {
-            currentActivity = index;
-        }
+    if (index >= 0 && index < activities.size()) {
+        currentActivity = index;
+    }
 }
 
+// Render the current activity
 void Screen::render() {
-    activities.get(currentActivity)->render();
+    if (activities.size() > 0) {
+        activities.get(currentActivity)->render();
+    }
 }
 
+// Render all activities
 void Screen::renderAll() {
-    for(int i = 0; i < activities.size(); i++) {
+    for (int i = 0; i < activities.size(); i++) {
         activities.get(i)->render();
     }
 }
 
-void Screen::push() {
-    Push_execute();
+// Render all visible activities
+void Screen::renderAllVisible() {
+    for (int i = 0; i < activities.size(); i++) {
+        if (activities.get(i)->visible) {
+            activities.get(i)->render();
+        }
+    }
 }
 
+// Execute the push handler if enabled
+void Screen::push() {
+    executePush();
+}
+
+// Render the current activity and execute the push handler
 void Screen::renderNpush() {
     render();
     push();
 }
 
-void Screen::Push_enable(bool enable) {
-    Push_enable = enable;
+// Enable or disable push functionality
+void Screen::enablePush(bool enable) {
+    pushEnabled = enable;
 }
 
-void Screen::Push_setHandler(void (*handler)(void)) {
-    Push_handler = handler;
+// Set the push handler function
+void Screen::setPushHandler(void (*handler)(void)) {
+    pushHandler = handler;
 }
 
-void Screen::Push_execute() {
-    if (!Push_enable) return;
-    if (Push_handler == nullptr) return;
-    Push_handler();
+// Execute the push handler if enabled and set
+void Screen::executePush() {
+    if (pushEnabled && pushHandler != nullptr) {
+        pushHandler();
+    }
 }
 
+// Update touch input with coordinates
 void Screen::updateTouch(int x, int y) {
-    touch.setPoint(x,y);
-    activities.get(currentActivity)->OnClick_execute(touch.getPoint());
+    touch.setPoint(x, y);
+    if (activities.size() > 0) {
+        activities.get(currentActivity)->OnClick_execute(touch.getPoint());
+    }
 }
 
+// Update touch input with a Point
 void Screen::updateTouch(Point point) {
     updateTouch(point.x, point.y);
 }

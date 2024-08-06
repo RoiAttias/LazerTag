@@ -16,6 +16,16 @@ struct Point
      * @param y The y-coordinate of the point. Default is -1.
      */
     Point(int x = -1, int y = -1) : x(x), y(y) {}
+
+    /**
+     * @brief The equality operator
+     * 
+     * @param other const Point
+     */
+    bool operator==(const Point other) const {
+        return (x == other.x) && (y == other.y);
+    }
+
 };
 
 /**
@@ -39,7 +49,7 @@ public:
      * 
      * @return Point* Pointer to the current Touch point.
      */
-    Point* getPoint() { return &point; }
+    Point* getPointAddress() { return &point; }
 
     /**
      * @brief Set the current Touch point using integer coordinates.

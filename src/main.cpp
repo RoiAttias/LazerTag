@@ -6,7 +6,7 @@
 
 // put function declarations here:
 int myFunction(int, int);
-
+Grid g(0,0,100,100);
 void setup() {
   // put your setup code here, to run once:
   int result = myFunction(2, 3);

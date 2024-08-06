@@ -38,7 +38,7 @@ public:
      * Adds a new node with the data from the given pointer at the end of the list.
      * @param valuePtr Pointer to the data to be stored in the new node.
      */
-    void add(T* valuePtr);
+    //void add(T* valuePtr);
 
     /**
      * Adds multiple nodes with data from an array at the end of the list.
@@ -188,7 +188,7 @@ private:
      * @param index Position of the node to retrieve.
      * @return Pointer to the node at the specified index, or nullptr if the index is out of bounds.
      */
-    Node<T>* getNode(int index) const;
+    Node<T>* getNode(int index);
 };
 
 template <typename T>
@@ -203,19 +203,25 @@ template <typename T>
 void HyperList<T>::add(T value) {
     insert(listSize, value);
 }
-
+/*
 template <typename T>
 void HyperList<T>::add(T* valuePtr) {
     insert(listSize, valuePtr);
-}
+}*/
 
 template <typename T>
 void HyperList<T>::addFromArray(T* array, int size) {
-    if (array == nullptr || size <= 0) return;
+    // Check if the array pointer is null or if the size is non-positive
+    if (array == nullptr || size <= 0) {
+        return;
+    }
+    
+    // Loop through the array and add each element to the HyperList
     for (int i = 0; i < size; ++i) {
         add(array[i]);
     }
 }
+
 
 template <typename T>
 void HyperList<T>::clear() {
@@ -231,7 +237,7 @@ void HyperList<T>::clear() {
 }
 
 template <typename T>
-bool HyperList<T>::contains(T value) const {
+bool HyperList<T>::contains(const T value) const {
     Node<T>* current = head;
     while (current != nullptr) {
         if (current->data == value) {
@@ -436,25 +442,48 @@ void HyperList<T>::switchNodes(int index1, int index2) {
 }
 
 template <typename T>
-Node<T>* HyperList<T>::getNode(int index) const {
-    if (index < 0 || index >= listSize) return nullptr;
-
-    if (index == lastIndex && lastNode != nullptr) {
-        return lastNode;
+Node<T>* HyperList<T>::getNode(int index) {
+    // Check if the index is out of bounds
+    if (index < 0 || index >= listSize) {
+        return nullptr;
     }
 
-    Node<T>* current = head;
-    if (index < listSize / 2) {
+    // Calculate distances from key points
+    int distanceToHead = index;
+    int distanceToTail = listSize - index - 1;
+    int distanceToLastNode = (lastNode != nullptr) ? abs(index - lastIndex) : INT_MAX;
+
+    // Choose the optimal direction for traversal
+    Node<T>* current = nullptr;
+    if (distanceToLastNode < distanceToHead && distanceToLastNode < distanceToTail) {
+        // Use the lastNode as the starting point
+        current = lastNode;
+        if (index < lastIndex) {
+            // Move backwards from lastNode
+            for (int i = lastIndex; i > index; --i) {
+                current = current->prev;
+            }
+        } else {
+            // Move forwards from lastNode
+            for (int i = lastIndex; i < index; ++i) {
+                current = current->next;
+            }
+        }
+    } else if (distanceToHead <= distanceToTail) {
+        // Traverse from the head
+        current = head;
         for (int i = 0; i < index; ++i) {
             current = current->next;
         }
     } else {
+        // Traverse from the tail
         current = tail;
         for (int i = listSize - 1; i > index; --i) {
             current = current->prev;
         }
     }
 
+    // Update lastNode and lastIndex for future access
     lastNode = current;
     lastIndex = index;
     return current;

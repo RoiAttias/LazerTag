@@ -3,11 +3,12 @@
 
 #include "Utilities\HyperList.hpp"
 
+#include "Touch.hpp"
+
 #include "Element.hpp"
 #include "Grid.hpp"
-//#include "Activity.hpp" // offset is here
+#include "Activity.hpp"
 #include "Screen.hpp"
-#include "Touch.hpp"
 
 // If you have any additional implementation or initialization code, place it here
 
