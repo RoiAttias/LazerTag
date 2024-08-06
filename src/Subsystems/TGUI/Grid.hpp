@@ -54,19 +54,19 @@ public:
             Cell *cell = cells.getAddress(i);
 
             // Calculate new x position
-            int x = 0;
+            int x = xLocation;
             for (int col = 0; col < cell->location.x; col++) {
                 x += columnDefinitions.get(col).width;
             }
 
             // Calculate new y position
-            int y = 0;
+            int y = yLocation;
             for (int row = 0; row < cell->location.y; row++) {
                 y += rowDefinitions.get(row).height;
             }
 
             // Set the new position to the element
-            cell->element->setPosition(x, y);
+            cell->element->setRenderPositionByPoint(Point(x,y));
         }
     }
 
@@ -75,7 +75,7 @@ public:
         if (visible) {
             // Render all child elements
             for (int i = 0; i < cells.size(); i++) {
-                if (cells.getAddress(i)->element->visible) 
+                if (cells.getAddress(i)->element->isVisible()) 
                     cells.getAddress(i)->element->render();
             }
         }

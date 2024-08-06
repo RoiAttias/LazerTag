@@ -9,12 +9,18 @@ public:
     Activity(int xLocation, int yLocation, int width, int height)
         : Element(xLocation, yLocation, width, height) {}
 
+    virtual void updatePositions()  {
+        for (int i = 0; i < elements.size(); i++) {
+            elements.get(i)->setRenderPositionByOffset(xLocation,yLocation);
+        }
+    }
+
     // Override render to include child elements
     virtual void render() override {
         if (visible) {
             // Render all child elements
             for (int i = 0; i < elements.size(); i++) {
-                if (elements.get(i)->visible) 
+                if (elements.get(i)->isVisible()) 
                     elements.get(i)->render();
             }
         }

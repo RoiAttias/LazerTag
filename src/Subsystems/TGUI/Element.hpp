@@ -4,11 +4,12 @@
 #include "TGUI.hpp"
 
 class Element {
-public:
-    int xLocation, yLocation, width, height;
+protected:
+    int xPosition, yPosition, width, height;
     bool visible;
 
-protected:
+    Point renderPosition; // To store the oosition adjusted for rendering
+
     bool OnClick_enable;
     void (*OnClick_handler)(Point);
 
@@ -24,11 +25,12 @@ protected:
     }
 
 public:
-    Element(int xLocation, int yLocation, int width, int height)
-        : xLocation(xLocation), yLocation(yLocation),
-        width(width), height(height),
-        visible(true),
-        OnClick_enable(false), OnClick_handler(nullptr) {}
+    Element(int xPosition, int yPosition, int width, int height)
+        : xPosition(xPosition), yPosition(yPosition),
+          width(width), height(height),
+          visible(true),
+          OnClick_enable(false), OnClick_handler(nullptr),
+          renderPosition(xPosition, yPosition) {} // Initialize renderPosition
 
     /**
      * @brief Pure virtual function for rendering the element.
@@ -42,8 +44,9 @@ public:
      * @param newY The new y-coordinate of the element.
      */
     virtual void setPosition(int newX, int newY) {
-        xLocation = newX;
-        yLocation = newY;
+        setRenderPositionByOffset(newX-xPosition,newY-yPosition); // Update renderPosition when position changes
+        xPosition = newX;
+        yPosition = newY;
     }
 
     /**
@@ -51,8 +54,8 @@ public:
      * 
      * @return Point The position of the element.
      */
-    virtual Point getPosition() {
-        return Point(xLocation, yLocation);
+    virtual Point getPosition() const {
+        return Point(xPosition, yPosition);
     }
 
     /**
@@ -60,7 +63,7 @@ public:
      * 
      * @return int The width of the element.
      */
-    virtual int getWidth() {
+    virtual int getWidth() const {
         return width;
     }
 
@@ -69,7 +72,7 @@ public:
      * 
      * @return int The height of the element.
      */
-    virtual int getHeight() {
+    virtual int getHeight() const {
         return height;
     }
 
@@ -83,15 +86,53 @@ public:
     }
 
     /**
+     * @brief Get the visibility of the element.
+     * 
+     * @return isVisible True to make the element visible, false to hide it.
+     */
+    virtual void isVisible() {
+        return visible;
+    }
+
+
+    /**
+     * @brief Set the render Position by adding an offset to the element's position.
+     * 
+     * @param xOffset The x-coordinate offset.
+     * @param yOffset The y-coordinate offset.
+     */
+    virtual void setRenderPositionByOffset(int xOffset, int yOffset) {
+        renderPosition = Point(xPosition + xOffset, yPosition + yOffset);
+    }
+
+    /**
+     * @brief Set the render Position directly from a Point.
+     * 
+     * @param point The new render Position.
+     */
+    virtual void setRenderPositionByPoint(Point point) {
+        renderPosition = point;
+    }
+
+    /**
+     * @brief Get the render Position of the element.
+     * 
+     * @return Point The render Position of the element.
+     */
+    virtual Point getRenderPosition() const {
+        return renderPosition;
+    }
+
+    /**
      * @brief Check if a point is within the element's range.
      * 
      * @param x The x-coordinate of the point.
      * @param y The y-coordinate of the point.
      * @return bool True if the point is within range, false otherwise.
      */
-    virtual bool inRange(int x, int y) {
-        return (x >= xLocation && x <= xLocation + width &&
-                y >= yLocation && y <= yLocation + height);
+    virtual bool inRange(int x, int y) const {
+        return (x >= renderPosition.x && x <= renderPosition.x + width &&
+                y >= renderPosition.y && y <= renderPosition.y + height);
     }
 
     /**
@@ -100,7 +141,7 @@ public:
      * @param point The Point to check.
      * @return bool True if the point is within range, false otherwise.
      */
-    virtual bool inRange(const Point point) {
+    virtual bool inRange(const Point point) const {
         return inRange(point.x, point.y);
     }
 
@@ -131,7 +172,7 @@ public:
         if (OnClick_enable && OnClick_handler != nullptr) {
             OnClick_handler(point);
         }
-    }
+    }    
 };
 
 #endif // ELEMENT_HPP

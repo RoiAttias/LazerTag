@@ -33,7 +33,7 @@ struct Point
  */
 class Touch
 {
-private:
+protected:
     Point point; //< The current point of Touch input.
 
 public:

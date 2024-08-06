@@ -83,7 +83,7 @@ void Screen::renderAll() {
 // Render all visible activities
 void Screen::renderAllVisible() {
     for (int i = 0; i < activities.size(); i++) {
-        if (activities.get(i)->visible) {
+        if (activities.get(i)->isVisible()) {
             activities.get(i)->render();
         }
     }
