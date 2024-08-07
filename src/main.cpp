@@ -5,7 +5,7 @@
 //#include "Subsystems\TGUI\TGUI.hpp"
 #include "Subsystems\IRremoteESP32\IRremoteESP32.hpp"
 
-IRSender irSender(12, 0, 38000, false); // Pin 12, channel 0, 38kHz frequency, no invert
+IRsender irSender(4, 0, 38000, false); // Pin 4, channel 0, 38kHz frequency, no invert
 
 void setup() {
   Serial.begin(115200);
