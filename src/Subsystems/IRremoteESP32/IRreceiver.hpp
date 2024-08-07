@@ -21,6 +21,7 @@ class IRReceiver {
     int bitCount;
     int threshold;
     bool dataAvailable;
+    bool enable;
     OnReceiveHandler onReceiveHandler;
 
     static void IRAM_ATTR ISRWrapper(void *arg) {
