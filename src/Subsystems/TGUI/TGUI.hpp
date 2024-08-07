@@ -1,5 +1,5 @@
-#ifndef TGUI_H
-#define TGUI_H
+#ifndef TGUI_HPP
+#define TGUI_HPP
 
 #include "Utilities\HyperList.hpp"
 

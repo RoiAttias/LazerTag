@@ -2,21 +2,20 @@
 
 #include "Constants.h"
 #include "Utilities\HyperList.hpp"
-#include "Subsystems\TGUI\TGUI.hpp"
+//#include "Subsystems\TGUI\TGUI.hpp"
+#include "Subsystems\IRremoteESP32\IRremoteESP32.hpp"
 
-// put function declarations here:
-int myFunction(int, int);
-Grid g(0,0,100,100);
+IRSender irSender(12, 0, 38000, false); // Pin 12, channel 0, 38kHz frequency, no invert
+
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  Serial.begin(115200);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-}
-
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  // Send an NEC command
+  unsigned long command = 0x20DF10EF; // Example command
+  Serial.print("Sending NEC command: 0x");
+  Serial.println(command, HEX);
+  irSender.sendNEC(command, 32);
+  delay(5000); // Wait 5 seconds before sending again
 }
