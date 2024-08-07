@@ -5,17 +5,24 @@
 //#include "Subsystems\TGUI\TGUI.hpp"
 #include "Subsystems\IRremoteESP32\IRremoteESP32.hpp"
 
-IRSender irSender(12, 0, 38000, false); // Pin 12, channel 0, 38kHz frequency, no invert
+IRReceiver irReceiver(14, 200, false); // Pin 14, threshold 200, no invert
+
+void onReceive(unsigned long data) {
+  Serial.print("Received NEC command: 0x");
+  Serial.println(data, HEX);
+}
 
 void setup() {
   Serial.begin(115200);
+  irReceiver.OnReceive_setHandler(onReceive);
+  irReceiver.OnReceive_enable(true);
 }
 
 void loop() {
-  // Send an NEC command
-  unsigned long command = 0x20DF10EF; // Example command
-  Serial.print("Sending NEC command: 0x");
-  Serial.println(command, HEX);
-  irSender.sendNEC(command, 32);
-  delay(5000); // Wait 5 seconds before sending again
+  // Optionally handle received data here if needed
+  if (irReceiver.available()) {
+    unsigned long result = irReceiver.read();
+    Serial.print("Received NEC command: 0x");
+    Serial.println(result, HEX);
+  }
 }
