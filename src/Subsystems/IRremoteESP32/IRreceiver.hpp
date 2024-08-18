@@ -10,28 +10,26 @@
 #define NEC_ONE_SPACE 1690
 #define NEC_ZERO_SPACE 560
 
-typedef void (*OnReceiveHandler)(unsigned long data);
-
-class IRReceiver
+class IRreceiver
 {
 private:
   int recvPin;
   bool invert;
-  unsigned long lastTime;
-  unsigned long data;
-  int bitCount;
+  volatile unsigned long lastTime;
+  volatile unsigned long data;
+  volatile int bitCount;
   int threshold;
-  bool dataAvailable;
-  bool onReceiveEnable;
-  OnReceiveHandler onReceiveHandler;
-
+  volatile bool dataAvailable;
+  volatile bool onReceiveEnable;
+  void (*onReceiveHandler)(unsigned long data);
+  
   static void IRAM_ATTR ISRWrapper(void *arg)
   {
-    IRReceiver *self = static_cast<IRReceiver *>(arg);
+    IRreceiver *self = static_cast<IRreceiver *>(arg);
     self->decodeNec();
   }
 
-  void decodeNec()
+  void IRAM_ATTR decodeNec()
   {
     unsigned long time = micros();
     unsigned long duration = time - lastTime;
@@ -54,24 +52,28 @@ private:
     if (duration >= (NEC_BIT_MARK - threshold) && duration <= (NEC_BIT_MARK + threshold))
     {
       // Detected bit mark
-      if (invert)
+      bool pinState = invert ? !(GPIO_REG_READ(GPIO_IN_ADDRESS) & (1 << recvPin)) : (GPIO_REG_READ(GPIO_IN_ADDRESS) & (1 << recvPin));
+      
+      if (pinState)
       {
-        duration = digitalRead(recvPin) ? duration : 0;
-      }
-      if (duration >= (NEC_ONE_SPACE - threshold) && duration <= (NEC_ONE_SPACE + threshold))
-      {
-        data = (data << 1) | 1;
-      }
-      else if (duration >= (NEC_ZERO_SPACE - threshold) && duration <= (NEC_ZERO_SPACE + threshold))
-      {
-        data = (data << 1);
-      }
-      bitCount++;
+        if (duration >= (NEC_ONE_SPACE - threshold) && duration <= (NEC_ONE_SPACE + threshold))
+        {
+          data = (data << 1) | 1;
+        }
+        else if (duration >= (NEC_ZERO_SPACE - threshold) && duration <= (NEC_ZERO_SPACE + threshold))
+        {
+          data = (data << 1);
+        }
+        bitCount++;
 
-      if (bitCount == NEC_BITS)
-      {
-        dataAvailable = true;
-        OnReceive_execute();
+        if (bitCount == NEC_BITS)
+        {
+          dataAvailable = true;
+          if (onReceiveHandler && onReceiveEnable)
+          {
+            onReceiveHandler(data);
+          }
+        }
       }
     }
   }
@@ -79,7 +81,7 @@ private:
 public:
   IRReceiver(int pin, bool invertSignal = true, int threshold = 200)
       : recvPin(pin), invert(invertSignal), threshold(threshold),
-        lastTime(0), data(0), bitCount(0), 
+        lastTime(0), data(0), bitCount(0),
         dataAvailable(false), onReceiveHandler(nullptr), onReceiveEnable(false)
   {
     pinMode(recvPin, INPUT);
@@ -105,14 +107,6 @@ public:
   void OnReceive_setHandler(OnReceiveHandler handler)
   {
     onReceiveHandler = handler;
-  }
-
-  void OnReceive_execute()
-  {
-    if (dataAvailable && onReceiveHandler && onReceiveEnable)
-    {
-      onReceiveHandler(data);
-    }
   }
 };
 
