@@ -16,24 +16,20 @@ class IRsender {
       ledcSetup(channel, freq, 10); // Setup LEDC with 10-bit resolution
       ledcAttachPin(ledPin, channel);
       if (invert) {
-        digitalWrite(ledPin, HIGH);
+        ledcWrite(channel, 1023); // Inverted logic: Turn on LED
       } else {
-        digitalWrite(ledPin, LOW);
+        ledcWrite(channel, 0); // Turn off LED
       }
     }
 
     void mark(int time) {
-      if (invert) {
-        ledcWrite(channel, 0); // Inverted logic: Turn off LED
-      } else {
-        ledcWrite(channel, 512); // 50% duty cycle
-      }
+      ledcWrite(channel, 512); // 50% duty cycle
       delayMicroseconds(time);
     }
 
     void space(int time) {
       if (invert) {
-        ledcWrite(channel, 512); // Inverted logic: Turn on LED
+        ledcWrite(channel, 1023); // Inverted logic: Turn on LED
       } else {
         ledcWrite(channel, 0); // Turn off LED
       }

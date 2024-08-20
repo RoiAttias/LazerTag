@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include "Constants.h"
-#include "Utilities\HyperList.hpp"
+//#include "Utilities\HyperList.hpp"
 //#include "Subsystems\TGUI\TGUI.hpp"
 #include "Subsystems\IRremoteESP32\IRremoteESP32.hpp"
 
@@ -17,5 +17,5 @@ void loop() {
   Serial.print("Sending NEC command: 0x");
   Serial.println(command, HEX);
   irSender.sendNEC(command, 32);
-  delay(5000); // Wait 5 seconds before sending again
+  delay(2000); // Wait 2 seconds before sending again
 }
