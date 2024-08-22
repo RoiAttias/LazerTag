@@ -4,15 +4,14 @@
 #include <Arduino.h>
 
 #define NEC_BITS 32
-#define NEC_HEADER_MARK 9000
-#define NEC_HEADER_SPACE 4500
-#define NEC_BIT_MARK 560
-#define NEC_ONE_SPACE 1690
-#define NEC_ZERO_SPACE 560
+#define NEC_HEADER_MARK 9000UL
+#define NEC_HEADER_SPACE 4500UL
+#define NEC_BIT_MARK 560UL
+#define NEC_ONE_SPACE 1690UL
+#define NEC_ZERO_SPACE 560UL
+#define NEC_THRESHOLD 50
 
-typedef void (*OnReceiveHandler)(unsigned long data);
-
-class IRReceiver
+class IRreceiver
 {
 private:
   int recvPin;
@@ -20,10 +19,8 @@ private:
   unsigned long lastTime;
   unsigned long data;
   int bitCount;
-  int threshold;
   bool dataAvailable;
-  bool onReceiveEnable;
-  OnReceiveHandler onReceiveHandler;
+  NEC_STAGE stage = headerMark;
 
   static void IRAM_ATTR ISRWrapper(void *arg)
   {
@@ -36,6 +33,8 @@ private:
     unsigned long time = micros();
     unsigned long duration = time - lastTime;
     lastTime = time;
+
+    //if
 
     if (duration >= (NEC_HEADER_MARK - threshold) && duration <= (NEC_HEADER_MARK + threshold))
     {
@@ -77,13 +76,14 @@ private:
   }
 
 public:
-  IRReceiver(int pin, bool invertSignal = true, int threshold = 200)
-      : recvPin(pin), invert(invertSignal), threshold(threshold),
-        lastTime(0), data(0), bitCount(0), 
-        dataAvailable(false), onReceiveHandler(nullptr), onReceiveEnable(false)
-  {
+  IRReceiver::IRReceiver(int pin, bool invert, unsigned long threshold)
+    : _pin(pin), _invert(invert), _threshold(threshold), _lastTime(0), 
+      _data(0), _bitCount(0), _dataAvailable(false), _stage(headerMark) {
+
     pinMode(recvPin, INPUT);
-    attachInterruptArg(digitalPinToInterrupt(recvPin), ISRWrapper, this, invert ? FALLING : RISING);
+    
+    //attachInterruptArg(digitalPinToInterrupt(recvPin), ISRWrapper, this, invert ? FALLING : RISING);
+    
   }
 
   bool available()
@@ -97,23 +97,7 @@ public:
     return data;
   }
 
-  void OnReceive_enable(bool enable)
-  {
-    onReceiveEnable = enable;
-  }
 
-  void OnReceive_setHandler(OnReceiveHandler handler)
-  {
-    onReceiveHandler = handler;
-  }
-
-  void OnReceive_execute()
-  {
-    if (dataAvailable && onReceiveHandler && onReceiveEnable)
-    {
-      onReceiveHandler(data);
-    }
-  }
 };
 
 #endif // IRRECEIVER_HPP

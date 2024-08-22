@@ -40,10 +40,10 @@ class IRsender {
       delayMicroseconds(time);
     }
 
-    void sendNEC(unsigned long data, int nbits) {
+    void sendNEC(unsigned long data, int nbits = 32) {
       mark(9000);
       space(4500);
-      for (unsigned long mask = 1UL << (nbits - 1); mask; mask >>= 1) {
+      for (unsigned long mask = 1UL << (nbits - 1); mask; mask >> 1) {
         if (data & mask) {
           mark(560);
           space(1690);
