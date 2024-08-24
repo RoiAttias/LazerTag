@@ -2,6 +2,7 @@
 #define IRRECEIVER_HPP
 
 #include <Arduino.h>
+#include "Utilities\HyperList.hpp"
 
 #define NEC_BITS 32
 #define NEC_HEADER_MARK 9000UL
@@ -11,79 +12,55 @@
 #define NEC_ZERO_SPACE 562UL
 #define NEC_THRESHOLD 100UL
 
+enum NEC_STAGE
+{
+  headerMark,
+  headerSpace,
+  bitMark,
+  bitSpace
+};
+
+bool compare (unsigned long value, unsigned long valToCompare, unsigned long epsilon)
+{
+  return value >= (valToCompare - epsilon) && value <= (valToCompare + epsilon);
+}
+
 class IRreceiver
 {
 private:
   int recvPin;
   bool invert;
-  unsigned long lastTime;
+
   unsigned long data;
-  int bitCount;
   bool dataAvailable;
+
+  unsigned long lastTime;
+  unsigned long currentTime;
+  unsigned long duration;
+  int bitCount;
   NEC_STAGE stage = headerMark;
 
-  static void IRAM_ATTR ISRWrapper(void *arg)
-  {
-    IRReceiver *self = static_cast<IRReceiver *>(arg);
-    self->decodeNec();
-  }
-
-  void decodeNec()
-  {
-    unsigned long time = micros();
-    unsigned long duration = time - lastTime;
-    lastTime = time;
-
-    //if
-
-    if (duration >= (NEC_HEADER_MARK - threshold) && duration <= (NEC_HEADER_MARK + threshold))
-    {
-      // Detected header mark
-      bitCount = 0;
-      data = 0;
-      return;
-    }
-
-    if (bitCount >= NEC_BITS)
-    {
-      // Already received full data
-      return;
-    }
-
-    if (duration >= (NEC_BIT_MARK - threshold) && duration <= (NEC_BIT_MARK + threshold))
-    {
-      // Detected bit mark
-      if (invert)
-      {
-        duration = digitalRead(recvPin) ? duration : 0;
-      }
-      if (duration >= (NEC_ONE_SPACE - threshold) && duration <= (NEC_ONE_SPACE + threshold))
-      {
-        data = (data << 1) | 1;
-      }
-      else if (duration >= (NEC_ZERO_SPACE - threshold) && duration <= (NEC_ZERO_SPACE + threshold))
-      {
-        data = (data << 1);
-      }
-      bitCount++;
-
-      if (bitCount == NEC_BITS)
-      {
-        dataAvailable = true;
-        OnReceive_execute();
-      }
-    }
-  }
-
 public:
-  IRReceiver::IRReceiver(int pin, bool invert, unsigned long threshold)
-    : _pin(pin), _invert(invert), _threshold(threshold), _lastTime(0), 
-      _data(0), _bitCount(0), _dataAvailable(false), _stage(headerMark) {
+  IRreceiver(int pin, void (*interrupt4decode)(void))//, bool invertedSignal)
+  {
+    recvPin = pin;
+    //invert = invertedSignal;
+    data = 0UL;
+    bitCount = 0;
+    dataAvailable = 0;
 
-    pinMode(recvPin, INPUT);
-    
-    //attachInterruptArg(digitalPinToInterrupt(recvPin), ISRWrapper, this, invert ? FALLING : RISING);
-    
+    pinMode(recvPin, INPUT_PULLUP);
+    attachInterrupt(digitalPinToInterrupt(recvPin),interrupt4decode, CHANGE);
+    lastTime = micros();
+
+    stage = headerMark;
+
+    // invert ? FALLING : RISING;
+  }
+
+  ~IRreceiver()
+  {
+    detachInterrupt(digitalPinToInterrupt(recvPin));
   }
 
   bool available()
@@ -97,7 +74,77 @@ public:
     return data;
   }
 
+  void decodeNEC()
+  {
+    currentTime = micros();
+    duration = currentTime - lastTime;
+    lastTime = currentTime;
 
+    switch (stage)
+    {
+    case headerMark:
+      if (compare(duration, NEC_HEADER_MARK, NEC_THRESHOLD))
+      {
+        stage = headerSpace;
+      }
+      else
+      {
+        stage = headerMark; // Reset to header mark stage if not matched
+      }
+      break;
+
+    case headerSpace:
+      if (compare(duration, NEC_HEADER_SPACE, NEC_THRESHOLD))
+      {
+        stage = bitMark;
+        bitCount = 0;
+        data = 0;
+      }
+      else
+      {
+        stage = headerMark; // Reset to header mark stage if not matched
+      }
+      break;
+
+    case bitMark:
+      if (compare(duration, NEC_BIT_MARK, NEC_THRESHOLD))
+      {
+        stage = bitSpace;
+      }
+      else
+      {
+        stage = headerMark; // Reset to header mark stage if not matched
+      }
+      break;
+
+    case bitSpace:
+      if (compare(duration, NEC_ONE_SPACE, NEC_THRESHOLD))
+      {
+        data = (data << 1) | 1; // Received a '1'
+        bitCount++;
+      }
+      else if (compare(duration, NEC_ZERO_SPACE, NEC_THRESHOLD))
+      {
+        data = (data << 1) | 0; // Received a '0'
+        bitCount++;
+      }
+      else
+      {
+        stage = headerMark; // Reset to header mark stage if not matched
+      }
+
+      if (bitCount == NEC_BITS)
+      { // Check if we have received all bits
+        dataAvailable = true;
+        stage = headerMark; // Reset for next signal
+      }
+      else
+      {
+        stage = bitMark; // Go back to wait for next bit mark
+      }
+      break;
+    }
+  }
 };
 
 #endif // IRRECEIVER_HPP
