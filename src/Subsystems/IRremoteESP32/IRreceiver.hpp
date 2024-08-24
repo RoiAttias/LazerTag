@@ -2,7 +2,6 @@
 #define IRRECEIVER_HPP
 
 #include <Arduino.h>
-#include "Utilities\HyperList.hpp"
 
 #define NEC_BITS 32
 #define NEC_HEADER_MARK 9000UL
