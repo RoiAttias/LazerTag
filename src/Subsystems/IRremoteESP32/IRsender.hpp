@@ -15,11 +15,7 @@ class IRsender {
       : ledPin(pin), channel(channel), freq(frequency), invert(invertSignal) {
       ledcSetup(channel, freq, 10); // Setup LEDC with 10-bit resolution
       ledcAttachPin(ledPin, channel);
-      if (invert) {
-        ledcWrite(channel, 1023); // Inverted logic: Turn on LED
-      } else {
-        ledcWrite(channel, 0); // Turn off LED
-      }
+      space(0);
     }
 
     void mark(int time) {

@@ -49,7 +49,7 @@ public:
     dataAvailable = 0;
 
     pinMode(recvPin, INPUT_PULLUP);
-    attachInterrupt(digitalPinToInterrupt(recvPin),interrupt4decode, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(recvPin),interrupt4decode, CHANGE);
     lastTime = micros();
 
     stage = headerMark;
@@ -143,6 +143,7 @@ public:
       }
       break;
     }
+    Serial.println(duration);
   }
 };
 
