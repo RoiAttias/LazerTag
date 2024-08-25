@@ -1,7 +1,7 @@
 #ifndef IRSENDER_HPP
 #define IRSENDER_HPP
 
-#include <Arduino.h>
+#include "IRremoteESP32.hpp"
 
 class IRsender {
   private:
@@ -13,6 +13,7 @@ class IRsender {
   public:
     IRsender(int pin, int channel, int frequency, bool invertSignal = false)
       : ledPin(pin), channel(channel), freq(frequency), invert(invertSignal) {
+      pinMode(ledPin,OUTPUT);
       ledcSetup(channel, freq, 10); // Setup LEDC with 10-bit resolution
       ledcAttachPin(ledPin, channel);
       space(0);
@@ -33,18 +34,18 @@ class IRsender {
     }
 
     void sendNEC(unsigned long data, int nbits = 32) {
-      mark(9000);
-      space(4500);
-      for (unsigned long mask = 1UL << (nbits - 1); mask; mask >> 1) {
+      mark(NEC_HEADER_MARK);
+      space(NEC_HEADER_SPACE);
+      for (unsigned long mask = 1UL << (nbits - 1); mask; mask = mask >> 1) {
         if (data & mask) {
-          mark(560);
-          space(1690);
+          mark(NEC_BIT_MARK);
+          space(NEC_ONE_SPACE);
         } else {
-          mark(560);
-          space(560);
+          mark(NEC_BIT_MARK);
+          space(NEC_ZERO_SPACE);
         }
       }
-      mark(560);
+      mark(NEC_BIT_MARK);
       space(0);
     }
 };

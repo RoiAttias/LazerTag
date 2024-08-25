@@ -1,5 +1,5 @@
-/*
 
+/*
 #include <Arduino.h>
 
 #include "Constants.h"
@@ -11,6 +11,9 @@ IRsender irSender(4, 0, 38000, false); // Pin 4, channel 0, 38kHz frequency, no 
 
 void setup() {
   Serial.begin(115200);  // Initialize Serial for output
+  pinMode(2, OUTPUT);
+  irSender.space(0);
+  delay(4000);
 }
 
 void loop() {
@@ -18,7 +21,23 @@ void loop() {
   unsigned long command = 0x20DF10EF; // Example command
   Serial.print("Sending NEC command: 0x");
   Serial.println(command, HEX);
-  irSender.sendNEC(command, 32);
-  delay(2000); // Wait 2 seconds before sending again
+  /*
+  irSender.mark(9000);
+  irSender.space(4500);
+
+  irSender.mark(500);
+  irSender.space(500);
+
+  irSender.mark(500);
+  irSender.space(1500);
+
+  irSender.mark(500);
+  irSender.space(500);
+  /*
+  digitalWrite(2,HIGH);
+  irSender.sendNEC(command);
+  digitalWrite(2,LOW);
+  delay(1000); // Wait 2 seconds before sending again
+  
 }
 */

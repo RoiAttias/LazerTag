@@ -1,22 +1,14 @@
 #ifndef IRRECEIVER_HPP
 #define IRRECEIVER_HPP
 
-#include <Arduino.h>
-
-#define NEC_BITS 32
-#define NEC_HEADER_MARK 9000UL
-#define NEC_HEADER_SPACE 4500UL
-#define NEC_BIT_MARK 562UL
-#define NEC_ONE_SPACE 1687UL
-#define NEC_ZERO_SPACE 562UL
-#define NEC_THRESHOLD 100UL
+#include "IRremoteESP32.hpp"
 
 enum NEC_STAGE
 {
   headerMark,
   headerSpace,
   bitMark,
-  bitSpace
+  bitSpace,
 };
 
 bool compare (unsigned long value, unsigned long valToCompare, unsigned long epsilon)
@@ -33,20 +25,22 @@ private:
   unsigned long data;
   bool dataAvailable;
 
+  unsigned long dataRead;
   unsigned long lastTime;
   unsigned long currentTime;
   unsigned long duration;
   int bitCount;
-  NEC_STAGE stage = headerMark;
+  NEC_STAGE stage;
 
 public:
-  IRreceiver(int pin, void (*interrupt4decode)(void))//, bool invertedSignal)
+  IRreceiver(int pin)//, void (*interrupt4decode)(void))//, bool invertedSignal)
   {
     recvPin = pin;
     //invert = invertedSignal;
+    dataRead = 0UL;
     data = 0UL;
     bitCount = 0;
-    dataAvailable = 0;
+    dataAvailable = false;
 
     pinMode(recvPin, INPUT_PULLUP);
     //attachInterrupt(digitalPinToInterrupt(recvPin),interrupt4decode, CHANGE);
@@ -73,10 +67,22 @@ public:
     return data;
   }
 
+  NEC_STAGE getstageNEC()
+  {
+    return stage;
+  }
+
   void decodeNEC()
   {
+    if(dataAvailable)
+      return;
+    
     currentTime = micros();
     duration = currentTime - lastTime;
+
+    if(duration < NEC_MAX_EXPECTED_BOUNCES)
+      return;
+
     lastTime = currentTime;
 
     switch (stage)
@@ -97,7 +103,7 @@ public:
       {
         stage = bitMark;
         bitCount = 0;
-        data = 0;
+        dataRead = 0;
       }
       else
       {
@@ -119,12 +125,12 @@ public:
     case bitSpace:
       if (compare(duration, NEC_ONE_SPACE, NEC_THRESHOLD))
       {
-        data = (data << 1) | 1; // Received a '1'
+        dataRead = (dataRead << 1) | 1; // Received a '1'
         bitCount++;
       }
       else if (compare(duration, NEC_ZERO_SPACE, NEC_THRESHOLD))
       {
-        data = (data << 1) | 0; // Received a '0'
+        dataRead = (dataRead << 1) | 0; // Received a '0'
         bitCount++;
       }
       else
@@ -134,6 +140,7 @@ public:
 
       if (bitCount == NEC_BITS)
       { // Check if we have received all bits
+        data = dataRead;
         dataAvailable = true;
         stage = headerMark; // Reset for next signal
       }
@@ -143,7 +150,7 @@ public:
       }
       break;
     }
-    Serial.println(duration);
+    //Serial.println(duration);
   }
 };
 
