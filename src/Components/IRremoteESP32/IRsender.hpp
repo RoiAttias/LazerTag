@@ -9,15 +9,6 @@ class IRsender {
     int channel;
     int freq;
     bool invert;
-    
-  public:
-    IRsender(int pin, int channel, int frequency, bool invertSignal = false)
-      : ledPin(pin), channel(channel), freq(frequency), invert(invertSignal) {
-      pinMode(ledPin,OUTPUT);
-      ledcSetup(channel, freq, 10); // Setup LEDC with 10-bit resolution
-      ledcAttachPin(ledPin, channel);
-      space(0);
-    }
 
     void mark(int time) {
       ledcWrite(channel, 512); // 50% duty cycle
@@ -31,6 +22,15 @@ class IRsender {
         ledcWrite(channel, 0); // Turn off LED
       }
       delayMicroseconds(time);
+    }
+    
+  public:
+    IRsender(int pin, int channel, int frequency, bool invertSignal = false)
+      : ledPin(pin), channel(channel), freq(frequency), invert(invertSignal) {
+      pinMode(ledPin,OUTPUT);
+      ledcSetup(channel, freq, 10); // Setup LEDC with 10-bit resolution
+      ledcAttachPin(ledPin, channel);
+      space(0);
     }
 
     void sendNEC(unsigned long data, int nbits = 32) {

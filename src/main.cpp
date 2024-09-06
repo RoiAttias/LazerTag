@@ -1,41 +1,32 @@
-
 #include <Arduino.h>
 
 #include "Constants.h"
 //#include "Utilities\HyperList.hpp"
 //#include "Subsystems\TGUI\TGUI.hpp"
-#include "Subsystems\IRremoteESP32\IRremoteESP32.hpp"
+#include "Components\IRremoteESP32\IRremoteESP32.hpp"
 
-IRsender irSender(4, 0, 38000, false); // Pin 4, channel 0, 38kHz frequency, no invert
+
+//void IRAM_ATTR handleDecoding();
+
+// add channels to handleDecoding to pass it as arg
+IRreceiver recv(18);//,handleDecoding);
+/*
+void IRAM_ATTR handleDecoding()
+{
+  recv.decodeNEC();
+}*/
 
 void setup() {
   Serial.begin(115200);  // Initialize Serial for output
-  pinMode(2, OUTPUT);
-  irSender.space(0);
-  delay(4000);
+  //pinMode(recvPin, INPUT_PULLUP);
+  //attachInterrupt(digitalPinToInterrupt(18), handleDecoding, CHANGE);
+  //lastTime = micros();
 }
 
 void loop() {
-  // Send an NEC command
-  unsigned long command = 0x19CD10EF; // Example command
-  Serial.print("Sending NEC command: 0x");
-  Serial.println(command, HEX);
-  /*
-  irSender.mark(9000);
-  irSender.space(4500);
-
-  irSender.mark(500);
-  irSender.space(500);
-
-  irSender.mark(500);
-  irSender.space(1500);
-
-  irSender.mark(500);
-  irSender.space(500);
-  */
-  digitalWrite(2,HIGH);
-  irSender.sendNEC(command);
-  digitalWrite(2,LOW);
-  delay(1000); // Wait 2 seconds before sending again
-  
+  if(recv.available())
+  {
+    //Serial.print('!');
+    Serial.println(recv.read(),HEX);
+  }
 }

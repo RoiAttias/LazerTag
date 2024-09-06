@@ -3,6 +3,11 @@
 
 #include "IRremoteESP32.hpp"
 
+typedef void (*voidFuncPtr)(void);
+typedef void (*voidFuncPtrArg)(void*);
+
+void IRAM_ATTR decodeHandler(void *ptr);
+
 enum NEC_STAGE
 {
   headerMark,
@@ -30,10 +35,10 @@ private:
   unsigned long currentTime;
   unsigned long duration;
   int bitCount;
-  NEC_STAGE stage;
+  NEC_STAGE nec_stage;
 
 public:
-  IRreceiver(int pin)//, void (*interrupt4decode)(void))//, bool invertedSignal)
+  IRreceiver(int pin)
   {
     recvPin = pin;
     //invert = invertedSignal;
@@ -43,12 +48,9 @@ public:
     dataAvailable = false;
 
     pinMode(recvPin, INPUT_PULLUP);
-    //attachInterrupt(digitalPinToInterrupt(recvPin),interrupt4decode, CHANGE);
+    attachInterruptArg(digitalPinToInterrupt(recvPin),decodeHandler, this, CHANGE);
     lastTime = micros();
-
-    stage = headerMark;
-
-    // invert ? FALLING : RISING;
+    nec_stage = headerMark;
   }
 
   ~IRreceiver()
@@ -67,9 +69,9 @@ public:
     return data;
   }
 
-  NEC_STAGE getstageNEC()
+  NEC_STAGE getNEC_STAGE()
   {
-    return stage;
+    return nec_stage;
   }
 
   void decodeNEC()
@@ -80,45 +82,45 @@ public:
     currentTime = micros();
     duration = currentTime - lastTime;
 
-    if(duration < NEC_MAX_EXPECTED_BOUNCES)
+    if(duration < NEC_BOUNCE_STOP_FILTER)
       return;
 
     lastTime = currentTime;
 
-    switch (stage)
+    switch (nec_stage)
     {
     case headerMark:
       if (compare(duration, NEC_HEADER_MARK, NEC_THRESHOLD))
       {
-        stage = headerSpace;
+        nec_stage = headerSpace;
       }
       else
       {
-        stage = headerMark; // Reset to header mark stage if not matched
+        nec_stage = headerMark; // Reset to header mark nec_stage if not matched
       }
       break;
 
     case headerSpace:
       if (compare(duration, NEC_HEADER_SPACE, NEC_THRESHOLD))
       {
-        stage = bitMark;
+        nec_stage = bitMark;
         bitCount = 0;
         dataRead = 0;
       }
       else
       {
-        stage = headerMark; // Reset to header mark stage if not matched
+        nec_stage = headerMark; // Reset to header mark nec_stage if not matched
       }
       break;
 
     case bitMark:
       if (compare(duration, NEC_BIT_MARK, NEC_THRESHOLD))
       {
-        stage = bitSpace;
+        nec_stage = bitSpace;
       }
       else
       {
-        stage = headerMark; // Reset to header mark stage if not matched
+        nec_stage = headerMark; // Reset to header mark nec_stage if not matched
       }
       break;
 
@@ -135,23 +137,29 @@ public:
       }
       else
       {
-        stage = headerMark; // Reset to header mark stage if not matched
+        nec_stage = headerMark; // Reset to header mark nec_stage if not matched
       }
 
       if (bitCount == NEC_BITS)
       { // Check if we have received all bits
         data = dataRead;
         dataAvailable = true;
-        stage = headerMark; // Reset for next signal
+        nec_stage = headerMark; // Reset for next signal
       }
       else
       {
-        stage = bitMark; // Go back to wait for next bit mark
+        nec_stage = bitMark; // Go back to wait for next bit mark
       }
       break;
     }
     //Serial.println(duration);
   }
 };
+
+void IRAM_ATTR decodeHandler(void *ptr)
+{
+    IRreceiver *irr_ptr = static_cast<IRreceiver*>(ptr);
+    irr_ptr->decodeNEC();
+}
 
 #endif // IRRECEIVER_HPP
