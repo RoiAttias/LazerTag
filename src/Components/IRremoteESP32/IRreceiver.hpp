@@ -7,8 +7,8 @@
 typedef void (*voidFuncPtr)(void);
 typedef void (*voidFuncPtrArg)(void*);
 
-void registerReceiver(int recvPin, void *recvPtr);
-
+class IRreceiver;
+void registerReceiver(int recvPin, IRreceiver *recvPtr);
 void IRAM_ATTR decodeHandler(void *arg);
 
 enum NEC_STAGE
@@ -50,13 +50,7 @@ public:
     bitCount = 0;
     dataAvailable = false;
     
-    void* recvPinPtrThing = reinterpret_cast<void*>(recvPin);
-    registerReceiver(recvPin, static_cast<void*>(this));
     pinMode(recvPin, INPUT_PULLUP);
-    init(pin);
-
-    lastTime = micros();
-    nec_stage = headerMark;
   }
 
   ~IRreceiver()
@@ -64,9 +58,12 @@ public:
     detachInterrupt(digitalPinToInterrupt(recvPin));
   }
 
-  void init(int pin)
+  void init()
   {
-    attachInterruptArg(digitalPinToInterrupt(recvPin),decodeHandler, reinterpret_cast<void*>(pin), CHANGE);
+    registerReceiver(recvPin, this);
+    
+    lastTime = micros();
+    nec_stage = headerMark;
   }
 
   int getPin()
@@ -173,9 +170,11 @@ public:
 
 HyperMap<int,IRreceiver*> receiverInfoList;
 
-void registerReceiver(int recvPin, void *recvPtr)
+void registerReceiver(int recvPin, IRreceiver *recvPtr)
 {
-  receiverInfoList.put(recvPin,static_cast<IRreceiver*>(recvPtr));
+  receiverInfoList.put(recvPin, recvPtr);
+  void* temp = reinterpret_cast<void*>(recvPin);
+  attachInterruptArg(digitalPinToInterrupt(recvPin),decodeHandler, temp, CHANGE);
 }
 
 void IRAM_ATTR decodeHandler(void *arg)
