@@ -2,11 +2,14 @@
 #define IRRECEIVER_HPP
 
 #include "IRremoteESP32.hpp"
+#include "Utilities\HyperMap.hpp"
 
 typedef void (*voidFuncPtr)(void);
 typedef void (*voidFuncPtrArg)(void*);
 
-void IRAM_ATTR decodeHandler(void *ptr);
+void registerReceiver(int recvPin, void *recvPtr);
+
+void IRAM_ATTR decodeHandler(void *arg);
 
 enum NEC_STAGE
 {
@@ -46,9 +49,12 @@ public:
     data = 0UL;
     bitCount = 0;
     dataAvailable = false;
-
+    
+    void* recvPinPtrThing = reinterpret_cast<void*>(recvPin);
+    registerReceiver(recvPin, static_cast<void*>(this));
     pinMode(recvPin, INPUT_PULLUP);
-    attachInterruptArg(digitalPinToInterrupt(recvPin),decodeHandler, this, CHANGE);
+    init(pin);
+
     lastTime = micros();
     nec_stage = headerMark;
   }
@@ -56,6 +62,16 @@ public:
   ~IRreceiver()
   {
     detachInterrupt(digitalPinToInterrupt(recvPin));
+  }
+
+  void init(int pin)
+  {
+    attachInterruptArg(digitalPinToInterrupt(recvPin),decodeHandler, reinterpret_cast<void*>(pin), CHANGE);
+  }
+
+  int getPin()
+  {
+    return recvPin;
   }
 
   bool available()
@@ -81,7 +97,7 @@ public:
     
     currentTime = micros();
     duration = currentTime - lastTime;
-
+    Serial.println(duration);
     if(duration < NEC_BOUNCE_STOP_FILTER)
       return;
 
@@ -152,14 +168,21 @@ public:
       }
       break;
     }
-    //Serial.println(duration);
   }
 };
 
-void IRAM_ATTR decodeHandler(void *ptr)
+HyperMap<int,IRreceiver*> receiverInfoList;
+
+void registerReceiver(int recvPin, void *recvPtr)
 {
-    IRreceiver *irr_ptr = static_cast<IRreceiver*>(ptr);
-    irr_ptr->decodeNEC();
+  receiverInfoList.put(recvPin,static_cast<IRreceiver*>(recvPtr));
+}
+
+void IRAM_ATTR decodeHandler(void *arg)
+{
+  int recvPin = reinterpret_cast<int>(arg);
+  IRreceiver *irrptr = receiverInfoList.get(recvPin);
+  irrptr->decodeNEC();
 }
 
 #endif // IRRECEIVER_HPP
