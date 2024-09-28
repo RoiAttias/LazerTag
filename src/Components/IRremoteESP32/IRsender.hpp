@@ -28,7 +28,7 @@ class IRsender {
     IRsender(int pin, int channel, int frequency, bool invertSignal = false)
       : ledPin(pin), channel(channel), freq(frequency), invert(invertSignal) {
       pinMode(ledPin,OUTPUT);
-      ledcSetup(channel, freq, 10); // Setup LEDC with 10-bit resolution
+      ledcSetup(channel, freq, 10); // Setup LEDC with 38Khz and 10-bit resolution
       ledcAttachPin(ledPin, channel);
       space(0);
     }

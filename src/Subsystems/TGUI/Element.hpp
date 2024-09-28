@@ -3,126 +3,131 @@
 
 #include "TGUI.hpp"
 
+/**
+ * @brief The Element class serves as a base class for GUI elements.
+ * 
+ * This class manages the position, scale, and visibility of GUI elements. 
+ * It supports click events with configurable handlers and includes 
+ * virtual functions for rendering and range checking. 
+ * 
+ * Key Features:
+ * - **Position and Scale**: Uses `ivec2` to manage the element's 
+ *   position and dimensions.
+ * - **Visibility**: Controls the rendering state of the element.
+ * - **Click Events**: Allows enabling/disabling of click events 
+ *   and setting a click event handler function.
+ * - **Virtual Functions**: Requires derived classes to implement 
+ *   specific rendering logic.
+ * - **Range Checking**: Provides methods to determine if a point 
+ *   falls within the element's boundaries.
+ * 
+ * This class is designed for extensibility, allowing derived classes 
+ * to implement custom behavior while providing foundational properties 
+ * and methods for GUI elements.
+ */
 class Element {
 protected:
-    int xPosition, yPosition, width, height;
-    bool visible;
+    ivec2 position, scale; // Position and scale of the element
+    bool visible; // Visibility flag
 
-    Point renderPosition; // To store the oosition adjusted for rendering
-
-    bool OnClick_enable;
-    void (*OnClick_handler)(Point);
-
-    /**
-     * @brief Set the size of the element.
-     * 
-     * @param newWidth The new width of the element.
-     * @param newHeight The new height of the element.
-     */
-    virtual void setSize(int newWidth, int newHeight) {
-        width = newWidth;
-        height = newHeight;
-    }
+    bool OnClick_enable; // Flag to enable click events
+    std::function<void(ivec2)> OnClick_handler; // Click event handler
 
 public:
-    Element(int xPosition, int yPosition, int width, int height)
-        : xPosition(xPosition), yPosition(yPosition),
-          width(width), height(height),
-          visible(true),
-          OnClick_enable(false), OnClick_handler(nullptr),
-          renderPosition(xPosition, yPosition) {} // Initialize renderPosition
-
+    // Constructors
     /**
-     * @brief Pure virtual function for rendering the element.
-     */
-    virtual void render() = 0;
-
-    /**
-     * @brief Set the position of the element.
+     * @brief Constructor of Element
      * 
-     * @param newX The new x-coordinate of the element.
-     * @param newY The new y-coordinate of the element.
+     * @param xPosition The position of the element on the X axis.
+     * @param yPosition The position of the element on the Y axis.
+     * @param width The scale of the element on the X axis.
+     * @param height The scale of the element on the Y axis.
+     * @param visible Enable rendering for the element.
+     * @param OnClick_enable Enable or disable the click event for the element.
+     * @param OnClick_handler Pointer to the function to handle the click event.
      */
-    virtual void setPosition(int newX, int newY) {
-        setRenderPositionByOffset(newX-xPosition,newY-yPosition); // Update renderPosition when position changes
-        xPosition = newX;
-        yPosition = newY;
+    Element(int xPosition, int yPosition, int width, int height, bool visible = true,
+        bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
+        : position(xPosition, yPosition), scale(width, height), visible(visible),
+          OnClick_enable(OnClick_enable), OnClick_handler(OnClick_handler) {}
+
+    /**
+     * @brief Constructor of Element
+     * 
+     * @param position The position of the element on the X and Y axis.
+     * @param scale The width and height of the element.
+     * @param visible Enable rendering for the element.
+     * @param OnClick_enable Enable or disable the click event for the element.
+     * @param OnClick_handler Pointer to the function to handle the click event.
+     */
+    Element(ivec2 position, const ivec2& scale, bool visible = true,
+        bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
+        : position(position), scale(scale), visible(visible),
+          OnClick_enable(OnClick_enable), OnClick_handler(OnClick_handler) {}
+        
+    // Getters
+    /**
+     * @brief Get the position of the element.
+     * 
+     * @return The position of the element.
+     */
+    virtual ivec2 getPosition() const {
+        return position;
     }
 
     /**
-     * @brief Get the position of the element as a Point.
+     * @brief Get the scale of the element.
      * 
-     * @return Point The position of the element.
+     * @return The scale of the element.
      */
-    virtual Point getPosition() const {
-        return Point(xPosition, yPosition);
-    }
-
-    /**
-     * @brief Get the width of the element.
-     * 
-     * @return int The width of the element.
-     */
-    virtual int getWidth() const {
-        return width;
-    }
-
-    /**
-     * @brief Get the height of the element.
-     * 
-     * @return int The height of the element.
-     */
-    virtual int getHeight() const {
-        return height;
-    }
-
-    /**
-     * @brief Set the visibility of the element.
-     * 
-     * @param isVisible True to make the element visible, false to hide it.
-     */
-    virtual void setVisible(bool isVisible) {
-        visible = isVisible;
+    virtual ivec2 getScale() const {
+        return scale;
     }
 
     /**
      * @brief Get the visibility of the element.
      * 
-     * @return isVisible True to make the element visible, false to hide it.
+     * @return True if rendering is enabled for the element.
      */
-    virtual void isVisible() {
+    virtual bool isVisible() const {
         return visible;
     }
-
-
+    
+    // Setters
     /**
-     * @brief Set the render Position by adding an offset to the element's position.
+     * @brief Set the position of the element.
      * 
-     * @param xOffset The x-coordinate offset.
-     * @param yOffset The y-coordinate offset.
+     * @param position The new position for the element.
      */
-    virtual void setRenderPositionByOffset(int xOffset, int yOffset) {
-        renderPosition = Point(xPosition + xOffset, yPosition + yOffset);
+    virtual void setPosition(ivec2 position) {
+        this->position = position;
     }
 
     /**
-     * @brief Set the render Position directly from a Point.
+     * @brief Set the scale of the element.
      * 
-     * @param point The new render Position.
+     * @param scale The new scale for the element.
      */
-    virtual void setRenderPositionByPoint(Point point) {
-        renderPosition = point;
+    virtual void setScale(ivec2 scale) {
+        this->scale = scale;
     }
 
     /**
-     * @brief Get the render Position of the element.
+     * @brief Set the visibility of the element.
      * 
-     * @return Point The render Position of the element.
+     * @param visible Enable rendering for the element.
      */
-    virtual Point getRenderPosition() const {
-        return renderPosition;
+    virtual void setVisible(bool visible) {
+        this->visible = visible;
     }
 
+    // Functions to be overridden
+    /**
+     * @brief Pure virtual function for rendering the element.
+     */
+    virtual void render() = 0;
+
+    // Calculations
     /**
      * @brief Check if a point is within the element's range.
      * 
@@ -131,20 +136,21 @@ public:
      * @return bool True if the point is within range, false otherwise.
      */
     virtual bool inRange(int x, int y) const {
-        return (x >= renderPosition.x && x <= renderPosition.x + width &&
-                y >= renderPosition.y && y <= renderPosition.y + height);
+        return (x >= position.x && x <= position.x + scale.x &&
+                y >= position.y && y <= position.y + scale.y);
     }
 
     /**
      * @brief Check if a point is within the element's range.
      * 
-     * @param point The Point to check.
+     * @param point The ivec2 to check.
      * @return bool True if the point is within range, false otherwise.
      */
-    virtual bool inRange(const Point point) const {
+    virtual bool inRange(const ivec2 point) const {
         return inRange(point.x, point.y);
     }
 
+    // Events
     /**
      * @brief Enable or disable the click event for the element.
      * 
@@ -159,7 +165,7 @@ public:
      * 
      * @param handler Pointer to the function to handle the click event.
      */
-    virtual void OnClick_setHandler(void (*handler)(Point)) {
+    virtual void OnClick_setHandler(std::function<void(ivec2)> handler) {
         OnClick_handler = handler;
     }
 
@@ -168,8 +174,8 @@ public:
      * 
      * @param point The point where the click occurred.
      */
-    virtual void OnClick_execute(Point point) {
-        if (OnClick_enable && OnClick_handler != nullptr) {
+    virtual void OnClick_execute(ivec2 point) {
+        if (OnClick_enable && OnClick_handler) {
             OnClick_handler(point);
         }
     }    

@@ -2,33 +2,6 @@
 #define TOUCH_HPP
 
 /**
- * @brief Struct representing a point in 2D space.
- */
-struct Point
-{
-    int x; //< The x-coordinate of the point.
-    int y; //< The y-coordinate of the point.
-
-    /**
-     * @brief Constructor for Point.
-     * 
-     * @param x The x-coordinate of the point. Default is -1.
-     * @param y The y-coordinate of the point. Default is -1.
-     */
-    Point(int x = -1, int y = -1) : x(x), y(y) {}
-
-    /**
-     * @brief The equality operator
-     * 
-     * @param other const Point
-     */
-    bool operator==(const Point other) const {
-        return (x == other.x) && (y == other.y);
-    }
-
-};
-
-/**
  * @brief Class representing a Touch input.
  */
 class Touch

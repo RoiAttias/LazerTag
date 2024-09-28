@@ -17,9 +17,9 @@ struct RowDefinition {
 
 struct Cell {
     Element *element;
-    Point location;
+    ivec2 location;
 
-    Cell(Element *element = nullptr, Point location = Point(0,0)) : element(element), location(location) {}
+    Cell(Element *element = nullptr, ivec2 location = ivec2()) : element(element), location(location) {}
 };
 
 class Grid : public Element {
