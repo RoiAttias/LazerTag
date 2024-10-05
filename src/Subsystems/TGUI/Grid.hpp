@@ -31,6 +31,14 @@ public:
     Grid(int xLocation, int yLocation, int width, int height)
         : Element(xLocation, yLocation, width, height) {}
 
+    bool addColumn(ColumnDefinition column) {
+        columnDefinitions.add(column);
+    }
+
+    bool addRow(RowDefinition row) {
+        rowDefinitions.add(row);
+    }
+
     bool addCell(Cell cell) {
         HyperList<Point> locations;
         for (int i = 0; i < cells.size(); i++) {
@@ -46,6 +54,10 @@ public:
     {
         Cell cell(element, location);
         return addCell(cell);
+    }
+
+    ivec2 getCells() {
+        return ivec2(columnDefinitions.size(), rowDefinitions.size());
     }
 
     void updatePositions() {

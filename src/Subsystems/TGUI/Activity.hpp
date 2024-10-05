@@ -3,61 +3,156 @@
 
 #include "Element.hpp"
 
-class Activity : public Element {
+/**
+ * @brief Activity class serves as a container for managing multiple child elements.
+ *
+ * Activity provides a layout mechanism for managing child elements, handling rendering,
+ * updating positions, and forwarding events like clicks to child elements.
+ *
+ * Key Features:
+ * - **Position and Scale**: Manages the overall position and size of the activity area.
+ * - **Child Elements**: Allows adding, removing, and updating multiple child elements.
+ * - **Rendering**: Renders child elements when the activity is visible.
+ * - **Event Handling**: Propagates click events to relevant child elements within bounds.
+ */
+class Activity : public Element
+{
+private:
+    HyperList<Element *> elements; // List of child elements managed by the Activity.
+
 public:
-    // Constructor
-    Activity(int xLocation, int yLocation, int width, int height)
-        : Element(xLocation, yLocation, width, height) {}
+    // Constructors
+    /**
+     * @brief Constructor of Activity
+     *
+     * @param position The position of the activity on the X and Y axis.
+     * @param scale The width and height of the activity.
+     * @param visible Enable rendering for the activity.
+     * @param OnClick_enable Enable or disable the click event for the activity.
+     * @param OnClick_handler Pointer to the function to handle the click event.
+     */
+    Activity(ivec2 position = ivec2(), ivec2 scale = ivec2(), bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
+        : Element(position, scale, visible, OnClick_enable, OnClick_handler) {}
 
-    virtual void updatePositions()  {
-        for (int i = 0; i < elements.size(); i++) {
-            elements.get(i)->setRenderPositionByOffset(xLocation,yLocation);
-        }
-    }
-
-    // Override render to include child elements
-    virtual void render() override {
-        if (visible) {
-            // Render all child elements
-            for (int i = 0; i < elements.size(); i++) {
-                if (elements.get(i)->isVisible()) 
+    // Overrides
+    /**
+     * @brief Render the Activity and all its child elements.
+     */
+    virtual void render() override
+    {
+        if (visible)
+        {
+            // Update the positions of all child elements relative to the Activity's location.
+            updatePositions();
+            // Render all visible child elements
+            for (int i = 0; i < elements.size(); i++)
+            {
+                if (elements.get(i)->isVisible() && inRange(elements.get(i)))
+                {
                     elements.get(i)->render();
+                }
             }
         }
     }
 
-    // Override OnClick_execute to handle clicks and forward to child elements
-    virtual void OnClick_execute(Point point) override {
-        if (OnClick_enable && OnClick_handler != nullptr) {
+    /**
+     * @brief Handles click events and forwards them to child elements if necessary.
+     *
+     * @param point The location where the click occurred.
+     */
+    virtual void OnClick_execute(ivec2 point) override
+    {
+        if (OnClick_enable && OnClick_handler != nullptr)
+        {
             OnClick_handler(point);
         }
-        
-        // Forward click events to child elements
-        for (int i = 0; i < elements.size(); i++) {
-            if (elements.get(i)->inRange(point)) {
-                elements.get(i)->OnClick_execute(point);
+
+        for (int i = 0; i < elements.size(); i++)
+        {
+            // Execute click events if child is visible and inside activity range
+            if (elements.get(i)->isVisible() && inRange(elements.get(i)))
+            {
+                // Execute click events to child elements if the point is in their range
+                if (elements.get(i)->inRange(point))
+                {
+                    elements.get(i)->OnClick_execute(point);
+                }
             }
         }
     }
 
-    // Add a child element
-    void addElement(Element* element) {
-        elements.add(element);
+    // Calculations
+    /**
+     * @brief Updates the positions of all child elements relative to the Activity's location.
+     */
+    virtual void updatePositions()
+    {
+        for (int i = 0; i < elements.size(); i++)
+        {
+            // Position each element relative to the Activity's position
+            elements.get(i)->setOffset(finalPosition);
+        }
     }
 
-    // Remove a child element
-    void removeElement(Element* element) {
-        // Iterate and remove the specified element
-        for (int i = 0; i < elements.size(); i++) {
-            if (elements.get(i) == element) {
+    // Element Management
+    /**
+     * @brief Add a child element to the Activity.
+     *
+     * @param element Pointer to the element to be added.
+     */
+    void addElement(Element *element)
+    {
+        if (element != nullptr)
+        {
+            elements.add(element);
+        }
+    }
+
+    /**
+     * @brief Remove a child element from the Activity.
+     *
+     * @param element Pointer to the element to be removed.
+     */
+    void removeElement(Element *element)
+    {
+        for (int i = 0; i < elements.size(); i++)
+        {
+            if (elements.get(i) == element)
+            {
                 elements.remove(i);
                 break;
             }
         }
     }
 
-private:
-    HyperList<Element*> elements; // List of child elements
+    /**
+     * @brief Remove all child elements from the Activity.
+     */
+    void clearElements()
+    {
+        elements.clear();
+    }
+
+    /**
+     * @brief Get the number of child elements in the Activity.
+     *
+     * @return The number of child elements.
+     */
+    int getElementCount() const
+    {
+        return elements.size();
+    }
+
+    /**
+     * @brief Access a child element by index.
+     *
+     * @param index The index of the element.
+     * @return Pointer to the element, or nullptr if out of bounds.
+     */
+    Element *getElement(int index)
+    {
+        return (index >= 0 && index < elements.size()) ? elements.get(index) : nullptr;
+    }
 };
 
 #endif // ACTIVITY_HPP
