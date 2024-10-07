@@ -88,6 +88,10 @@ public:
         return addCell(cell);
     }
 
+    ivec2 getCells() {
+        return ivec2(columnDefinitions.size(), rowDefinitions.size());
+    }
+
     /**
      * @brief Update the positions of all elements in the grid based on their locations and the column/row sizes.
      */
