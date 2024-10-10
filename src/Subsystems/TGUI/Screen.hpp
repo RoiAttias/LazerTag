@@ -17,7 +17,6 @@ public:
 
     void render();
     void renderAll();
-    void renderAllVisible();
     void push();
     void renderNpush();
 
@@ -27,7 +26,7 @@ public:
     void enablePush(bool enable);
     void setPushHandler(void (*handler)(void));
 
-private:
+protected:
     void executePush();
 
     int currentActivity;
@@ -36,19 +35,21 @@ private:
     void (*pushHandler)(void);
 };
 
-// Constructor with a single activity
-Screen::Screen(Activity* activity) : currentActivity(0), pushEnabled(false), pushHandler(nullptr) {
+// Constructors
+Screen::Screen(currentActivity = -1, pushEnabled = false, pushHandler = nullptr) {}
+
+Screen::Screen(Activity* activity, currentActivity = 0, pushEnabled = false, pushHandler = nullptr) {
     addActivity(activity);
 }
 
-// Constructor with multiple activities
-Screen::Screen(Activity* activity, int amount) : currentActivity(0), pushEnabled(false), pushHandler(nullptr) {
-    addActivities(activity, amount);
+Screen::Screen(Activity* activities, int amount, currentActivity = 0, pushEnabled = false, pushHandler = nullptr) {
+    addActivities(activities, amount);
 }
 
 
 // Add a single activity
 void Screen::addActivity(Activity* activity) {
+
     activities.add(activity);
 }
 
@@ -73,15 +74,8 @@ void Screen::render() {
     }
 }
 
-// Render all activities
-void Screen::renderAll() {
-    for (int i = 0; i < activities.size(); i++) {
-        activities.get(i)->render();
-    }
-}
-
 // Render all visible activities
-void Screen::renderAllVisible() {
+void Screen::renderAll() {
     for (int i = 0; i < activities.size(); i++) {
         if (activities.get(i)->isVisible()) {
             activities.get(i)->render();
@@ -118,16 +112,10 @@ void Screen::executePush() {
 }
 
 // Update touch input with coordinates
-void Screen::updateTouch(int x, int y) {
-    touch.setPoint(x, y);
+void Screen::updateTouch(ivec2 point) {
     if (activities.size() > 0) {
-        activities.get(currentActivity)->OnClick_execute(touch.getPoint());
+        activities.get(currentActivity)->OnClick_execute(point);
     }
-}
-
-// Update touch input with a Point
-void Screen::updateTouch(Point point) {
-    updateTouch(point.x, point.y);
 }
 
 #endif // SCREEN_HPP

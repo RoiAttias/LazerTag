@@ -17,7 +17,7 @@
  */
 class Activity : public Element
 {
-private:
+protected:
     HyperList<Element *> elements; // List of child elements managed by the Activity.
 
 public:
@@ -67,7 +67,9 @@ public:
             OnClick_handler(point);
         }
 
-        for (int i = 0; i < elements.size(); i++)
+        // Executes click events in reversed order, opposite of rendering order
+        // the last elements inside the list are in front.
+        for (int i = elements.size() - 1; i >= 0 ; i--)
         {
             // Execute click events if child is visible and inside activity range
             if (elements.get(i)->isVisible() && inRange(elements.get(i)))
