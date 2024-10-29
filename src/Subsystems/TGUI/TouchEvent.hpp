@@ -1,42 +1,25 @@
-#ifndef ELEMENT_HPP
-#define ELEMENT_HPP
+#ifndef TOUCHEVENT_HPP
+#define TOUCHEVENT_HPP
 
 #include "TGUI.hpp"
 
-/**
- * @brief The Element class serves as a base class for GUI elements.
- * 
- * This class manages the position, scale, and visibility of GUI elements. 
- * It supports click events with configurable handlers and includes 
- * virtual functions for rendering and range checking. 
- * 
- * Key Features:
- * - **Position and Scale**: Uses `ivec2` to manage the element's 
- *   position and dimensions.
- * - **Visibility**: Controls the rendering state of the element.
- * - **Click Events**: Allows enabling/disabling of click events 
- *   and setting a click event handler function.
- * - **Virtual Functions**: Requires derived classes to implement 
- *   specific rendering logic.
- * - **Range Checking**: Provides methods to determine if a point 
- *   falls within the element's boundaries.
- * 
- * This class is designed for extensibility, allowing derived classes 
- * to implement custom behavior while providing foundational properties 
- * and methods for GUI elements.
- */
-class Element {
+enum TouchStatus {
+    
+};
+
+class TouchEvent {
 protected:
-    ivec2 position; // Position of the element
-    ivec2 scale; // Scale of the element
-    ivec2 offset = ivec2(0,0); // Offset the position of the element
-    //ivec2 renderPosition, renderScale; // Position and scale for rendering
-    bool visible; // Visibility flag
+    ivec2 currentPosition, startPosition, endPosition;
+
 
     bool OnClick_enable; // Flag to enable click events
     std::function<void(ivec2)> OnClick_handler; // Click event handler
 
 public:
+    /*
+    * get vector
+    * get latest vector
+    */
     const int ID = newElementID(); // Unique ID of the element
 
     // Constructors
@@ -63,7 +46,7 @@ public:
      * @param OnClick_enable Enable or disable the click event for the element.
      * @param OnClick_handler Pointer to the function to handle the click event.
      */
-    Element(int xPosition = 0, int yPosition = 0, int width = 0, int height = 0, bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
+    Element(int xPosition, int yPosition, int width, int height, bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
         :Element(ivec2(xPosition, yPosition), ivec2(width, height), visible, OnClick_enable, OnClick_handler) {}
 
     // Getters
@@ -224,4 +207,4 @@ public:
     }    
 };
 
-#endif // ELEMENT_HPP
+#endif // TOUCHEVENT_HPP
