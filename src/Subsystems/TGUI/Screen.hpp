@@ -49,7 +49,6 @@ Screen::Screen(Activity* activities, int amount, currentActivity = 0, pushEnable
 
 // Add a single activity
 void Screen::addActivity(Activity* activity) {
-
     activities.add(activity);
 }
 
@@ -112,9 +111,9 @@ void Screen::executePush() {
 }
 
 // Update touch input with coordinates
-void Screen::updateTouch(ivec2 point) {
+void Screen::updateTouch(ivec2 point,TouchStatus touchStatus) {
     if (activities.size() > 0) {
-        activities.get(currentActivity)->OnClick_execute(point);
+        activities.get(currentActivity)->OnTouch_execute(point,touchStatus);
     }
 }
 

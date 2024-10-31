@@ -7,15 +7,15 @@
  * @brief The Element class serves as a base class for GUI elements.
  * 
  * This class manages the position, scale, and visibility of GUI elements. 
- * It supports click events with configurable handlers and includes 
+ * It supports touch events with configurable handlers and includes 
  * virtual functions for rendering and range checking. 
  * 
  * Key Features:
  * - **Position and Scale**: Uses `ivec2` to manage the element's 
  *   position and dimensions.
  * - **Visibility**: Controls the rendering state of the element.
- * - **Click Events**: Allows enabling/disabling of click events 
- *   and setting a click event handler function.
+ * - **Press Events**: Allows enabling/disabling of touch events 
+ *   and setting a touch event handler function.
  * - **Virtual Functions**: Requires derived classes to implement 
  *   specific rendering logic.
  * - **Range Checking**: Provides methods to determine if a point 
@@ -33,8 +33,8 @@ protected:
     //ivec2 renderPosition, renderScale; // Position and scale for rendering
     bool visible; // Visibility flag
 
-    bool OnClick_enable; // Flag to enable click events
-    std::function<void(ivec2)> OnClick_handler; // Click event handler
+    bool OnTouch_enable; // Flag to enable touch events
+    TouchEvent OnTouch_handler; // Press event handler
 
 public:
     const int ID = newElementID(); // Unique ID of the element
@@ -46,11 +46,13 @@ public:
      * @param position The position of the element on the X and Y axis.
      * @param scale The width and height of the element.
      * @param visible Enable rendering for the element.
-     * @param OnClick_enable Enable or disable the click event for the element.
-     * @param OnClick_handler Pointer to the function to handle the click event.
+     * @param OnTouch_enable Enable or disable the touch event for the element.
+     * @param OnTouch_handler Pointer to the function to handle the touch event.
      */
-    Element(ivec2 position = ivec2(), ivec2 scale = ivec2(), bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
-        : position(position), scale(scale), visible(visible), OnClick_enable(OnClick_enable), OnClick_handler(OnClick_handler) {}
+    Element(ivec2 position = ivec2(), ivec2 scale = ivec2(), bool visible = true,
+        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
+        : position(position), scale(scale), visible(visible),
+        OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler) {}
     
     /**
      * @brief Constructor of Element
@@ -60,11 +62,12 @@ public:
      * @param width The scale of the element on the X axis.
      * @param height The scale of the element on the Y axis.
      * @param visible Enable rendering for the element.
-     * @param OnClick_enable Enable or disable the click event for the element.
-     * @param OnClick_handler Pointer to the function to handle the click event.
+     * @param OnTouch_enable Enable or disable the touch event for the element.
+     * @param OnTouch_handler Pointer to the function to handle the touch event.
      */
-    Element(int xPosition = 0, int yPosition = 0, int width = 0, int height = 0, bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
-        :Element(ivec2(xPosition, yPosition), ivec2(width, height), visible, OnClick_enable, OnClick_handler) {}
+    Element(int xPosition = 0, int yPosition = 0, int width = 0, int height = 0, bool visible = true,
+        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
+        :Element(ivec2(xPosition, yPosition), ivec2(width, height), visible, OnTouch_enable, OnTouch_handler) {}
 
     // Getters
     /**
@@ -100,7 +103,7 @@ public:
      * @return Position + Offset.
      */
     virtual ivec2 getFinalPosition() const {
-        return finalPosition;
+        return position+offset;
     }
 
     /**
@@ -195,33 +198,33 @@ public:
 
     // Events
     /**
-     * @brief Enable or disable the click event for the element.
+     * @brief Enable or disable the touch event for the element.
      * 
-     * @param enable True to enable the click event, false to disable it.
+     * @param enable True to enable the touch event, false to disable it.
      */
-    virtual void OnClick_enableEvent(bool enable) {
-        OnClick_enable = enable;
+    virtual void OnTouch_enable(bool enable) {
+        OnTouch_enable = enable;
     }
 
     /**
-     * @brief Set the click event handler function.
+     * @brief Set the touch event handler function.
      * 
-     * @param handler Pointer to the function to handle the click event.
+     * @param handler Pointer to the function to handle the touch event.
      */
-    virtual void OnClick_setHandler(std::function<void(ivec2)> handler) {
-        OnClick_handler = handler;
+    virtual void OnTouch_setHandler(TouchEvent handler) {
+        OnTouch_handler = handler;
     }
 
     /**
-     * @brief Execute the click event handler if enabled.
+     * @brief Execute the touch event handler if enabled.
      * 
-     * @param point The point where the click occurred.
+     * @param point The point where the touch occurred.
      */
-    virtual void OnClick_execute(ivec2 point) {
-        if (OnClick_enable && OnClick_handler) {
-            OnClick_handler(point);
+    virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) {
+        if (OnTouch_enable && OnTouch_handler && TouchStatus::ready) {
+            OnTouch_handler(point,touchStatus);
         }
-    }    
+    }
 };
 
 #endif // ELEMENT_HPP

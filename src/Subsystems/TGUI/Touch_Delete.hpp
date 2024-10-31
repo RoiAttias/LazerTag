@@ -1,9 +1,11 @@
+/*
 #ifndef TOUCH_HPP
 #define TOUCH_HPP
 
 /**
  * @brief Class representing a Touch input.
  */
+
 class Touch
 {
 protected:

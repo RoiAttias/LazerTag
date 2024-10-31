@@ -60,12 +60,12 @@ public:
      *
      * @param point The location where the click occurred.
      */
-    virtual void OnClick_execute(ivec2 point) override
+    virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
-        if (OnClick_enable && OnClick_handler != nullptr)
-        {
-            OnClick_handler(point);
+        if (OnTouch_enable && OnTouch_handler && TouchStatus::ready) {
+            OnTouch_handler(point,touchStatus);
         }
+    
 
         // Executes click events in reversed order, opposite of rendering order
         // the last elements inside the list are in front.

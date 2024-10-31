@@ -173,8 +173,8 @@ HyperMap<int,IRreceiver*> receiverInfoList;
 void registerReceiver(int recvPin, IRreceiver *recvPtr)
 {
   receiverInfoList.put(recvPin, recvPtr);
-  void* temp = reinterpret_cast<void*>(recvPin);
-  attachInterruptArg(digitalPinToInterrupt(recvPin),decodeHandler, temp, CHANGE);
+  void* recvPinValue = reinterpret_cast<void*>(recvPin);
+  attachInterruptArg(digitalPinToInterrupt(recvPin),decodeHandler, recvPinValue, CHANGE);
 }
 
 void IRAM_ATTR decodeHandler(void *arg)

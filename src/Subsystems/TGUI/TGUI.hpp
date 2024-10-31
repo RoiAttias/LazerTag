@@ -6,7 +6,7 @@
 #include "Utilities\ivec2.hpp"
 #include "Utilities\HyperList.hpp"
 
-#define finalPosition position+offset
+//#define finalPosition position+offset
 #define AUTO -1
 
 // Element IDs
@@ -22,13 +22,16 @@ int newElementID()
     return ++elementIDs;
 }
 
+#include "TouchEvent.hpp"
+
+typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
+
 #include "Element.hpp"
 
 //#include "Grid.hpp"
-#include "Activity.hpp"
+//#include "Activity.hpp"
 //#include "Screen.hpp"
 
-//#include "Touch.hpp"
 
 
 //latest touch
