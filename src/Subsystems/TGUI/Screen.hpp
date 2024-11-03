@@ -3,6 +3,14 @@
 
 #include "TGUI.hpp"
 
+/*
+*onpush
+rendertime pushtime
+framerate enable cap
+time functionality
+animation
+*/
+
 class Screen {
 public:
     HyperList<Activity*> activities;
@@ -16,12 +24,11 @@ public:
     void switchToActivity(int index);
 
     void render();
-    void renderAll();
     void push();
     void renderNpush();
 
-    void updateTouch(int x, int y);
-    void updateTouch(Point point);
+    void enableTouch(bool enable);
+    void executeTouch(); // Add return executed
 
     void enablePush(bool enable);
     void setPushHandler(void (*handler)(void));
@@ -30,13 +37,16 @@ protected:
     void executePush();
 
     int currentActivity;
-    Touch touch;
+
+    bool touchEnabled;
+
     bool pushEnabled;
     void (*pushHandler)(void);
 };
 
 // Constructors
-Screen::Screen(currentActivity = -1, pushEnabled = false, pushHandler = nullptr) {}
+Screen::Screen(currentActivity = -1, pushEnabled = false, pushHandler = nullptr) :
+    currentActivity(currentActivity), pushEnabled(pushEnabled), pushHandler(pushHandler) {}
 
 Screen::Screen(Activity* activity, currentActivity = 0, pushEnabled = false, pushHandler = nullptr) {
     addActivity(activity);
@@ -45,7 +55,6 @@ Screen::Screen(Activity* activity, currentActivity = 0, pushEnabled = false, pus
 Screen::Screen(Activity* activities, int amount, currentActivity = 0, pushEnabled = false, pushHandler = nullptr) {
     addActivities(activities, amount);
 }
-
 
 // Add a single activity
 void Screen::addActivity(Activity* activity) {
@@ -68,17 +77,8 @@ void Screen::switchToActivity(int index) {
 
 // Render the current activity
 void Screen::render() {
-    if (activities.size() > 0) {
+    if (activities.size() > 0 && currentActivity > -1 && currentActivity < activities.size()) {
         activities.get(currentActivity)->render();
-    }
-}
-
-// Render all visible activities
-void Screen::renderAll() {
-    for (int i = 0; i < activities.size(); i++) {
-        if (activities.get(i)->isVisible()) {
-            activities.get(i)->render();
-        }
     }
 }
 
@@ -91,6 +91,18 @@ void Screen::push() {
 void Screen::renderNpush() {
     render();
     push();
+}
+
+
+// Enable or disable features 0, 1
+void Screen::enable(bool touch, bool push) {
+    enableTouch(touch);
+    enablePush(push);
+}
+
+// Enable or disable touch functionality
+void Screen::enableTouch(bool enable) {
+    touchEnabled = enable;
 }
 
 // Enable or disable push functionality
@@ -111,8 +123,8 @@ void Screen::executePush() {
 }
 
 // Update touch input with coordinates
-void Screen::updateTouch(ivec2 point,TouchStatus touchStatus) {
-    if (activities.size() > 0) {
+void Screen::executeTouch(ivec2 point,TouchStatus touchStatus) {
+    if (activities.size() > 0 && currentActivity > -1 && currentActivity < activities.size()) {
         activities.get(currentActivity)->OnTouch_execute(point,touchStatus);
     }
 }

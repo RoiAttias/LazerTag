@@ -22,7 +22,15 @@ int newElementID()
     return ++elementIDs;
 }
 
-#include "TouchEvent.hpp"
+enum TouchStatus{
+    ready,
+    pressed,
+    hold,
+    drag,
+    released,
+    click,
+    size
+};
 
 typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 
@@ -30,7 +38,9 @@ typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 
 //#include "Grid.hpp"
 //#include "Activity.hpp"
-//#include "Screen.hpp"
+#include "Screen.hpp"
+
+#include "Touch.hpp"
 
 
 
