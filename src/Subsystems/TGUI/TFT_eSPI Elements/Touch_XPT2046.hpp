@@ -4,10 +4,14 @@
 #include "TGUI.hpp"
 #include "TFT_eSPI.h"
 
+unsigned long debounceThreshold = 5;
+
 class Touch_XPT2046 : public Touch {
 protected:
     TFT_eSPI *tft;
     int isr_pin;
+    
+    unsigned long lastTime;
 
 public:
     // Constructors
@@ -22,23 +26,27 @@ public:
         pinMode(isr_pin, INPUT);
     }
 
+    virtual bool outOfDebounceThreshold()
+    {
+      unsigned long newTime = millis();
+      bool ans = newTime - lastTime > debounceThreshold;
+      lastTime = newTime;
+      return ans;
+    }
+
     virtual ivec2 getPoint()
     {
         ivec2 point;
-        int x, y, w, x_sample_0, y_sample_0, x_sample_1 = -1, y_sample_1 = -1, x_sum, y_sum, xx, yy;
+        int x, y, w, x0, y0, x1, y1, x_sum, y_sum, xx, yy;
         int iterations = 3;
         for(int i = iterations; i > 0; i--){
             //if (tft.getTouchRawZ() > 200) {
-            tft.getTouchRaw(&x_sample_0, &y_sample_0);
-            x_sample_0 = constrain(map(x0, 140, 4000, 0, 320), 0, 319);
-            y_sample_0 = constrain(480 - map(y0, 245, 4000, 0, 480), 0, 480);
+            tft.getTouchRaw(&x0, &y0);
 
-            delay(5);
-
-            if(x_sample_1 == -1 && y_sample_1 == -1)
+            if(i == iterations)
             {
-                x_sample_1 = x_sample_0;
-                y_sample_1 = y_sample_0;
+                x1 = x0;
+                y1 = y0;
             }
 
             if (pow(pow((x0 - x1) + (x1 - x0), 2) + pow((y0 - y1) + (y1 - y0), 2), 0.5) > 50) {
@@ -46,39 +54,35 @@ public:
                 continue;
             }
             else {
-                x_sum += x_sample_0;
-                y_sum += y_sample_0;
-                x_sample_1 = x_sample_0;
-                y_sample_1 = y_sample_0;
+                x_sum += x0;
+                y_sum += y0;
+                x1 = x0;
+                y1 = y0;
             }
                 
         }
-      if (pow(pow((x0 - x1) + (x1 - x0), 2) + pow((y0 - y1) + (y1 - y0), 2), 0.5) < 5) {
-        x = (x0 + x1) / 2;
-        y = (y0 + y1) / 2;
-        xx = x, yy = y;
+      xx = x_sum / iterations;
+      yy = y_sum / iterations;
 
-        switch (tft.getRotation()) {
-          case 1:
-            x = yy;
-            y = 319 - xx;
-            break;
-          case 2:
-            x = 319 - xx;
-            y = 479 - yy;
-            break;
-          case 3:
-            x = 479 - yy;
-            y = xx;
-            break;
-        }
-        delay(90);
-        return { x, y, true };
+      xx = constrain(map(x0, 140, 4000, 0, 320), 0, 319);
+      yy = constrain(480 - map(y0, 245, 4000, 0, 480), 0, 480);
+
+      switch (tft.getRotation()) {
+        case 1:
+          x = yy;
+          y = 319 - xx;
+          break;
+        case 2:
+          x = 319 - xx;
+          y = 479 - yy;
+          break;
+        case 3:
+          x = 479 - yy;
+          y = xx;
+          break;
       }
-    }
-  }
-  return { 0, 0, false };
-
+      currentPosition = ivec2(x,y);
+      return currentPosition;
     }
 };
 
@@ -94,7 +98,12 @@ void registerXPT(int isrPin, Touch_XPT2046 *xpt)
 void IRAM_ATTR xpt2046_Handler(void *arg)
 {
   int pinValue = reinterpret_cast<int>(arg);
-  Touch_XPT2046 *xpt = xptMap.get(recvPin);
+  Touch_XPT2046 *xpt = xptMap.get(pinValue);
+  if (xpt->outOfDebounceThreshold())
+  {
+    xpt->getPoint();
+    
+  }
   xpt->next();
 }
 
