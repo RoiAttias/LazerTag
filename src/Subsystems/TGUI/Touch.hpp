@@ -68,6 +68,9 @@ protected:
     ivec2 currentPosition, startPosition, endPosition;
     int counter;
 
+    bool beenTouched;
+    unsigned long lastTime;
+
     //bool enable; 
     int enable; // Flags to enable touch events
     int flagTemp;
@@ -77,13 +80,11 @@ protected:
 public:
     // Constructors
     Touch(Screen *screen) {
-        enable = false;
+        beenTouched = false;
     }
 
-    virtual void init(){
-        // Configure touch interrupt pin and setup ISR
-        pinMode(TOUCH_PIN, INPUT);
-        attachInterrupt(digitalPinToInterrupt(TOUCH_PIN), touchISR, CHANGE);  // CHANGE triggers on both press and release
+    virtual void init(int enable){
+        this->enable = enable;
     }
 
     virtual void reset(){
@@ -91,11 +92,20 @@ public:
         flagTemp = enable;
     }
 
-    virtual void next(ivec2 point) {
+    virtual void next(ivec2 point, bool isTouched) {
         if (status == TouchStatus::size) {
             reset();
         }
-        screen->executeTouch(point,++status);
+        if(isTouched != beenTouched)
+        {
+//+2
+            screen->executeTouch(point,status);
+        }
+        else
+        {
+            //+1
+        }
+
     }
 };
 

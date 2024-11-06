@@ -11,19 +11,22 @@ protected:
     TFT_eSPI *tft;
     int isr_pin;
     
-    unsigned long lastTime;
-
 public:
     // Constructors
     Touch_XPT2046(Screen *screen, TFT_eSPI *tft, int isr_pin) {
-        this->tft = tft;
-        this->isr_pin = isr_pin;
-        Touch::Touch(screen);
+      this->tft = tft;
+      this->isr_pin = isr_pin;
+      Touch::Touch(screen);
     }
 
-    virtual void init(){
-        // Configure touch interrupt pin and setup ISR
-        pinMode(isr_pin, INPUT);
+    virtual void init(int enable){
+      registerXPT(isrPin, this);
+      Touch::init(enable);
+    }
+
+    virtual bool isTouch()
+    {
+      return digitalRead(isr_pin) == LOW;
     }
 
     virtual bool outOfDebounceThreshold()
@@ -34,12 +37,11 @@ public:
       return ans;
     }
 
-    virtual ivec2 getPoint()
+    virtual ivec2 getPoint(int iterations = 1)
     {
-        ivec2 point;
         int x, y, w, x0, y0, x1, y1, x_sum, y_sum, xx, yy;
-        int iterations = 3;
-        for(int i = iterations; i > 0; i--){
+        for(int i = iterations; i > 0; i--)
+        {
             //if (tft.getTouchRawZ() > 200) {
             tft.getTouchRaw(&x0, &y0);
 
@@ -64,8 +66,8 @@ public:
       xx = x_sum / iterations;
       yy = y_sum / iterations;
 
-      xx = constrain(map(x0, 140, 4000, 0, 320), 0, 319);
-      yy = constrain(480 - map(y0, 245, 4000, 0, 480), 0, 480);
+      xx = constrain(map(xx, 140, 4000, 0, 320), 0, 319);
+      yy = constrain(480 - map(yy, 245, 4000, 0, 480), 0, 480);
 
       switch (tft.getRotation()) {
         case 1:
@@ -101,10 +103,8 @@ void IRAM_ATTR xpt2046_Handler(void *arg)
   Touch_XPT2046 *xpt = xptMap.get(pinValue);
   if (xpt->outOfDebounceThreshold())
   {
-    xpt->getPoint();
-    
+      xpt->next(xpt->getPoint(), xpt->isTouched());
   }
-  xpt->next();
 }
 
 #endif // TOUCH_XPT2046_HPP

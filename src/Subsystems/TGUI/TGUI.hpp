@@ -26,8 +26,8 @@ enum TouchStatus{
     ready,
     pressed,
     hold,
-    drag,
     released,
+    drag,
     click,
     size
 };
@@ -42,7 +42,7 @@ typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 
 #include "Touch.hpp"
 
-
+#include "TFT_eSPI_Elements/TFT_eSPI_Element.h"
 
 //latest touch
 #endif
