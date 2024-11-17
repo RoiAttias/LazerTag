@@ -10,17 +10,20 @@ class Touch_XPT2046 : public Touch {
 protected:
     TFT_eSPI *tft;
     int isr_pin;
+    Pushbutton isr;
     
 public:
     // Constructors
     Touch_XPT2046(Screen *screen, TFT_eSPI *tft, int isr_pin) {
       this->tft = tft;
       this->isr_pin = isr_pin;
+      isr = Pushbutton(isr_pin);
       Touch::Touch(screen);
     }
 
     virtual void init(int enable){
       registerXPT(isrPin, this);
+      isr.init([this]()->);
       Touch::init(enable);
     }
 
@@ -85,6 +88,14 @@ public:
       }
       currentPosition = ivec2(x,y);
       return currentPosition;
+    }
+
+    void handleInterrupt()
+    {
+      if (xpt->outOfDebounceThreshold())
+      {
+        xpt->next(xpt->getPoint(), xpt->isTouched());
+      }
     }
 };
 

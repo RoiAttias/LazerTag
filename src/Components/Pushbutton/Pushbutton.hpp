@@ -87,13 +87,18 @@ public:
         releaseEnabled = enable;
     }
 
+    bool isPressed()
+    {
+        return digitalRead(pin) == LOW; // Read the button state (LOW means pressed)
+    }
+
     /**
      * Interrupt handler for button state changes
      * This function debounces the button and triggers events if applicable.
      */
     void handleInterrupt() {
         uint32_t currentTime = millis();             // Get the current time in milliseconds
-        currentButtonState = digitalRead(pin) == LOW; // Read the button state (LOW means pressed)
+        currentButtonState = isPressed(); // Read the button state
 
         // Check if enough time has passed since the last state change (debounce check)
         if ((currentTime - lastDebounceTime) > debounceThreshold) {

@@ -2,6 +2,7 @@
 #define VEC2_HPP
 
 #include <Arduino.h>
+#include <ivec2.hpp>
 
 /**
  * @brief Struct representing a point (or vector) in 2D space, similar to OpenGL vectors.
@@ -23,6 +24,17 @@ struct vec2
      * @param y The y-coordinate of the vector (default is 0.0).
      */
     vec2(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
+
+    /**
+     * @brief Constructor for vec2.
+     * 
+     * @param v The integer vector.
+     */
+    vec2(ivec2 v = ivec2())
+    {
+        this->x = v.x;
+        this->y = v.y;
+    }
 
     /**
      * @brief Addition assignment operator (+=).
@@ -145,6 +157,16 @@ struct vec2
      */
     float dot(const vec2& other) const {
         return (x * other.x) + (y * other.y);
+    }
+
+    /**
+     * @brief Calculates the distance to another vector.
+     * 
+     * @param other The vector to calculate the distance to with.
+     * @return The distance between the two vectors.
+     */
+    float distance(const vec2& other) const {
+        return sqrt(dot(other));
     }
 
     /**

@@ -70,6 +70,10 @@ protected:
 
     bool beenTouched;
     unsigned long lastTime;
+    unsigned long pressStartTime;
+
+    unsigned long holdThreshold = 1000;
+    float dragDistanceThreshold = 30.0f
 
     //bool enable; 
     int enable; // Flags to enable touch events
@@ -103,9 +107,9 @@ public:
         }
         else
         {
-            //+1
+            //if(vec2(point).distance(startPosition) > dragDistanceThreshold);
         }
-
+        beenTouched = isTouched;
     }
 };
 
