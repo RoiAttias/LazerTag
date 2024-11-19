@@ -3,22 +3,37 @@
 class Pushbutton {
 private:
     uint8_t pin;                     // Pin number the button is connected to
-    uint32_t lastDebounceTime;       // Timestamp of the last valid state change
     uint32_t debounceThreshold;      // Debounce threshold in milliseconds
-    void (*pressEventHandler)();     // Function pointer for press event handler
-    void (*releaseEventHandler)();   // Function pointer for release event handler
+    
     bool buttonState;                // The last stable state of the button (pressed/released)
     bool currentButtonState;         // The current state of the button (pressed/released)
+    uint32_t currentTime;
+    uint32_t lastDebounceTime;       // Timestamp of the last valid state change
+
+    void (*pressEventHandler)();     // Function pointer for press event handler
+    void (*releaseEventHandler)();   // Function pointer for release event handler
+    void (*counterEventHandler)();
+    void (*holdEventHandler)();
     bool pressEnabled;               // Flag to enable/disable press events
     bool releaseEnabled;             // Flag to enable/disable release events
+    bool counterEnabled;
+    bool holdEnabled;
+
+    int counter;
+    int counterTarget;
+    bool counterOverrideMode;
+    bool counterReleasedMode;
+
+    uint32_t holdThreshold;
+    bool holdRepeatMode;
+    bool holdDidFirst;
 
 public:
     // Constructor to initialize the button with its pin and debounce threshold
-    Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50)
-        : pin(buttonPin), debounceThreshold(debounceMs), lastDebounceTime(0),
-          pressEventHandler(nullptr), releaseEventHandler(nullptr),
-          buttonState(false), currentButtonState(false),
-          pressEnabled(true), releaseEnabled(true) {}
+    Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, uint32_t holdMs = 3000)
+        : pin(buttonPin), debounceThreshold(debounceMs), holdThreshold(holdMs) {
+        lastDebounceTime = 0;
+    }
 
     /**
      * Initialize the button with optional event handlers and settings
@@ -29,16 +44,24 @@ public:
      * @param enableRelease     Enable/disable release event handling
      */
     void init(void (*pressHandler)() = nullptr, bool enablePress = false,
-              void (*releaseHandler)() = nullptr, bool enableRelease = false) {
+              void (*releaseHandler)() = nullptr, bool enableRelease = false,
+              void (*counterHandler)() = nullptr, bool enableCounter = false,
+              bool setCounterOverrideMode = false, int setCounterTarget = -1,
+              bool setCounterReleasedMode = false) {
         // Assign event handlers if provided
-        if (pressHandler) {
-            pressEventHandler = pressHandler;
-            pressEnabled = enablePress;
-        }
-        if (releaseHandler) {
-            releaseEventHandler = releaseHandler;
-            releaseEnabled = enableRelease;
-        }
+        // Press event
+        pressEventHandler = pressHandler;
+        pressEnabled = enablePress;
+        // Release event
+        releaseEventHandler = releaseHandler;
+        releaseEnabled = enableRelease;
+        // Counter event
+        counterEventHandler = counterHandler;
+        counterEnabled = enableCounter;
+        counterOverrideMode = setCounterOverrideMode;
+        counterTarget = setCounterTarget;
+        counter = counterTarget;
+        counterReleasedMode = setCounterReleasedMode;
 
         // Initialize button state variables
         buttonState = false;
@@ -69,6 +92,13 @@ public:
         releaseEventHandler = handler;
     }
 
+    void setCounterEventHandler(void (*handler)(),
+        bool setCounterOverrideMode = false, bool setCounterReleasedMode = false) {
+        counterEventHandler = handler;
+        counterOverrideMode = setCounterOverrideMode;
+        counterReleasedMode = setCounterReleasedMode;
+    }
+    
     /**
      * Enable or disable the press event
      * 
@@ -87,9 +117,27 @@ public:
         releaseEnabled = enable;
     }
 
+    void enableCounterEvent(bool enable) {
+        counterEnabled = enable;
+    }
+
+    void resetCounter() {
+        counter = counterTarget;
+    }
+
+    void resetCounter(int setCounterTarget) {
+        counterTarget = setCounterTarget;
+        resetCounter();
+    }
+
     bool isPressed()
     {
         return digitalRead(pin) == LOW; // Read the button state (LOW means pressed)
+    }
+
+    bool isReleased()
+    {
+        return digitalRead(pin) == HIGH; // Read the button state (HIGH means released)
     }
 
     /**
@@ -98,20 +146,28 @@ public:
      */
     void handleInterrupt() {
         uint32_t currentTime = millis();             // Get the current time in milliseconds
-        currentButtonState = isPressed(); // Read the button state
+        currentButtonState = isReleased(); // Read the button state
 
         // Check if enough time has passed since the last state change (debounce check)
-        if ((currentTime - lastDebounceTime) > debounceThreshold) {
+        if ((currentButtonState != buttonState) && (currentTime - lastDebounceTime) > debounceThreshold) {
             // Check for state transitions and trigger events if enabled
-            if (currentButtonState && !buttonState && pressEnabled && pressEventHandler) {
-                pressEventHandler(); // Call the press event handler
-            } else if (!currentButtonState && buttonState && releaseEnabled && releaseEventHandler) {
+            if (!currentButtonState && pressEnabled && pressEventHandler && !(counterOverrideMode && !counterReleasedMode)) {
+                pressEventHandler(); // Call the press event handler                
+            }
+            if (currentButtonState && releaseEnabled && releaseEventHandler && !(counterOverrideMode && counterReleasedMode)) {
                 releaseEventHandler(); // Call the release event handler
+            }
+            if (currentButtonState == releasedMode) {
+                counter--;
+                if (counter == 0 && counterEnabled && counterEventHandler) {
+                    counterEventHandler(); // Call the release event handler
+                }
             }
 
             // Update the stable button state and debounce timestamp
-            buttonState = currentButtonState;
             lastDebounceTime = currentTime;
         }
+
+        buttonState = currentButtonState;
     }
 };

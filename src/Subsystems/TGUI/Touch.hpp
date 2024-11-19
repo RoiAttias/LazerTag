@@ -105,9 +105,9 @@ public:
 //+2
             screen->executeTouch(point,status);
         }
-        else
+        else if ()
         {
-            //if(vec2(point).distance(startPosition) > dragDistanceThreshold);
+            if(vec2(point).distance(startPosition) > dragDistanceThreshold);
         }
         beenTouched = isTouched;
     }
