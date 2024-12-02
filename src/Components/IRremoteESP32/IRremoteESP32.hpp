@@ -11,6 +11,7 @@
 #define NEC_ZERO_SPACE 562UL
 #define NEC_THRESHOLD 100UL
 #define NEC_BOUNCE_STOP_FILTER (NEC_THRESHOLD * 2UL)
+#define NEC_MAX_LENGTH
 
 #include "IRsender.hpp"
 #include "IRreceiver.hpp"

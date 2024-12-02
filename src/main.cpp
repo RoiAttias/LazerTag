@@ -1,14 +1,15 @@
-#include <Arduino.h>
+#define DEVICE_TYPE 2
 
-#include "Constants.h"
-#include "Utilities\HyperList.hpp"
-#include "Subsystems\TGUI\TGUI.hpp"
-#include "Components\IRremoteESP32\IRremoteESP32.hpp"
+#ifndef DEVICE_TYPE
+#error "DEVICE_TYPE is not defined! Define DEVICE_TYPE in your build flags (e.g., -DDEVICE_MANAGER)."
+#endif
 
-void setup() {
-  
-}
-
-void loop() {
-    
-}
+#if DEVICE_TYPE == 1
+#include "manager_main.cpp"
+#elif DEVICE_TYPE == 2
+#include "gun_main.cpp"
+#elif DEVICE_TYPE == 3
+#include "vest_main.cpp"
+#else
+#error "Invalid DEVICE_TYPE specified!"
+#endif

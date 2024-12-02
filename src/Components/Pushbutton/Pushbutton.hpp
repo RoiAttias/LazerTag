@@ -2,6 +2,11 @@
 #define PUSHBUTTON_HPP
 
 #include <Arduino.h>
+#include <map>
+
+class Pushbutton;
+void Pushbutton_Register(int pbPin, Pushbutton *pbPtr);
+void IRAM_ATTR Pushbutton_ISR(void *arg);
 
 class Pushbutton
 {
@@ -12,29 +17,24 @@ public:
         PRESS,
         RELEASE,
         COUNTER,
-        HOLD
     };
 
     // Define the handler function type
     using EventHandler = void (*)(EventType, uint32_t timeSincePress);
 
 private:
-    // Pin configuration and debounce/hold timings
+    // Pin configuration and debounce timing
     const uint8_t pin;     // Pin number the button is connected to
     const bool microsMode; // Flag to determine whether to use micros() or millis()
-
     uint32_t debounceThreshold; // Debounce threshold in milliseconds/microseconds
-    uint32_t holdThreshold;     // Hold threshold in milliseconds/microseconds
 
     // Button state tracking
     volatile bool buttonState;           // Last stable state of the button (pressed/released)
     volatile bool currentButtonState;    // Current state of the button (pressed/released)
     volatile uint32_t lastDebounceTime;  // Timestamp of the last valid state change
-    volatile uint32_t holdStartTime;     // Timestamp when the button hold began
     volatile uint32_t pressStartTime;    // Timestamp when the button was last pressed
     volatile uint32_t timeSincePress;    // Time elapsed since the button was last pressed
     volatile bool counterShouldOverride; // Flag to override unnecessary events
-    volatile bool holdDidFirst;          // Flag to track the first hold event
 
     // Event handler and flags
     EventHandler eventHandler;    // Unified event handler
@@ -42,16 +42,12 @@ private:
     volatile bool pressEnabled;   // Enable/disable press events
     volatile bool releaseEnabled; // Enable/disable release events
     volatile bool counterEnabled; // Enable/disable counter events
-    volatile bool holdEnabled;    // Enable/disable hold events
 
-    // Counter and Hold settings
+    // Counter settings
     volatile int counter;     // Current counter value
     int counterTarget;        // Target value for the counter
     bool counterOverrideMode; // Flag for overriding counter behavior
     bool counterReleasedMode; // Flag for triggering counter on release
-
-    uint32_t holdRepeatDelay; // Time interval for repeated hold events
-    bool holdRepeatMode;      // Flag for enabling repeated hold events
 
     /**
      * Get the current time in the selected mode (micros or millis).
@@ -67,16 +63,15 @@ public:
      * Constructor to initialize the button with its pin and timing settings.
      * @param buttonPin         Pin number the button is connected to.
      * @param debounceMs        Debounce threshold in milliseconds/microseconds.
-     * @param holdMs            Hold threshold in milliseconds/microseconds.
      * @param useMicros         Use micros() instead of millis() for timing.
      */
     Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, bool useMicros = false)
-        : pin(buttonPin), microsMode(useMicros), debounceThreshold(debounceMs), holdThreshold(3000),
-          buttonState(false), currentButtonState(false), lastDebounceTime(0), holdStartTime(0), pressStartTime(0),
-          timeSincePress(0), counterShouldOverride(false), holdDidFirst(false), eventHandler(nullptr),
-          pressEnabled(false), releaseEnabled(false), counterEnabled(false), holdEnabled(false),
-          counter(-1), counterTarget(0), counterOverrideMode(false), counterReleasedMode(false),
-          holdRepeatDelay(0), holdRepeatMode(false) {}
+        : pin(buttonPin), microsMode(useMicros), debounceThreshold(debounceMs),
+          buttonState(false), currentButtonState(false), lastDebounceTime(0),
+          pressStartTime(0), timeSincePress(0), counterShouldOverride(false),
+          eventHandler(nullptr), pressEnabled(false), releaseEnabled(false),
+          counterEnabled(false), counter(-1), counterTarget(0),
+          counterOverrideMode(false), counterReleasedMode(false) {}
 
     /**
      * Initialize the button with unified event handler and settings.
@@ -87,8 +82,7 @@ public:
     {
         eventHandler = handler;
         pinMode(pin, INPUT_PULLUP);
-        attachInterrupt(digitalPinToInterrupt(pin), [this]()
-                        { handleInterrupt(); }, CHANGE);
+        Pushbutton_Register(pin, this); // Register the pushbutton instance
         enableAllEvents(enableAll);
     }
 
@@ -142,20 +136,6 @@ public:
         resetCounter(target);
     }
 
-    /**
-     * Set parameters for the hold event.
-     * @param threshold Threshold for hold duration in milliseconds/microseconds.
-     * @param repeatMode Enable/disable repeated hold events.
-     * @param repeatDelay Time interval for repeated hold events.
-     */
-    void setHoldEvent(uint32_t threshold = 3000, bool repeatMode = false, uint32_t repeatDelay = 10)
-    {
-        enableHoldEvent(false);
-        holdThreshold = threshold;
-        holdRepeatMode = repeatMode;
-        holdRepeatDelay = repeatDelay;
-    }
-
     // Enables
     /**
      * Enable/disable all events.
@@ -193,19 +173,10 @@ public:
         counterEnabled = enable;
     }
 
-    /**
-     * Enable/disable hold events.
-     * @param enable Boolean to enable/disable hold events.
-     */
-    void enableHoldEvent(bool enable)
-    {
-        holdEnabled = enable;
-    }
-
     // Handles
     /**
      * Interrupt handler for button state changes.
-     * Handles debounce, press, release, hold, and counter events.
+     * Handles debounce, press, release, and counter events.
      */
     inline void handleInterrupt()
     {
@@ -263,38 +234,26 @@ public:
             lastDebounceTime = currentTime;
             buttonState = currentButtonState;
         }
-
-        // Hold
-        if (holdEnabled && currentButtonState)
-        {
-            // First hold event per hold
-            if (!holdDidFirst && (currentTime - pressStartTime > holdThreshold))
-            {
-                eventHandler(HOLD, 0);
-                holdStartTime = currentTime;
-                holdDidFirst = true;
-            }
-            // Repeated hold events
-            if (holdRepeatMode && (currentTime - holdStartTime >= holdRepeatDelay))
-            {
-                eventHandler(HOLD, currentTime - holdStartTime);
-            }
-        }
-        else // On release - reset for next hold event
-        {
-            holdStartTime = currentTime;
-            holdDidFirst = false;
-        }
         enableAllEvents(enableAll);
-    }
-
-    /**
-     * Handle interrupt logic from the loop (optional alternative to attachInterrupt).
-     */
-    inline void handleFromLoop()
-    {
-        handleInterrupt();
     }
 };
 
-#endif // PUSHBUTTON_HPP
+// Use std::map for Pushbutton registration
+std::map<int, Pushbutton*> registeredPushbuttons;
+
+void Pushbutton_Register(int pbPin, Pushbutton *pbPtr)
+{
+    registeredPushbuttons[pbPin] = pbPtr;
+    void* pinValue = reinterpret_cast<void*>(pbPin);
+    attachInterruptArg(digitalPinToInterrupt(pbPin), Pushbutton_ISR, pinValue, CHANGE);
+}
+
+void IRAM_ATTR Pushbutton_ISR(void *arg)
+{
+    int pbPin = reinterpret_cast<int>(arg);
+    Pushbutton *pbPtr = registeredPushbuttons[pbPin];
+    if (pbPtr != nullptr)
+    {
+        pbPtr->handleInterrupt();
+    }
+}
