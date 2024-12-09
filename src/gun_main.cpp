@@ -1,3 +1,4 @@
+/*
 #include <Arduino.h>
 #include "Components/IRremoteESP32/IRsender.hpp"
 #include "Components/Pushbutton/Pushbutton.hpp"
@@ -42,3 +43,4 @@ void loop() {
     // The rest of the program primarily relies on interrupts, so no logic is needed here
     delay(10); // Optional: Small delay to stabilize processing
 }
+*/

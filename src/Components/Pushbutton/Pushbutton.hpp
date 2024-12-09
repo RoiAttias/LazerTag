@@ -5,8 +5,11 @@
 #include <map>
 
 class Pushbutton;
+Pushbutton* Pushbutton_Instance;
 void Pushbutton_Register(int pbPin, Pushbutton *pbPtr);
 void IRAM_ATTR Pushbutton_ISR(void *arg);
+// Use std::map for Pushbutton registration
+std::map<int, Pushbutton*> registeredPushbuttons;
 
 class Pushbutton
 {
@@ -25,6 +28,7 @@ public:
 private:
     // Pin configuration and debounce timing
     const uint8_t pin;     // Pin number the button is connected to
+    void* pinValue;
     const bool microsMode; // Flag to determine whether to use micros() or millis()
     uint32_t debounceThreshold; // Debounce threshold in milliseconds/microseconds
 
@@ -66,7 +70,7 @@ public:
      * @param useMicros         Use micros() instead of millis() for timing.
      */
     Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, bool useMicros = false)
-        : pin(buttonPin), microsMode(useMicros), debounceThreshold(debounceMs),
+        : pin(buttonPin), pinValue(nullptr), microsMode(useMicros), debounceThreshold(debounceMs),
           buttonState(false), currentButtonState(false), lastDebounceTime(0),
           pressStartTime(0), timeSincePress(0), counterShouldOverride(false),
           eventHandler(nullptr), pressEnabled(false), releaseEnabled(false),
@@ -82,9 +86,24 @@ public:
     {
         eventHandler = handler;
         pinMode(pin, INPUT_PULLUP);
+
         Pushbutton_Register(pin, this); // Register the pushbutton instance
+        pinValue = reinterpret_cast<void*>(pin);
+        attachInterruptArg(digitalPinToInterrupt(pin), Pushbutton_ISR, pinValue, CHANGE);
+
         enableAllEvents(enableAll);
     }
+
+    inline void ISR_Enable()
+    {
+        attachInterruptArg(digitalPinToInterrupt(pin), Pushbutton_ISR, pinValue, CHANGE);
+    }
+
+    inline void ISR_Disable()
+    {
+        detachInterrupt(digitalPinToInterrupt(pin));
+    }
+
 
     /**
      * Check if the button is currently pressed.
@@ -238,22 +257,24 @@ public:
     }
 };
 
-// Use std::map for Pushbutton registration
-std::map<int, Pushbutton*> registeredPushbuttons;
-
 void Pushbutton_Register(int pbPin, Pushbutton *pbPtr)
 {
-    registeredPushbuttons[pbPin] = pbPtr;
-    void* pinValue = reinterpret_cast<void*>(pbPin);
-    attachInterruptArg(digitalPinToInterrupt(pbPin), Pushbutton_ISR, pinValue, CHANGE);
+    //registeredPushbuttons[pbPin] = pbPtr;
+    Pushbutton_Instance = pbPtr;
 }
 
 void IRAM_ATTR Pushbutton_ISR(void *arg)
 {
-    int pbPin = reinterpret_cast<int>(arg);
-    Pushbutton *pbPtr = registeredPushbuttons[pbPin];
+    //int pbPin = reinterpret_cast<int>(arg);
+    //Pushbutton *pbPtr = registeredPushbuttons[pbPin];
+    Pushbutton *pbPtr = Pushbutton_Instance;
     if (pbPtr != nullptr)
     {
+        pbPtr->ISR_Disable();
         pbPtr->handleInterrupt();
+        pbPtr->ISR_Enable();
     }
+
 }
+
+#endif // PUSHBUTTON_HPP
