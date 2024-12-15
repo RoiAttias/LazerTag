@@ -24,7 +24,13 @@ int newElementID()
 {
     return ++elementIDs;
 }
-
+enum TouchStatus{
+    ready,
+    pressed,
+    released,
+    size
+};
+/*
 enum TouchStatus{
     ready,
     pressed,
@@ -34,6 +40,8 @@ enum TouchStatus{
     click,
     size
 };
+*/
+
 
 typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 

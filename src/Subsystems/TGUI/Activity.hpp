@@ -17,10 +17,9 @@
  */
 class Activity : public Element
 {
-protected:
+public:
     HyperList<Element *> elements; // List of child elements managed by the Activity.
 
-public:
     // Constructors
     /**
      * @brief Constructor of Activity
@@ -32,7 +31,7 @@ public:
      * @param OnClick_handler Pointer to the function to handle the click event.
      */
     Activity(ivec2 position = ivec2(), ivec2 scale = ivec2(), bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
-        : Element(position, scale, visible, OnClick_enable, OnClick_handler) {}
+        : Element(position, vec2(), scale, visible, OnClick_enable, OnClick_handler) {}
 
     // Overrides
     /**
@@ -47,7 +46,7 @@ public:
             // Render all visible child elements
             for (int i = 0; i < elements.size(); i++)
             {
-                if (elements.get(i)->isVisible() && inRange(elements.get(i)))
+                if (elements.get(i)->visible && inRange(elements.get(i)))
                 {
                     elements.get(i)->render();
                 }

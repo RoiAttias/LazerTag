@@ -20,6 +20,8 @@
 #include "Components/Pushbutton/Pushbutton.hpp"
 #include <U8g2lib.h>
 
+#include "Utilities/HyperList.hpp"
+
 #ifdef U8X8_HAVE_HW_SPI
 #include <SPI.h>
 #endif

@@ -29,23 +29,23 @@ public:
     ~HyperList();               ///< Destructor to clear the list.
 
     /**
+     * Adds a new node with the given value at the beginning of the list.
+     * @param value Data to be stored in the new node.
+     */
+    void addfront(T value);
+
+    /**
      * Adds a new node with the given value at the end of the list.
      * @param value Data to be stored in the new node.
      */
-    void add(T value);
-
-    /**
-     * Adds a new node with the data from the given pointer at the end of the list.
-     * @param valuePtr Pointer to the data to be stored in the new node.
-     */
-    //void add(T* valuePtr);
+    void addend(T value);
 
     /**
      * Adds multiple nodes with data from an array at the end of the list.
      * @param array Pointer to the array of data to be added.
      * @param size Number of elements in the array.
      */
-    void addFromArray(T* array, int size);
+    void addFromArray(const T* array, const int size);
 
     /**
      * Checks if the list contains a node with the given value.
@@ -55,25 +55,11 @@ public:
     bool contains(T value) const;
 
     /**
-     * Checks if the list contains a node with the data pointed to by the given pointer.
-     * @param valuePtr Pointer to the data to check for in the list.
-     * @return True if the value is found, false otherwise.
-     */
-    bool contains(T* valuePtr) const;
-
-    /**
      * Counts the number of nodes that contain the given value.
      * @param value Data to count in the list.
      * @return Number of nodes containing the value.
      */
     int count(T value) const;
-
-    /**
-     * Counts the number of nodes that contain the data pointed to by the given pointer.
-     * @param valuePtr Pointer to the data to count in the list.
-     * @return Number of nodes containing the value.
-     */
-    int count(T* valuePtr) const;
 
     /**
      * Clears all nodes from the list.
@@ -86,13 +72,6 @@ public:
      * @return Data stored in the node at the specified index.
      */
     T get(int index);
-
-    /**
-     * Retrieves the address of the data from the node at the specified index.
-     * @param index Position of the node to retrieve the address from.
-     * @return Pointer to the data stored in the node at the specified index, or nullptr if the index is out of bounds.
-     */
-    T* getAddress(int index);
 
     /**
      * Gets the number of nodes in the list.
@@ -115,19 +94,13 @@ public:
     void insert(int index, T value);
 
     /**
-     * Inserts a new node with the data from the given pointer at the specified index.
-     * @param index Position where the new node should be inserted.
-     * @param valuePtr Pointer to the data to be stored in the new node.
-     */
-    void insert(int index, T* valuePtr);
-
-    /**
      * Inserts multiple nodes from an array at the specified index.
      * @param index Position where the nodes should be inserted.
      * @param array Pointer to the array of data to be inserted.
      * @param size Number of elements in the array.
      */
-    void insertFromArray(int index, T* array, int size);
+    void insertFromArray(int index, const T* array, const int size);
+    
     /**
      * Checks if the list is empty.
      * @return True if the list is empty (contains no nodes), false otherwise.
@@ -142,24 +115,10 @@ public:
     void replace(int index, T value);
 
     /**
-     * Replaces the data in the node at the specified index with the data from the given pointer.
-     * @param index Position of the node to replace.
-     * @param valuePtr Pointer to the new data.
-     */
-    void replace(int index, T* valuePtr);
-
-    /**
      * Removes the node at the specified index from the list.
      * @param index Position of the node to remove.
      */
     void remove(int index);
-
-    /**
-     * Removes the node at the specified index if the data matches the data pointed to by the given pointer.
-     * @param index Position of the node to remove.
-     * @param valuePtr Pointer to the data to match.
-     */
-    void remove(int index, T* valuePtr);
 
     /**
      * Stores the data of the list into an array.
@@ -200,27 +159,28 @@ HyperList<T>::~HyperList() {
 }
 
 template <typename T>
-void HyperList<T>::add(T value) {
-    insert(listSize, value);
+void HyperList<T>::addfront(const T value) {
+    insert(0, value);
 }
-/*
-template <typename T>
-void HyperList<T>::add(T* valuePtr) {
-    insert(listSize, valuePtr);
-}*/
 
 template <typename T>
-void HyperList<T>::addFromArray(T* array, int size) {
+void HyperList<T>::addend(const T value) {
+    insert(listSize, value);
+}
+
+template <typename T>
+void HyperList<T>::addFromArray(const T* array, const int size) {
     // Check if the array pointer is null or if the size is non-positive
-    if (array == nullptr || size <= 0) {
+    if (!array || size <= 0) {
         return;
     }
     
     // Loop through the array and add each element to the HyperList
-    for (int i = 0; i < size; ++i) {
-        add(array[i]);
+    for (int i = 0; i < size; i++) {
+        addend(array[i]);
     }
 }
+
 
 
 template <typename T>
@@ -249,21 +209,7 @@ bool HyperList<T>::contains(const T value) const {
 }
 
 template <typename T>
-bool HyperList<T>::contains(T* valuePtr) const {
-    if (valuePtr == nullptr) return false;
-
-    Node<T>* current = head;
-    while (current != nullptr) {
-        if (current->data == *valuePtr) {
-            return true;
-        }
-        current = current->next;
-    }
-    return false;
-}
-
-template <typename T>
-int HyperList<T>::count(T value) const {
+int HyperList<T>::count(const T value) const {
     int count = 0;
     Node<T>* current = head;
     while (current != nullptr) {
@@ -276,22 +222,7 @@ int HyperList<T>::count(T value) const {
 }
 
 template <typename T>
-int HyperList<T>::count(T* valuePtr) const {
-    if (valuePtr == nullptr) return 0;
-
-    int count = 0;
-    Node<T>* current = head;
-    while (current != nullptr) {
-        if (current->data == *valuePtr) {
-            count++;
-        }
-        current = current->next;
-    }
-    return count;
-}
-
-template <typename T>
-T HyperList<T>::get(int index) {
+T HyperList<T>::get(const int index) {
     Node<T>* node = getNode(index);
     if (node != nullptr) {
         return node->data;
@@ -300,16 +231,7 @@ T HyperList<T>::get(int index) {
 }
 
 template <typename T>
-T* HyperList<T>::getAddress(int index) {
-    Node<T>* node = getNode(index);
-    if (node != nullptr) {
-        return &(node->data);
-    }
-    return nullptr; // Return nullptr if index is out of bounds
-}
-
-template <typename T>
-int HyperList<T>::indexOf(T value) {
+int HyperList<T>::indexOf(const T value) {
     Node<T>* current = head;
     int index = 0;
 
@@ -325,27 +247,35 @@ int HyperList<T>::indexOf(T value) {
 }
 
 template <typename T>
-void HyperList<T>::insert(int index, T value) {
-    if (index < 0 || index > listSize) return;
+void HyperList<T>::insert(const int index, const T value) {
+    if (index < 0 || index > listSize) {
+        return; // Index out of bounds
+    }
 
     Node<T>* newNode = new Node<T>(value);
 
-    if (index == 0) {
+    if (listSize == 0) {
+        // Case: Empty list
+        head = tail = newNode;
+    } else if (index == 0) {
+        // Case: Insert at the head
         newNode->next = head;
-        if (head != nullptr) head->prev = newNode;
+        head->prev = newNode;
         head = newNode;
-        if (tail == nullptr) tail = newNode;
     } else if (index == listSize) {
+        // Case: Insert at the tail
         newNode->prev = tail;
-        if (tail != nullptr) tail->next = newNode;
+        tail->next = newNode;
         tail = newNode;
-        if (head == nullptr) head = newNode;
     } else {
-        Node<T>* prevNode = getNode(index - 1);
+        // Case: Insert in the middle
+        Node<T>* prevNode = getNode(index - 1); // Retrieve previous node
         if (prevNode != nullptr) {
             newNode->next = prevNode->next;
             newNode->prev = prevNode;
-            if (prevNode->next != nullptr) prevNode->next->prev = newNode;
+            if (prevNode->next != nullptr) {
+                prevNode->next->prev = newNode;
+            }
             prevNode->next = newNode;
         }
     }
@@ -354,15 +284,13 @@ void HyperList<T>::insert(int index, T value) {
 }
 
 template <typename T>
-void HyperList<T>::insert(int index, T* valuePtr) {
-    if (valuePtr != nullptr) {
-        insert(index, *valuePtr);
+void HyperList<T>::insertFromArray(const int index, const T* array, const int size) {
+    // Check if the array pointer is null or if the size is non-positive
+    if (!array || size <= 0) {
+        return;
     }
-}
-
-template <typename T>
-void HyperList<T>::insertFromArray(int index, T* array, int size) {
-    if (array == nullptr || size <= 0) return;
+    
+    // Loop through the array and add each element to the HyperList
     for (int i = 0; i < size; ++i) {
         insert(index + i, array[i]);
     }
@@ -375,7 +303,7 @@ bool HyperList<T>::isEmpty() {
 
 
 template <typename T>
-void HyperList<T>::replace(int index, T value) {
+void HyperList<T>::replace(const int index, const T value) {
     Node<T>* node = getNode(index);
     if (node != nullptr) {
         node->data = value;
@@ -383,14 +311,7 @@ void HyperList<T>::replace(int index, T value) {
 }
 
 template <typename T>
-void HyperList<T>::replace(int index, T* valuePtr) {
-    if (valuePtr != nullptr) {
-        replace(index, *valuePtr);
-    }
-}
-
-template <typename T>
-void HyperList<T>::remove(int index) {
+void HyperList<T>::remove(const int index) {
     Node<T>* node = getNode(index);
     if (node == nullptr) return;
 
@@ -404,17 +325,7 @@ void HyperList<T>::remove(int index) {
 }
 
 template <typename T>
-void HyperList<T>::remove(int index, T* valuePtr) {
-    if (valuePtr == nullptr) return;
-
-    Node<T>* node = getNode(index);
-    if (node != nullptr && node->data == *valuePtr) {
-        remove(index);
-    }
-}
-
-template <typename T>
-int HyperList<T>::storeToArray(T* array, int size) const {
+int HyperList<T>::storeToArray(T* array, const int size) const {
     if (array == nullptr || size < listSize) return 0;
 
     Node<T>* current = head;
@@ -427,7 +338,7 @@ int HyperList<T>::storeToArray(T* array, int size) const {
 }
 
 template <typename T>
-void HyperList<T>::switchNodes(int index1, int index2) {
+void HyperList<T>::switchNodes(const int index1, const int index2) {
     if (index1 < 0 || index2 < 0 || index1 >= listSize || index2 >= listSize || index1 == index2) return;
 
     Node<T>* node1 = getNode(index1);
@@ -442,7 +353,13 @@ void HyperList<T>::switchNodes(int index1, int index2) {
 }
 
 template <typename T>
-Node<T>* HyperList<T>::getNode(int index) {
+Node<T>* HyperList<T>::getNode(const int index) {
+    // Checks if list is empty
+    if (listSize == 0)
+    {
+        return nullptr;
+    }
+
     // Check if the index is out of bounds
     if (index < 0 || index >= listSize) {
         return nullptr;
