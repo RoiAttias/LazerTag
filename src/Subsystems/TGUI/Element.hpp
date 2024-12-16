@@ -31,7 +31,7 @@ public:
     const int ID = newElementID(); // Unique ID of the element
 
     ivec2 origin;               // Origin position of the element - changed by programmer
-    ivec2 offset = ivec2(0, 0); // Offset the position of the element - changed by containers
+    ivec2 offset; // Offset the position of the element - changed by containers
     ivec2 scale;                // Scale of the element
     bool visible;               // Visibility flag
 

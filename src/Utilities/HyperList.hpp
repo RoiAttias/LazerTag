@@ -1,6 +1,13 @@
 #ifndef HYPER_LIST_HPP
 #define HYPER_LIST_HPP
 
+/*
+duplicate
+reserve
+removeValue
+findAll
+*/
+
 /**
  * Node struct template for the doubly linked list.
  * @tparam T Type of data stored in the node.
@@ -106,6 +113,13 @@ public:
      * @return True if the list is empty (contains no nodes), false otherwise.
      */
     bool isEmpty();
+
+    /**
+     * Finds the index of the last occurrence of the given value in the list.
+     * @param value Data to find in the list.
+     * @return The index of the last occurrence of the value, or -1 if the value is not found.
+     */
+    int lastIndexOf(const T value);
 
     /**
      * Replaces the data in the node at the specified index with the given value.
@@ -239,7 +253,7 @@ int HyperList<T>::indexOf(const T value) {
         if (current->data == value) {
             return index;  // Return the index if value is found
         }
-        current = current->next;
+        current = current->next; // Go toward the tail
         index++;
     }
 
@@ -301,6 +315,21 @@ bool HyperList<T>::isEmpty() {
     return listSize == 0;  // Return true if the size is 0, false otherwise
 }
 
+template <typename T>
+int HyperList<T>::lastIndexOf(const T value) {
+    Node<T>* current = tail;
+    int index = 0;
+
+    while (current != nullptr) {
+        if (current->data == value) {
+            return index;  // Return the index if value is found
+        }
+        current = current->prev; // Go toward the head
+        index--;
+    }
+
+    return -1;  // Return -1 if the value is not found
+}
 
 template <typename T>
 void HyperList<T>::replace(const int index, const T value) {

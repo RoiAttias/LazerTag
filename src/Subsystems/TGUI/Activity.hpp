@@ -1,7 +1,7 @@
 #ifndef ACTIVITY_HPP
 #define ACTIVITY_HPP
 
-#include "Element.hpp"
+#include "TGUI.hpp"
 
 /**
  * @brief Activity class serves as a container for managing multiple child elements.
@@ -24,14 +24,16 @@ public:
     /**
      * @brief Constructor of Activity
      *
-     * @param position The position of the activity on the X and Y axis.
-     * @param scale The width and height of the activity.
+     * @param origin The origin position of the activity on the X and Y axis - for full screen: should be zero.
+     * @param scale The width and height of the activity - for full screen: should be screen's diamensions.
      * @param visible Enable rendering for the activity.
      * @param OnClick_enable Enable or disable the click event for the activity.
      * @param OnClick_handler Pointer to the function to handle the click event.
      */
-    Activity(ivec2 position = ivec2(), ivec2 scale = ivec2(), bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
-        : Element(position, vec2(), scale, visible, OnClick_enable, OnClick_handler) {}
+    Activity(ivec2 origin, ivec2 scale, bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
+        : Element(origin, ivec2(), scale, visible, OnClick_enable, OnClick_handler) {
+
+        }
 
     // Overrides
     /**
@@ -43,8 +45,8 @@ public:
         {
             // Update the positions of all child elements relative to the Activity's location.
             updatePositions();
-            // Render all visible child elements
-            for (int i = 0; i < elements.size(); i++)
+            // Render all visible child elements - first in front
+            for (int i = elements.size(); i > -1; i--)
             {
                 if (elements.get(i)->visible && inRange(elements.get(i)))
                 {
@@ -61,7 +63,7 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
-        if (OnTouch_enable && OnTouch_handler && TouchStatus::ready) {
+        if (OnTouch_enable && OnTouch_handler && touchStatus > TouchStatus::ready) {
             OnTouch_handler(point,touchStatus);
         }
     
@@ -91,7 +93,7 @@ public:
         for (int i = 0; i < elements.size(); i++)
         {
             // Position each element relative to the Activity's position
-            elements.get(i)->setOffset(finalPosition);
+            elements.get(i)->setOffset(getPosition());
         }
     }
 
@@ -105,8 +107,18 @@ public:
     {
         if (element != nullptr)
         {
-            elements.add(element);
+            elements.addend(element);
         }
+    }
+
+    /**
+     * @brief Remove a child element from the Activity.
+     *
+     * @param index Index of the element to be removed.
+     */
+    void removeElement(int index)
+    {
+        elements.remove(i);
     }
 
     /**
@@ -152,7 +164,7 @@ public:
      */
     Element *getElement(int index)
     {
-        return (index >= 0 && index < elements.size()) ? elements.get(index) : nullptr;
+        return (index >= 0 && index < getElementCount()) ? elements.get(index) : nullptr;
     }
 };
 

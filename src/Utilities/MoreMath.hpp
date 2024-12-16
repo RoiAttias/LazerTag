@@ -1,0 +1,4 @@
+#ifndef MOREMATH_HPP
+#define MOREMATH_HPP
+
+#endif // MOREMATH_HPP

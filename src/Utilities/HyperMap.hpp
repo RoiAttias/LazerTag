@@ -95,8 +95,8 @@ void HyperMap<K, V>::put(K key, V value) {
     if (index != -1) {
         values.replace(index, value); // Replace value if key exists
     } else {
-        keys.add(key);
-        values.add(value);
+        keys.addend(key);
+        values.addend(value);
     }
 }
 
