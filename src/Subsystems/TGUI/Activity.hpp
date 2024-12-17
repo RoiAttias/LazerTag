@@ -30,13 +30,8 @@ public:
      * @param OnTouch_enable Enable or disable the Touch event for the activity.
      * @param OnTouch_handler Pointer to the function to handle the Touch event.
      */
-    Activity(ivec2 origin, ivec2 scale, bool visible = true, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
-        : Element(origin, ivec2(), scale, visible, OnTouch_enable, OnTouch_handler){
-            if(origin == TGUI_AUTO)
-            {
-                origin = 0;
-            }
-        }
+    Activity(ivec2 origin = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
+        : Element(origin, ivec2(), scale, visible, OnTouch_enable, OnTouch_handler){}
 
     // Overrides
     /**
@@ -115,6 +110,20 @@ public:
     }
 
     /**
+     * @brief Add child elements to the Activity from array.
+     *
+     * @param element Pointer to the first element in the array to be added.
+     * @param size Size of the array.
+     */
+    /*void addElements(Element ** array, int size)
+    {
+        if (array != nullptr)
+        {
+            elements.addFromArray(array,size);
+        }
+    }*/
+
+    /**
      * @brief Remove a child element from the Activity.
      *
      * @param index Index of the element to be removed.
@@ -135,7 +144,7 @@ public:
         {
             if (elements.get(i) == element)
             {
-                elements.remove(i);
+                removeElement(i);
                 break;
             }
         }

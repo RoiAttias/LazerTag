@@ -38,21 +38,24 @@ public:
     /**
      * Adds a new node with the given value at the beginning of the list.
      * @param value Data to be stored in the new node.
+     * @return The index of the new node inserted to the list (returns -1 when index out of range).
      */
-    void addfront(T value);
+    int addfront(T value);
 
     /**
      * Adds a new node with the given value at the end of the list.
      * @param value Data to be stored in the new node.
+     * @return The index of the new node inserted to the list (returns -1 when index out of range).
      */
-    void addend(T value);
+    int addend(T value);
 
     /**
      * Adds multiple nodes with data from an array at the end of the list.
      * @param array Pointer to the array of data to be added.
      * @param size Number of elements in the array.
+     * @return The index of the first new node inserted to the list.
      */
-    void addFromArray(const T* array, const int size);
+    int addFromArray(T array[], int size);
 
     /**
      * Checks if the list contains a node with the given value.
@@ -81,12 +84,6 @@ public:
     T get(int index);
 
     /**
-     * Gets the number of nodes in the list.
-     * @return Number of nodes in the list.
-     */
-    int size() const;
-
-    /**
      * Finds the index of the first occurrence of the given value in the list.
      * @param value Data to find in the list.
      * @return The index of the first occurrence of the value, or -1 if the value is not found.
@@ -97,8 +94,9 @@ public:
      * Inserts a new node with the given value at the specified index.
      * @param index Position where the new node should be inserted.
      * @param value Data to be stored in the new node.
+     * @return The index of the new node inserted to the list (returns -1 when index out of range).
      */
-    void insert(int index, T value);
+    int insert(int index, T value);
 
     /**
      * Inserts multiple nodes from an array at the specified index.
@@ -133,6 +131,12 @@ public:
      * @param index Position of the node to remove.
      */
     void remove(int index);
+
+    /**
+     * Gets the number of nodes in the list.
+     * @return Number of nodes in the list.
+     */
+    int size() const;
 
     /**
      * Stores the data of the list into an array.
@@ -173,29 +177,28 @@ HyperList<T>::~HyperList() {
 }
 
 template <typename T>
-void HyperList<T>::addfront(const T value) {
-    insert(0, value);
+int HyperList<T>::addfront(const T value) {
+    return insert(0, value);
 }
 
 template <typename T>
-void HyperList<T>::addend(const T value) {
-    insert(listSize, value);
+int HyperList<T>::addend(const T value) {
+    return insert(listSize, value);
 }
 
 template <typename T>
-void HyperList<T>::addFromArray(const T* array, const int size) {
+int HyperList<T>::addFromArray(T array[], int size) {
     // Check if the array pointer is null or if the size is non-positive
     if (!array || size <= 0) {
-        return;
+        return -1;
     }
-    
+    int result;
     // Loop through the array and add each element to the HyperList
     for (int i = 0; i < size; i++) {
-        addend(array[i]);
+        result = addend(array[i]);
     }
+    return result - size + 1;
 }
-
-
 
 template <typename T>
 void HyperList<T>::clear() {
@@ -261,9 +264,9 @@ int HyperList<T>::indexOf(const T value) {
 }
 
 template <typename T>
-void HyperList<T>::insert(const int index, const T value) {
+int HyperList<T>::insert(const int index, const T value) {
     if (index < 0 || index > listSize) {
-        return; // Index out of bounds
+        return -1; // Index out of bounds
     }
 
     Node<T>* newNode = new Node<T>(value);
@@ -293,8 +296,8 @@ void HyperList<T>::insert(const int index, const T value) {
             prevNode->next = newNode;
         }
     }
-
     listSize++;
+    return index;
 }
 
 template <typename T>
@@ -351,6 +354,11 @@ void HyperList<T>::remove(const int index) {
 
     delete node;
     listSize--;
+}
+
+template <typename T>
+int HyperList<T>::size() const {
+    return listSize;
 }
 
 template <typename T>

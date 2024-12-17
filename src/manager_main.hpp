@@ -3,11 +3,10 @@
 
 #include <Arduino.h>
 #include "Subsystems/GUI_Manager/GUI_Manager.hpp"
-#include "Utilities/HyperList.hpp"
 
 void manager_setup()
 {
-    Serial.begin(115200);
+    Serial.println("Hello");
 }
 
 void manager_loop()

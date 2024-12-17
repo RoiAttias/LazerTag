@@ -53,6 +53,10 @@ public:
             bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
         : origin(origin), offset(offset), scale(scale), visible(visible),
           OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler) {}
+    /**
+     * @brief Constructor of Element (Default)
+     */
+    Element() : Element(ivec2(), ivec2(), ivec2(), true, false, nullptr) {}
 
     /**
      * @brief Constructor of Element
@@ -67,7 +71,7 @@ public:
      * @param OnTouch_enable Enable or disable the touch event for the element.
      * @param OnTouch_handler Pointer to the function to handle the touch event.
      */
-    Element(int xOrigin = 0, int yOrigin = 0, int xOffset = 0, int yOffset = 0, int width = 0, int height = 0,
+    Element(int xOrigin, int yOrigin, int xOffset, int yOffset, int width, int height,
             bool visible = true, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
         : Element(ivec2(xOrigin, yOrigin), ivec2(xOffset, yOffset), ivec2(width, height), visible, OnTouch_enable, OnTouch_handler) {}
 
@@ -85,9 +89,9 @@ public:
     // Setters
     // Functions to be overridden
     /**
-     * @brief Pure virtual function for rendering the element.
+     * @brief Virtual function for rendering the element.
      */
-    virtual void render() = 0;
+    virtual void render() {}
 
     // Calculations
     /**

@@ -59,6 +59,10 @@ public:
     void addActivity(Activity* activity) {
         if (activity) {
             activities.addend(activity);
+            if(activity->origin == TGUI_AUTO)
+            {
+                activity->origin = 0;
+            }
             if (activity->scale == TGUI_AUTO)
             {
                 activity->scale == resolution;
