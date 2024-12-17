@@ -4,129 +4,170 @@
 #include "TGUI.hpp"
 
 /*
-*onpush
-rendertime pushtime
+framerate mode
+rendertime pushtime variables
 framerate enable cap
-time functionality
-animation
 */
 
+/**
+ * @brief Screen class manages multiple Activities and handles their rendering and input interactions.
+ *
+ * Key Features:
+ * - **Activity Management**: Allows adding, removing, and switching between Activities.
+ * - **Rendering**: Renders the current active Activity.
+ * - **Touch and Push Events**: Handles touch interactions and custom push events.
+ */
 class Screen {
 public:
-    HyperList<Activity*> activities;
+    HyperList<Activity*> activities; ///< List of Activities managed by the Screen.
+    ivec2 resolution;
 
-    Screen(Activity* activity);
-    Screen(Activity* activity, int amount);
-    ~Screen();
+    // Constructors and Destructor
+    /**
+     * @brief Constructor to initialize a Screen with multiple Activities.
+     *
+     * @param activity Pointer to the first Activity in the array.
+     * @param amount Number of Activities to add.
+     */
+    Screen(ivec2 resolution, Activity* activity, int amount) : resolution(resolution),
+        currentActivity(0), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) { 
+        if (activity && amount > 0) {
+            addActivities(activity, amount);
+        }
+    }
 
-    void addActivity(Activity* activity);
-    void addActivities(Activity* activity, int amount);
-    void switchToActivity(int index);
+    /**
+     * @brief Constructor to initialize a Screen with a single Activity.
+     *
+     * @param activity Pointer to the initial Activity.
+     */
+    Screen(ivec2 resolution ,Activity* activity) : Screen(resolution, activity, 1){}
 
-    void render();
-    void push();
-    void renderNpush();
+    /**
+     * @brief Destructor to clean up resources.
+     */
+    ~Screen() {
+        activities.clear();
+    }
 
-    void enableTouch(bool enable);
-    void executeTouch(); // Add return executed
+    // Activity Management
+    /**
+     * @brief Add a single Activity to the Screen.
+     *
+     * @param activity Pointer to the Activity to add.
+     */
+    void addActivity(Activity* activity) {
+        if (activity) {
+            activities.addend(activity);
+            if (activity->scale == TGUI_AUTO)
+            {
+                activity->scale == resolution;
+            }
+        }
+    }
 
-    void enablePush(bool enable);
-    void setPushHandler(void (*handler)(void));
+    /**
+     * @brief Add multiple Activities to the Screen.
+     *
+     * @param activity Pointer to the first Activity in the array.
+     * @param amount Number of Activities to add.
+     */
+    void addActivities(Activity* activity, int amount) {
+        for (int i = 0; i < amount; ++i) {
+            addActivity(activity + i);
+        }
+    }
+
+    /**
+     * @brief Switch to a specific Activity by its index.
+     *
+     * @param index Index of the Activity to switch to.
+     */
+    void selectActivity(int index) {
+        if (index >= 0 && index < activities.size()) {
+            currentActivity = index;
+        }
+    }
+
+    // Rendering and Push Handling
+    /**
+     * @brief Render the current active Activity.
+     */
+    void render() {
+        if (currentActivity > -1 && currentActivity < activities.size()) {
+            activities.get(currentActivity)->render();
+        }
+    }
+
+    /**
+     * @brief Execute the push handler if enabled.
+     */
+    void push() {
+        executePush();
+    }
+
+    /**
+     * @brief Render the current Activity and execute the push handler.
+     */
+    void renderNpush() {
+        render();
+        push();
+    }
+
+    // Touch and Push Functionality
+    /**
+     * @brief Enable or disable touch functionality.
+     *
+     * @param enable True to enable, false to disable.
+     */
+    void enableTouch(bool enable) {
+        touchEnabled = enable;
+    }
+
+    /**
+     * @brief Execute touch events on the current active Activity.
+     *
+     * @param point Coordinates of the touch input.
+     * @param touchStatus The status of the touch event (e.g., press, drag, release).
+     */
+    void executeTouch(ivec2 point, TouchStatus touchStatus) {
+        if (touchEnabled && currentActivity >= 0 && currentActivity < activities.size()) {
+            activities.get(currentActivity)->OnTouch_execute(point, touchStatus);
+        }
+    }
+
+    /**
+     * @brief Enable or disable push functionality.
+     *
+     * @param enable True to enable, false to disable.
+     */
+    void enablePush(bool enable) {
+        pushEnabled = enable;
+    }
+
+    /**
+     * @brief Set the push handler function.
+     *
+     * @param handler Function pointer to the custom push handler.
+     */
+    void setPushHandler(void (*handler)(void)) {
+        pushHandler = handler;
+    }
 
 protected:
-    void executePush();
+    /**
+     * @brief Execute the push handler function if enabled.
+     */
+    void executePush() {
+        if (pushEnabled && pushHandler) {
+            pushHandler();
+        }
+    }
 
-    int currentActivity;
-
-    bool touchEnabled;
-
-    bool pushEnabled;
-    void (*pushHandler)(void);
+    int currentActivity; ///< Index of the currently active Activity.
+    bool touchEnabled;   ///< Indicates whether touch is enabled.
+    bool pushEnabled;    ///< Indicates whether push is enabled.
+    void (*pushHandler)(void); ///< Function pointer to the custom push handler.
 };
-
-// Constructors
-Screen::Screen(currentActivity = -1, pushEnabled = false, pushHandler = nullptr) :
-    currentActivity(currentActivity), pushEnabled(pushEnabled), pushHandler(pushHandler) {}
-
-Screen::Screen(Activity* activity, currentActivity = 0, pushEnabled = false, pushHandler = nullptr) {
-    addActivity(activity);
-}
-
-Screen::Screen(Activity* activities, int amount, currentActivity = 0, pushEnabled = false, pushHandler = nullptr) {
-    addActivities(activities, amount);
-}
-
-// Add a single activity
-void Screen::addActivity(Activity* activity) {
-    activities.add(activity);
-}
-
-// Add multiple activities
-void Screen::addActivities(Activity* activity, int amount) {
-    for (int i = 0; i < amount; i) {
-        activities.add(activity + i);
-    }
-}
-
-// Switch to a specific activity by index
-void Screen::switchToActivity(int index) {
-    if (index >= 0 && index < activities.size()) {
-        currentActivity = index;
-    }
-}
-
-// Render the current activity
-void Screen::render() {
-    if (activities.size() > 0 && currentActivity > -1 && currentActivity < activities.size()) {
-        activities.get(currentActivity)->render();
-    }
-}
-
-// Execute the push handler if enabled
-void Screen::push() {
-    executePush();
-}
-
-// Render the current activity and execute the push handler
-void Screen::renderNpush() {
-    render();
-    push();
-}
-
-
-// Enable or disable features 0, 1
-void Screen::enable(bool touch, bool push) {
-    enableTouch(touch);
-    enablePush(push);
-}
-
-// Enable or disable touch functionality
-void Screen::enableTouch(bool enable) {
-    touchEnabled = enable;
-}
-
-// Enable or disable push functionality
-void Screen::enablePush(bool enable) {
-    pushEnabled = enable;
-}
-
-// Set the push handler function
-void Screen::setPushHandler(void (*handler)(void)) {
-    pushHandler = handler;
-}
-
-// Execute the push handler if enabled and set
-void Screen::executePush() {
-    if (pushEnabled && pushHandler != nullptr) {
-        pushHandler();
-    }
-}
-
-// Update touch input with coordinates
-void Screen::executeTouch(ivec2 point,TouchStatus touchStatus) {
-    if (activities.size() > 0 && currentActivity > -1 && currentActivity < activities.size()) {
-        activities.get(currentActivity)->OnTouch_execute(point,touchStatus);
-    }
-}
 
 #endif // SCREEN_HPP

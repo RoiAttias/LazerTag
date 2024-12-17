@@ -7,13 +7,13 @@
  * @brief Activity class serves as a container for managing multiple child elements.
  *
  * Activity provides a layout mechanism for managing child elements, handling rendering,
- * updating positions, and forwarding events like clicks to child elements.
+ * updating positions, and forwarding events like Touchs to child elements.
  *
  * Key Features:
  * - **Position and Scale**: Manages the overall position and size of the activity area.
  * - **Child Elements**: Allows adding, removing, and updating multiple child elements.
  * - **Rendering**: Renders child elements when the activity is visible.
- * - **Event Handling**: Propagates click events to relevant child elements within bounds.
+ * - **Event Handling**: Propagates Touch events to relevant child elements within bounds.
  */
 class Activity : public Element
 {
@@ -27,12 +27,15 @@ public:
      * @param origin The origin position of the activity on the X and Y axis - for full screen: should be zero.
      * @param scale The width and height of the activity - for full screen: should be screen's diamensions.
      * @param visible Enable rendering for the activity.
-     * @param OnClick_enable Enable or disable the click event for the activity.
-     * @param OnClick_handler Pointer to the function to handle the click event.
+     * @param OnTouch_enable Enable or disable the Touch event for the activity.
+     * @param OnTouch_handler Pointer to the function to handle the Touch event.
      */
-    Activity(ivec2 origin, ivec2 scale, bool visible = true, bool OnClick_enable = false, std::function<void(ivec2)> OnClick_handler = nullptr)
-        : Element(origin, ivec2(), scale, visible, OnClick_enable, OnClick_handler) {
-
+    Activity(ivec2 origin, ivec2 scale, bool visible = true, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
+        : Element(origin, ivec2(), scale, visible, OnTouch_enable, OnTouch_handler){
+            if(origin == TGUI_AUTO)
+            {
+                origin = 0;
+            }
         }
 
     // Overrides
@@ -57,9 +60,9 @@ public:
     }
 
     /**
-     * @brief Handles click events and forwards them to child elements if necessary.
+     * @brief Handles Touch events and forwards them to child elements if necessary.
      *
-     * @param point The location where the click occurred.
+     * @param point The location where the Touch occurred.
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
@@ -68,17 +71,17 @@ public:
         }
     
 
-        // Executes click events in reversed order, opposite of rendering order
+        // Executes Touch events in reversed order, opposite of rendering order
         // the last elements inside the list are in front.
         for (int i = elements.size() - 1; i >= 0 ; i--)
         {
-            // Execute click events if child is visible and inside activity range
-            if (elements.get(i)->isVisible() && inRange(elements.get(i)))
+            // Execute Touch events if child is visible and inside activity range
+            if (elements.get(i)->visible && inRange(elements.get(i)))
             {
-                // Execute click events to child elements if the point is in their range
+                // Execute Touch events to child elements if the point is in their range
                 if (elements.get(i)->inRange(point))
                 {
-                    elements.get(i)->OnClick_execute(point);
+                    elements.get(i)->OnTouch_execute(point, touchStatus);
                 }
             }
         }
@@ -93,7 +96,7 @@ public:
         for (int i = 0; i < elements.size(); i++)
         {
             // Position each element relative to the Activity's position
-            elements.get(i)->setOffset(getPosition());
+            elements.get(i)->offset = getPosition();
         }
     }
 
@@ -118,7 +121,7 @@ public:
      */
     void removeElement(int index)
     {
-        elements.remove(i);
+        elements.remove(index);
     }
 
     /**

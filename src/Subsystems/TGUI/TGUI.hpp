@@ -3,14 +3,14 @@
 
 #include <functional>
 
-#include "Utilities\ivec2.hpp"
-#include "Utilities\vec2.hpp"
+#include "Utilities/ivec2.hpp"
+#include "Utilities/vec2.hpp"
 
-#include "Utilities\HyperList.hpp"
+#include "Utilities/HyperList.hpp"
 
-#include "Components\Pushbutton\Pushbutton.hpp"
+#include "Components/Pushbutton/Pushbutton.hpp"
 
-#define AUTO -1
+#define TGUI_AUTO -1
 
 // Element IDs
 int elementIDs = 0; // The amount of element created
@@ -28,7 +28,7 @@ enum TouchStatus{
     ready,
     pressed,
     released,
-    size
+    TouchStatus_size
 };
 /*
 enum TouchStatus{
@@ -38,7 +38,7 @@ enum TouchStatus{
     released,
     drag,
     click,
-    size
+    TouchStatus_size
 };
 */
 
@@ -46,14 +46,12 @@ enum TouchStatus{
 typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 
 #include "Element.hpp"
-
-//#include "Grid.hpp"
-//#include "Activity.hpp"
+#include "Activity.hpp"
 #include "Screen.hpp"
 
-#include "Touch.hpp"
+//#include "Touch.hpp"
 
-#include "TFT_eSPI_Elements/TFT_eSPI_Element.h"
+//#include "TFT_eSPI_Elements/TFT_eSPI_Element.h"
 
 //latest touch
-#endif
+#endif // TGUI_HPP

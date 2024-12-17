@@ -122,7 +122,7 @@ public:
      */
     virtual bool inRange(const Element *eptr) const
     {
-        ivec2 e_scale = eptr->scale();
+        ivec2 e_scale = eptr->scale;
         ivec2 px0y0 = eptr->getPosition();
         ivec2 px0y1 = eptr->getPosition() + ivec2(e_scale.y);
         ivec2 px1y0 = eptr->getPosition() + ivec2(e_scale.x);
@@ -136,7 +136,7 @@ public:
      *
      * @param enable True to enable the touch event, false to disable it.
      */
-    virtual void OnTouch_enable(bool enable)
+    virtual void OnTouch_setEnable(bool enable)
     {
         OnTouch_enable = enable;
     }

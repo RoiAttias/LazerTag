@@ -1,145 +1,45 @@
-#define DEVICE_TYPE 0
+#define DEVICE_MANAGER 1
+#define DEVICE_GUN 2
+#define DEVICE_VEST 3
+
+// Select device here
+#define DEVICE_TYPE DEVICE_MANAGER
 
 #ifndef DEVICE_TYPE
 #error "DEVICE_TYPE is not defined! Define DEVICE_TYPE in your build flags (e.g., -DDEVICE_MANAGER)."
 #endif
 
-#if DEVICE_TYPE == 1
-#include "manager_main.cpp"
-#elif DEVICE_TYPE == 2
-#include "gun_main.cpp"
-#elif DEVICE_TYPE == 3
-#include "vest_main.cpp"
+#if DEVICE_TYPE == DEVICE_MANAGER
+#include "manager_main.hpp"
+#elif DEVICE_TYPE == DEVICE_GUN
+#include "gun_main.hpp"
+#elif DEVICE_TYPE == DEVICE_VEST
+#include "vest_main.hpp"
 #elif DEVICE_TYPE == 0
 #else
 #error "Invalid DEVICE_TYPE specified!"
 #endif
 
 #include <Arduino.h>
-#include "Components/IRremoteESP32/IRsender.hpp"
-#include "Components/Pushbutton/Pushbutton.hpp"
-#include <U8g2lib.h>
-
-#include "Utilities/HyperList.hpp"
-
-#ifdef U8X8_HAVE_HW_SPI
-#include <SPI.h>
-#endif
-#ifdef U8X8_HAVE_HW_I2C
-#include <Wire.h>
-#endif
-
-// Define pin configurations
-const uint8_t buttonPin = 5; // Replace with your button pin
-const uint8_t irPin = 18;     // Replace with your IR LED pin
-
-// Define the IR signal
-const unsigned long fireSignal = 0xFF00FF; // Example NEC signal for "fire"
-
-volatile bool shotNow = false;
-volatile int counter = 0;
-
-// Instances of classes
-Pushbutton trigger(buttonPin);
-IRsender irSender(irPin, 0, 38000); // Using channel 0 and 38kHz frequency
-
-// Event handler for button
-void handleButtonEvent(Pushbutton::EventType eventType, uint32_t timeSincePress)
-{
-    if (eventType == Pushbutton::PRESS)
-    {
-        digitalWrite(irPin, HIGH);
-        shotNow = true; // Flag to indicate the shot should be fired
-    }
-    if (eventType == Pushbutton::RELEASE)
-    {
-        digitalWrite(irPin, LOW);
-    }
-}
-
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
-
-String str1, str2;
-int ammo, maxAmmo = 20;
-int health = 100;
-int w1, w2;
-
-int mix(float factor, int v1, int v2)
-{
-    return (int)(v1 * (1.0f - factor)) + (v2 * factor);
-}
-
-int map(int val, int fromMin, int fromMax, int toMin, int toMax)
-{
-    int distance = fromMax - fromMin;
-    val -= fromMin;
-    float factor = (float)val / distance;
-    return mix(factor, toMin, toMax);
-}
 
 void setup()
 {
-    Serial.begin(115200);
-
-    // Initialize the trigger button
-    trigger.init(handleButtonEvent, true); // Enable all events
-    trigger.enablePressEvent(true);
-    trigger.enableReleaseEvent(true);
-
-    u8g2.begin();
-    str2 = String(maxAmmo);
-    ammo = maxAmmo;
-
-    delay(4000);
-
-    // Additional setup logic if needed
-    Serial.println("Laser Tag Gun Ready!");
+#if DEVICE_TYPE == DEVICE_MANAGER
+    manager_setup();
+#elif DEVICE_TYPE == DEVICE_GUN
+    gun_setup();
+#elif DEVICE_TYPE == DEVICE_VEST
+    vest_setup();
+#endif
 }
 
 void loop()
 {
-    if (shotNow)
-    {
-        trigger.enableAllEvents(false);
-        Serial.println(counter++);
-        // irSender.sendNEC(fireSignal); // Send fire signal when the trigger is pressed
-        shotNow = false; // Reset the shot flag
-
-        ammo--;
-        if (ammo == -1)
-        {
-            ammo = maxAmmo;
-        }
-        health = random(100);
-
-        str1 = String(ammo);
-
-        u8g2.clearBuffer();
-
-        // hp bar
-        u8g2.setFont(u8g2_font_unifont_t_0_78_79);
-        u8g2.drawGlyph(112, 9, 0x2764);
-        u8g2.drawHLine(16, 8, 96);
-        u8g2.drawBox(16, 0, map(health, 0, 100, 0, 96), 8);
-
-        // ammo
-        u8g2.setFont(u8g2_font_fub25_tf);
-        u8g2.setFontPosCenter();
-        int h = 20;
-        u8g2.drawVLine(u8g2.getDisplayWidth() / 2, (u8g2.getDisplayHeight() - h) / 2, h);
-        u8g2.setCursor(u8g2.getDisplayWidth() / 2 - u8g2.getStrWidth(str1.c_str()) - 6, u8g2.getDisplayHeight() / 2);
-        u8g2.println(str1.c_str());
-        u8g2.setFont(u8g2_font_fub11_tf);
-        u8g2.setCursor(u8g2.getDisplayWidth() / 2 + 6, u8g2.getDisplayHeight() / 2);
-        u8g2.println(str2.c_str());
-
-        u8g2.sendBuffer();
-
-        delay(100);
-        digitalWrite(irPin, LOW);
-        trigger.enableAllEvents(true);
-    }
-
-    // The rest of the program primarily relies on interrupts, so no logic is needed here
-    // delay(10); // Optional: Small delay to stabilize processing
+#if DEVICE_TYPE == DEVICE_MANAGER
+    manager_loop();
+#elif DEVICE_TYPE == DEVICE_GUN
+    gun_loop();
+#elif DEVICE_TYPE == DEVICE_VEST
+    vest_loop();
+#endif
 }

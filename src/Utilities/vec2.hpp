@@ -2,7 +2,7 @@
 #define VEC2_HPP
 
 #include <Arduino.h>
-#include <ivec2.hpp>
+#include "ivec2.hpp"
 
 /**
  * @brief Struct representing a point (or vector) in 2D space, similar to OpenGL vectors.
