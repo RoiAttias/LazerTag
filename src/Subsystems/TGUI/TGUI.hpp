@@ -3,6 +3,7 @@
 
 #include <functional>
 
+#include "Utilities/MoreMath.hpp"
 #include "Utilities/ivec2.hpp"
 #include "Utilities/vec2.hpp"
 

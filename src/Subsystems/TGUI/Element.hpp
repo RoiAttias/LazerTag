@@ -49,14 +49,10 @@ public:
      * @param OnTouch_enable Enable or disable the touch event for the element.
      * @param OnTouch_handler Pointer to the function to handle the touch event.
      */
-    Element(ivec2 origin = ivec2(), ivec2 offset = ivec2(), ivec2 scale = ivec2(), bool visible = true,
+    Element(ivec2 origin = TGUI_AUTO, ivec2 offset = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true,
             bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
         : origin(origin), offset(offset), scale(scale), visible(visible),
           OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler) {}
-    /**
-     * @brief Constructor of Element (Default)
-     */
-    Element() : Element(ivec2(), ivec2(), ivec2(), true, false, nullptr) {}
 
     /**
      * @brief Constructor of Element

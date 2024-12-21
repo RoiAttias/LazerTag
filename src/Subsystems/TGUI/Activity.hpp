@@ -92,6 +92,11 @@ public:
         {
             // Position each element relative to the Activity's position
             elements.get(i)->offset = getPosition();
+
+            if (elements.get(i)->scale == TGUI_AUTO)
+            {
+                elements.get(i)->scale = scale;
+            }
         }
     }
 

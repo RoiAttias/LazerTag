@@ -2,6 +2,7 @@
 #define IVEC2_HPP
 
 #include <Arduino.h>
+#include "vec2.hpp"
 
 /**
  * @brief Struct representing a point (or vector) in 2D space with integer coordinates.
@@ -23,6 +24,17 @@ struct ivec2
      * @param y The y-coordinate of the vector (default is 0).
      */
     ivec2(int x = 0, int y = 0) : x(x), y(y) {}
+
+    /**
+     * @brief Constructor for ivec2.
+     * 
+     * @param v The floating vector.
+     */
+    ivec2(vec2 v)
+    {
+        this->x = int(v.x);
+        this->y = int(v.y);
+    }
 
     /**
      * @brief Addition assignment operator (+=).
