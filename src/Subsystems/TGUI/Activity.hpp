@@ -61,11 +61,6 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
-        if (OnTouch_enable && OnTouch_handler && touchStatus > TouchStatus::ready) {
-            OnTouch_handler(point,touchStatus);
-        }
-    
-
         // Executes Touch events in reversed order, opposite of rendering order
         // the last elements inside the list are in front.
         for (int i = elements.size() - 1; i >= 0 ; i--)
@@ -80,6 +75,8 @@ public:
                 }
             }
         }
+
+        Element::OnTouch_execute(point,touchStatus);
     }
 
     // Calculations

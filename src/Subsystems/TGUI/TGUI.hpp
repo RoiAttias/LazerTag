@@ -11,6 +11,11 @@
 
 #include "Components/Pushbutton/Pushbutton.hpp"
 
+#define LUMINAUI_USE_TFT_ESPI
+#ifdef LUMINAUI_USE_TFT_ESPI
+    #include "TFT_eSPI_Elements/TFT_eSPI_Elements.hpp"
+#endif
+
 #define TGUI_AUTO -1
 
 // Element IDs

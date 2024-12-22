@@ -21,6 +21,7 @@ class Screen {
 public:
     HyperList<Activity*> activities; ///< List of Activities managed by the Screen.
     ivec2 resolution;
+    bool renderAfterOnTouch;
 
     // Constructors and Destructor
     /**
@@ -29,11 +30,14 @@ public:
      * @param activity Pointer to the first Activity in the array.
      * @param amount Number of Activities to add.
      */
-    Screen(ivec2 resolution, Activity* activity, int amount) : resolution(resolution),
+    Screen(ivec2 resolution, Activity* activity, int amount, bool renderAfterOnTouch = false)
+        : _shouldRender(false), resolution(resolution), renderAfterOnTouch(renderAfterOnTouch),
         currentActivity(0), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) { 
         if (activity && amount > 0) {
             addActivities(activity, amount);
         }
+
+        
     }
 
     /**
@@ -41,7 +45,8 @@ public:
      *
      * @param activity Pointer to the initial Activity.
      */
-    Screen(ivec2 resolution ,Activity* activity) : Screen(resolution, activity, 1){}
+    Screen(ivec2 resolution, Activity* activity, bool renderAfterOnTouch = false)
+        : Screen(resolution, activity, 1){}
 
     /**
      * @brief Destructor to clean up resources.
@@ -77,7 +82,7 @@ public:
      * @param amount Number of Activities to add.
      */
     void addActivities(Activity* activity, int amount) {
-        for (int i = 0; i < amount; ++i) {
+        for (int i = 0; i < amount; i++) {
             addActivity(activity + i);
         }
     }
@@ -94,11 +99,20 @@ public:
     }
 
     // Rendering and Push Handling
+
+    void callRender() {
+        _shouldRender = true;
+    }
+
+    bool shouldRender() {
+        return _shouldRender;
+    }
+
     /**
      * @brief Render the current active Activity.
      */
     void render() {
-        if (currentActivity > -1 && currentActivity < activities.size()) {
+        if (currentActivity >= 0 && currentActivity < activities.size()) {
             activities.get(currentActivity)->render();
         }
     }
@@ -106,7 +120,7 @@ public:
     /**
      * @brief Execute the push handler if enabled.
      */
-    void push() {
+    virtual void push() {
         executePush();
     }
 
@@ -167,11 +181,16 @@ protected:
             pushHandler();
         }
     }
-
+    bool _shouldRender; ///< Flag for rendering inside a loop
     int currentActivity; ///< Index of the currently active Activity.
     bool touchEnabled;   ///< Indicates whether touch is enabled.
     bool pushEnabled;    ///< Indicates whether push is enabled.
-    void (*pushHandler)(void); ///< Function pointer to the custom push handler.
+    
+    #if defined(LUMINAUI_USE_TFT_ESPI)
+        void (*pushHandler)(void) = spritePush; ///< Function pointer to the sprite push handler.
+    #else
+        void (*pushHandler)(void); ///< Function pointer to the custom push handler.
+    #endif
 };
 
 #endif // SCREEN_HPP
