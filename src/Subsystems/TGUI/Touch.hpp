@@ -2,82 +2,23 @@
 #define TOUCH_HPP
 
 #include "TGUI.hpp"
-/*
-// Variables for tracking touch states
-volatile bool touchPressed = false;
-volatile uint16_t lastX = 0, lastY = 0;
-volatile unsigned long pressStartTime = 0;
-const unsigned long debounceDelay = 50;  // 50 ms debounce delay
-const uint16_t dragThreshold = 5;  // Minimum movement in pixels to count as a drag
-*/
-/*
-// ISR to handle touch press/release and debounce
-void IRAM_ATTR touchISR() {
-    static unsigned long lastInterruptTime = 0;
-    unsigned long interruptTime = millis();
-
-    // Debounce check
-    if (interruptTime - lastInterruptTime > debounceDelay) {
-        bool isTouched = digitalRead(TOUCH_PIN) == LOW;  // Adjust based on touch module's active state
-        uint16_t x, y;
-
-        if (isTouched) {
-            // Register a press event
-            touchPressed = true;
-            pressStartTime = millis();
-            tft.getTouch(&x, &y);  // Replace with your library's touch reading function
-            lastX = x;
-            lastY = y;
-            onPress(x, y);
-        } else if (touchPressed) {
-            // Register a release event
-            touchPressed = false;
-            unsigned long pressDuration = millis() - pressStartTime;
-            tft.getTouch(&x, &y);
-            onRelease(x, y, pressDuration);
-        }
-    }
-    lastInterruptTime = interruptTime;
-}
-*/
-
-/*
-
-// Main loop to handle drag events
-void loop() {
-    if (touchPressed) {
-        uint16_t x, y;
-        tft.getTouch(&x, &y);
-
-        // Check if movement exceeds drag threshold
-        if (abs(x - lastX) > dragThreshold || abs(y - lastY) > dragThreshold) {
-            lastX = x;
-            lastY = y;
-            onDrag(x, y);
-        }
-    }
-}
-*/
-
-
-
 
 class Touch {
 protected:
-    TouchStatus status;
+    int status;
     ivec2 currentPosition, startPosition, endPosition;
     int counter;
 
-    bool beenTouched;
-    unsigned long lastTime;
-    unsigned long pressStartTime;
+    volatile bool beenTouched;
+    volatile unsigned long lastTime;
+    volatile unsigned long pressStartTime;
 
-    unsigned long holdThreshold = 1000;
-    float dragDistanceThreshold = 30.0f
+    //unsigned long holdThreshold = 1000;
+    //float dragDistanceThreshold = 30.0f;
 
     //bool enable; 
-    int enable; // Flags to enable touch events
-    int flagTemp;
+    bool enable; // Flags to enable touch events
+    bool flagTemp;
 
     Screen *screen;
 
@@ -85,6 +26,10 @@ public:
     // Constructors
     Touch(Screen *screen) {
         beenTouched = false;
+        lastTime = 0;
+        pressStartTime = 0;
+        enable = false;
+        flagTemp = enable;
     }
 
     virtual void init(int enable){
@@ -92,22 +37,27 @@ public:
     }
 
     virtual void reset(){
-        status = ready;
         flagTemp = enable;
+        enable = false;
+        beenTouched = false;
+        status = ready;
+
+        enable = flagTemp;
     }
 
     virtual void next(ivec2 point, bool isTouched) {
-        if (status == TouchStatus::size) {
+        if (!enable)
+        {
+            return;
+        }
+        
+        if (status == TouchStatus::TouchStatus_size) {
             reset();
         }
-        if(isTouched != beenTouched)
+        else if(isTouched != beenTouched)
         {
-//+2
-            screen->executeTouch(point,status);
-        }
-        else if ()
-        {
-            if(vec2(point).distance(startPosition) > dragDistanceThreshold);
+            status++;
+            screen->executeTouch(point,TouchStatus(status));
         }
         beenTouched = isTouched;
     }

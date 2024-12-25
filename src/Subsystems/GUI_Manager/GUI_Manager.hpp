@@ -11,7 +11,7 @@ enum GUI_Manager_Activity : uint8_t {
     GUI_Manager_Activity_size
 };
 
-Activity* GUI_Manager_Activities[] = {
+Activity * GUI_Manager_Activities[] = {
     new Activation()
 };
 

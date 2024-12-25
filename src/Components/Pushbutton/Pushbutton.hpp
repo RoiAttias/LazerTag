@@ -3,13 +3,13 @@
 
 #include <Arduino.h>
 #include <map>
-
+// Define the handler function type
 class Pushbutton;
-Pushbutton* Pushbutton_Instance;
+Pushbutton *Pushbutton_Instance;
 void Pushbutton_Register(int pbPin, Pushbutton *pbPtr);
 void IRAM_ATTR Pushbutton_ISR(void *arg);
 // Use std::map for Pushbutton registration
-std::map<int, Pushbutton*> registeredPushbuttons;
+std::map<int, Pushbutton *> registeredPushbuttons;
 
 class Pushbutton
 {
@@ -22,15 +22,16 @@ public:
         COUNTER,
     };
 
-    // Define the handler function type
-    using EventHandler = void (*)(EventType, uint32_t timeSincePress);
+    using EventHandler = void (*)(EventType, uint32_t);
 
 private:
     // Pin configuration and debounce timing
-    const uint8_t pin;     // Pin number the button is connected to
-    void* pinValue;
-    const bool microsMode; // Flag to determine whether to use micros() or millis()
+    const uint8_t pin; // Pin number the button is connected to
+    void *pinValue;
+    const bool microsMode;      // Flag to determine whether to use micros() or millis()
     uint32_t debounceThreshold; // Debounce threshold in milliseconds/microseconds
+    uint32_t maxWaitForRelease;
+    bool autoRelease;
 
     // Button state tracking
     volatile bool buttonState;           // Last stable state of the button (pressed/released)
@@ -69,8 +70,10 @@ public:
      * @param debounceMs        Debounce threshold in milliseconds/microseconds.
      * @param useMicros         Use micros() instead of millis() for timing.
      */
-    Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, bool useMicros = false)
-        : pin(buttonPin), pinValue(nullptr), microsMode(useMicros), debounceThreshold(debounceMs),
+    Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, bool useMicros = false,
+               uint32_t maxWaitForRelease = 1000, bool autoRelease = false)
+        : pin(buttonPin), pinValue(nullptr), debounceThreshold(debounceMs), microsMode(useMicros),
+          maxWaitForRelease(maxWaitForRelease), autoRelease(autoRelease),
           buttonState(false), currentButtonState(false), lastDebounceTime(0),
           pressStartTime(0), timeSincePress(0), counterShouldOverride(false),
           eventHandler(nullptr), pressEnabled(false), releaseEnabled(false),
@@ -88,7 +91,7 @@ public:
         pinMode(pin, INPUT_PULLUP);
 
         Pushbutton_Register(pin, this); // Register the pushbutton instance
-        pinValue = reinterpret_cast<void*>(pin);
+        pinValue = reinterpret_cast<void *>(pin);
         attachInterruptArg(digitalPinToInterrupt(pin), Pushbutton_ISR, pinValue, CHANGE);
 
         enableAllEvents(enableAll);
@@ -103,7 +106,6 @@ public:
     {
         detachInterrupt(digitalPinToInterrupt(pin));
     }
-
 
     /**
      * Check if the button is currently pressed.
@@ -210,7 +212,7 @@ public:
         currentButtonState = isPressed();
 
         // if button state has changed
-        if ((currentButtonState != buttonState) && (currentTime - lastDebounceTime > debounceThreshold))
+        if ((currentButtonState != buttonState && currentTime - lastDebounceTime > debounceThreshold))
         {
             // Timer updates
             if (currentButtonState)
@@ -259,14 +261,14 @@ public:
 
 void Pushbutton_Register(int pbPin, Pushbutton *pbPtr)
 {
-    //registeredPushbuttons[pbPin] = pbPtr;
+    // registeredPushbuttons[pbPin] = pbPtr;
     Pushbutton_Instance = pbPtr;
 }
 
 void IRAM_ATTR Pushbutton_ISR(void *arg)
 {
-    //int pbPin = reinterpret_cast<int>(arg);
-    //Pushbutton *pbPtr = registeredPushbuttons[pbPin];
+    // int pbPin = reinterpret_cast<int>(arg);
+    // Pushbutton *pbPtr = registeredPushbuttons[pbPin];
     Pushbutton *pbPtr = Pushbutton_Instance;
     if (pbPtr != nullptr)
     {
@@ -274,7 +276,6 @@ void IRAM_ATTR Pushbutton_ISR(void *arg)
         pbPtr->handleInterrupt();
         pbPtr->ISR_Enable();
     }
-
 }
 
 #endif // PUSHBUTTON_HPP

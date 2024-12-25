@@ -1,43 +1,37 @@
 #ifndef TOUCH_XPT2046_HPP
 #define TOUCH_XPT2046_HPP
 
-#include "TGUI.hpp"
+#include "Subsystems/TGUI/TGUI.hpp"
+#include "Subsystems/TGUI/Touch.hpp"
 #include "TFT_eSPI.h"
+#include "Components/Pushbutton/Pushbutton.hpp"
 
 unsigned long debounceThreshold = 5;
 
 class Touch_XPT2046 : public Touch {
 protected:
-    TFT_eSPI *tft;
     int isr_pin;
     Pushbutton isr;
     
 public:
+    ivec2 lastPoint;
     // Constructors
-    Touch_XPT2046(Screen *screen, TFT_eSPI *tft, int isr_pin) {
-      this->tft = tft;
+    Touch_XPT2046(Screen * screen, int isr_pin) {
       this->isr_pin = isr_pin;
       isr = Pushbutton(isr_pin);
       Touch::Touch(screen);
     }
 
-    virtual void init(int enable){
-      registerXPT(isrPin, this);
-      isr.init([this]()->);
+    virtual void init(EventHandler handler, int enable){
+      instance_xpt = this;
+      isr.enablePressEvent(true);
+      isr.init(handler,true);
       Touch::init(enable);
     }
 
-    virtual bool isTouch()
+    virtual bool isTouched()
     {
-      return digitalRead(isr_pin) == LOW;
-    }
-
-    virtual bool outOfDebounceThreshold()
-    {
-      unsigned long newTime = millis();
-      bool ans = newTime - lastTime > debounceThreshold;
-      lastTime = newTime;
-      return ans;
+      return isr.isPressed();
     }
 
     virtual ivec2 getPoint(int iterations = 1)
@@ -46,7 +40,7 @@ public:
         for(int i = iterations; i > 0; i--)
         {
             //if (tft.getTouchRawZ() > 200) {
-            tft.getTouchRaw(&x0, &y0);
+            tft_instance->getTouchRaw(&x0,&y0);
 
             if(i == iterations)
             {
@@ -54,7 +48,7 @@ public:
                 y1 = y0;
             }
 
-            if (pow(pow((x0 - x1) + (x1 - x0), 2) + pow((y0 - y1) + (y1 - y0), 2), 0.5) > 50) {
+            if (sqrt(pow((x0 - x1) + (x1 - x0), 2) + pow((y0 - y1) + (y1 - y0), 2)) > 50) {
                 iterations--;
                 continue;
             }
@@ -87,35 +81,14 @@ public:
           break;
       }
       currentPosition = ivec2(x,y);
+      lastPoint = currentPosition;
       return currentPosition;
     }
 
     void handleInterrupt()
     {
-      if (xpt->outOfDebounceThreshold())
-      {
-        xpt->next(xpt->getPoint(), xpt->isTouched());
-      }
+      next(getPoint(), isTouched());
     }
 };
-
-HyperMap<int,Touch_XPT2046*> xptMap;
-
-void registerXPT(int isrPin, Touch_XPT2046 *xpt)
-{   
-    xptMap.put(isr_pin, xpt);
-    void* pinValue = reinterpret_cast<void*>(ist_pin);
-    attachInterruptArg(digitalPinToInterrupt(isr_pin), xpt2046_Handler, pinValue, CHANGE);  // CHANGE triggers on both press and release
-}
-
-void IRAM_ATTR xpt2046_Handler(void *arg)
-{
-  int pinValue = reinterpret_cast<int>(arg);
-  Touch_XPT2046 *xpt = xptMap.get(pinValue);
-  if (xpt->outOfDebounceThreshold())
-  {
-      xpt->next(xpt->getPoint(), xpt->isTouched());
-  }
-}
 
 #endif // TOUCH_XPT2046_HPP

@@ -2,6 +2,9 @@
 #define SCREEN_HPP
 
 #include "TGUI.hpp"
+#if defined(LUMINAUI_USE_TFT_ESPI)
+#include "TFT_eSPI_Elements/TFT_eSPI_Elements.hpp"
+#endif
 
 /*
 framerate mode
@@ -30,14 +33,12 @@ public:
      * @param activity Pointer to the first Activity in the array.
      * @param amount Number of Activities to add.
      */
-    Screen(ivec2 resolution, Activity* activity, int amount, bool renderAfterOnTouch = false)
-        : _shouldRender(false), resolution(resolution), renderAfterOnTouch(renderAfterOnTouch),
+    Screen(Activity** activity, int amount, bool renderAfterOnTouch = false)
+        : _shouldRender(false), resolution(TGUI_AUTO), renderAfterOnTouch(renderAfterOnTouch),
         currentActivity(0), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) { 
         if (activity && amount > 0) {
             addActivities(activity, amount);
         }
-
-        
     }
 
     /**
@@ -45,8 +46,8 @@ public:
      *
      * @param activity Pointer to the initial Activity.
      */
-    Screen(ivec2 resolution, Activity* activity, bool renderAfterOnTouch = false)
-        : Screen(resolution, activity, 1){}
+    Screen(Activity** activity, bool renderAfterOnTouch = false)
+        : Screen(activity, 1){}
 
     /**
      * @brief Destructor to clean up resources.
@@ -55,13 +56,18 @@ public:
         activities.clear();
     }
 
+    void init(ivec2 resolution)
+    {
+        this->resolution = resolution;
+    }
+
     // Activity Management
     /**
      * @brief Add a single Activity to the Screen.
      *
      * @param activity Pointer to the Activity to add.
      */
-    void addActivity(Activity* activity) {
+    void addActivity(Activity * activity) {
         if (activity) {
             activities.addend(activity);
             if(activity->origin == TGUI_AUTO)
@@ -81,9 +87,9 @@ public:
      * @param activity Pointer to the first Activity in the array.
      * @param amount Number of Activities to add.
      */
-    void addActivities(Activity* activity, int amount) {
+    void addActivities(Activity * activity[], int amount) {
         for (int i = 0; i < amount; i++) {
-            addActivity(activity + i);
+            addActivity(activity[i]);
         }
     }
 
@@ -152,6 +158,12 @@ public:
         if (touchEnabled && currentActivity >= 0 && currentActivity < activities.size()) {
             activities.get(currentActivity)->OnTouch_execute(point, touchStatus);
         }
+
+        if (renderAfterOnTouch)
+        {
+            callRender();
+        }
+        
     }
 
     /**
@@ -187,7 +199,7 @@ protected:
     bool pushEnabled;    ///< Indicates whether push is enabled.
     
     #if defined(LUMINAUI_USE_TFT_ESPI)
-        void (*pushHandler)(void) = spritePush; ///< Function pointer to the sprite push handler.
+        void (*pushHandler)(void) = push_TFT_eSPI; ///< Function pointer to the sprite push handler.
     #else
         void (*pushHandler)(void); ///< Function pointer to the custom push handler.
     #endif

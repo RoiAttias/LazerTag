@@ -30,7 +30,7 @@ int newElementID()
 {
     return ++elementIDs;
 }
-enum TouchStatus{
+enum TouchStatus : byte {
     ready,
     pressed,
     released,
@@ -55,7 +55,7 @@ typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 #include "Activity.hpp"
 #include "Screen.hpp"
 
-//#include "Touch.hpp"
+#include "Touch.hpp"
 
 //#include "TFT_eSPI_Elements/TFT_eSPI_Element.h"
 
