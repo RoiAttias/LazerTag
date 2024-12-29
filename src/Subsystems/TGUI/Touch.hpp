@@ -2,6 +2,7 @@
 #define TOUCH_HPP
 
 #include "TGUI.hpp"
+#include "Screen.hpp"
 
 class Touch {
 protected:

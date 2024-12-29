@@ -11,10 +11,6 @@
 
 #include "Components/Pushbutton/Pushbutton.hpp"
 
-#define LUMINAUI_USE_TFT_ESPI
-#ifdef LUMINAUI_USE_TFT_ESPI
-    #include "TFT_eSPI_Elements/TFT_eSPI_Elements.hpp"
-#endif
 
 #define TGUI_AUTO -1
 
@@ -54,10 +50,13 @@ typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 #include "Element.hpp"
 #include "Activity.hpp"
 #include "Screen.hpp"
-
 #include "Touch.hpp"
 
-//#include "TFT_eSPI_Elements/TFT_eSPI_Element.h"
+
+#define LUMINAUI_USE_TFT_ESPI
+#ifdef LUMINAUI_USE_TFT_ESPI
+    #include "TFT_eSPI_Elements/TFT_eSPI_Elements.hpp"
+#endif
 
 //latest touch
 #endif // TGUI_HPP

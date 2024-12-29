@@ -11,24 +11,25 @@ void IRAM_ATTR Pushbutton_ISR(void *arg);
 // Use std::map for Pushbutton registration
 std::map<int, Pushbutton *> registeredPushbuttons;
 
+// Enum for event types
+enum EventType
+{
+    PRESS,
+    RELEASE,
+    COUNTER,
+};
+
+using EventHandler = void (*)(EventType, uint32_t);
+
 class Pushbutton
 {
 public:
-    // Enum for event types
-    enum EventType
-    {
-        PRESS,
-        RELEASE,
-        COUNTER,
-    };
-
-    using EventHandler = void (*)(EventType, uint32_t);
 
 private:
     // Pin configuration and debounce timing
-    const uint8_t pin; // Pin number the button is connected to
+    uint8_t pin; // Pin number the button is connected to
     void *pinValue;
-    const bool microsMode;      // Flag to determine whether to use micros() or millis()
+    bool microsMode;      // Flag to determine whether to use micros() or millis()
     uint32_t debounceThreshold; // Debounce threshold in milliseconds/microseconds
     uint32_t maxWaitForRelease;
     bool autoRelease;

@@ -2,6 +2,7 @@
 #define SCREEN_HPP
 
 #include "TGUI.hpp"
+#include "Activity.hpp"
 #if defined(LUMINAUI_USE_TFT_ESPI)
 #include "TFT_eSPI_Elements/TFT_eSPI_Elements.hpp"
 #endif

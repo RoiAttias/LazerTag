@@ -1,6 +1,7 @@
 #ifndef ACTIVITY_HPP
 #define ACTIVITY_HPP
 
+#include "Element.hpp"
 #include "TGUI.hpp"
 
 /**

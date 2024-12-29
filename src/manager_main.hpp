@@ -15,7 +15,7 @@ Screen screen(GUI_Manager_Activities,GUI_Manager_Activity::GUI_Manager_Activity_
 Touch_XPT2046 touch(&screen, 34);
 
 // Event handlers
-void xpt2046_Handler(EventType type, uint32_t time);
+void xpt2046_Handler(EventType type, uint32_t time)
 {
     touch.handleInterrupt();
 }
@@ -37,7 +37,7 @@ void manager_setup()
     tft.setRotation(0);
 
     //img.createSprite(240, 250); //This works       
-    img.createSprite(tft.width, tft.height); //Blank screen
+    img.createSprite(tft.width(), tft.height()); //Blank screen
     img.fillSprite(TFT_BLACK); 
 
     manager_init();

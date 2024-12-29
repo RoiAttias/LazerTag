@@ -16,14 +16,11 @@ protected:
 public:
     ivec2 lastPoint;
     // Constructors
-    Touch_XPT2046(Screen * screen, int isr_pin) {
+    Touch_XPT2046(Screen * screen, int isr_pin) : Touch(screen), isr(isr_pin, 5) {
       this->isr_pin = isr_pin;
-      isr = Pushbutton(isr_pin);
-      Touch::Touch(screen);
     }
 
     virtual void init(EventHandler handler, int enable){
-      instance_xpt = this;
       isr.enablePressEvent(true);
       isr.init(handler,true);
       Touch::init(enable);
@@ -36,7 +33,7 @@ public:
 
     virtual ivec2 getPoint(int iterations = 1)
     {
-        int x, y, w, x0, y0, x1, y1, x_sum, y_sum, xx, yy;
+        uint16_t x, y, w, x0, y0, x1, y1, x_sum, y_sum, xx, yy;
         for(int i = iterations; i > 0; i--)
         {
             //if (tft.getTouchRawZ() > 200) {
