@@ -63,7 +63,7 @@ public:
       xx = constrain(map(xx, 140, 4000, 0, 320), 0, 319);
       yy = constrain(480 - map(yy, 245, 4000, 0, 480), 0, 480);
 
-      switch (tft.getRotation()) {
+      switch (tft_instance->getRotation()) {
         case 1:
           x = yy;
           y = 319 - xx;
@@ -84,7 +84,13 @@ public:
 
     void handleInterrupt()
     {
+      if(!enable)
+      {
+        return;
+      }
+      isr.enableAllEvents(false);
       next(getPoint(), isTouched());
+      isr.enableAllEvents(true);
     }
 };
 

@@ -1,6 +1,6 @@
-#define DEVICE_MANAGER 1
-#define DEVICE_GUN 2
-#define DEVICE_VEST 3
+#define MANAGER 1
+#define GUN 2
+#define VEST 3
 
 // Select device here
 #define DEVICE_TYPE DEVICE_MANAGER

@@ -57,9 +57,11 @@ public:
         activities.clear();
     }
 
-    void init(ivec2 resolution)
+    void init(ivec2 resolution, bool enTouch, bool enPush)
     {
         this->resolution = resolution;
+        enableTouch(enTouch);
+        enablePush(enPush);
     }
 
     // Activity Management
@@ -199,11 +201,7 @@ protected:
     bool touchEnabled;   ///< Indicates whether touch is enabled.
     bool pushEnabled;    ///< Indicates whether push is enabled.
     
-    #if defined(LUMINAUI_USE_TFT_ESPI)
-        void (*pushHandler)(void) = push_TFT_eSPI; ///< Function pointer to the sprite push handler.
-    #else
-        void (*pushHandler)(void); ///< Function pointer to the custom push handler.
-    #endif
+    void (*pushHandler)(void); ///< Function pointer to the custom push handler.
 };
 
 #endif // SCREEN_HPP
