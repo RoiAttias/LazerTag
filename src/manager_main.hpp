@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 //#include "Subsystems/GUI_Manager/GUI_Manager.hpp"
-
 #include <TFT_eSPI.h>
 #include "Subsystems/GUI_Manager/GUI_Manager.hpp"
 
@@ -36,12 +35,15 @@ void manager_setup()
         Serial.println("hi");
 
     tft.begin();     // initialize a ST7789 chip    
-    tft.fillScreen(TFT_BLACK);
     tft.setRotation(0);
+    tft.fillScreen(TFT_YELLOW);
+
+    delay(2000);
 
     //img.createSprite(240, 250); //This works       
-    img.createSprite(tft.width()/2, tft.height()/2); //Blank screen
+    img.createSprite(100, 100); //Blank screen
     img.fillSprite(TFT_BLACK); 
+    Serial.println("there");
 
     manager_init();
 
