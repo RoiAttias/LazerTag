@@ -122,8 +122,12 @@ public:
      */
     void render() {
         if (currentActivity >= 0 && currentActivity < activities.size()) {
-            activities.get(currentActivity)->render();
+            auto activity = activities.get(currentActivity);
+            if (activity != nullptr) {
+                activity->render();
+            }
         }
+        _shouldRender = false;
     }
 
     /**
@@ -159,14 +163,16 @@ public:
      */
     void executeTouch(ivec2 point, TouchStatus touchStatus) {
         if (touchEnabled && currentActivity >= 0 && currentActivity < activities.size()) {
-            activities.get(currentActivity)->OnTouch_execute(point, touchStatus);
+            auto activity = activities.get(currentActivity);
+            if (activity != nullptr) {
+                activity->OnTouch_execute(point, touchStatus);
+            }
         }
 
         if (renderAfterOnTouch)
         {
             callRender();
         }
-        
     }
 
     /**
