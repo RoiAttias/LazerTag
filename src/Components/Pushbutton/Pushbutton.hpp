@@ -4,13 +4,14 @@
 #include <Arduino.h>
 
 // Enum for event types
-enum EventType {
+enum PushbuttonStatus : byte {
     PRESS,
-    RELEASE
+    RELEASE,
+    PushbuttonStatus_size
 };
 
 // Define the event handler type
-using EventHandler = void (*)(EventType, uint32_t);
+using PushbuttonEventHandler = void (*)(EventType, uint32_t);
 
 class Pushbutton {
 public:
@@ -18,34 +19,44 @@ public:
      * Constructor
      * @param buttonPin Pin number for the pushbutton.
      * @param debounceMs Debounce threshold in milliseconds.
+     * @param useMicros Whether to use micros() instead of millis().
      * @param handler Callback function for button events.
      */
-    Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, EventHandler handler = nullptr)
+    Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, bool useMicros = false, EventHandler handler = nullptr)
         : pin(buttonPin),
           debounceThreshold(debounceMs),
+          useMicros(useMicros),
           eventHandler(handler),
           lastDebounceTime(0),
           buttonState(false),
           lastButtonState(false),
-          useMicros(false),
-          enablePress(true),
-          enableRelease(true),
-          hasPressed(false) {}
+          enablePress(false),
+          enableRelease(false),
+          _hasPressed(false),
+          _hasReleased(false), {}
 
     /**
      * Initialize the pushbutton by configuring the pin and setting up the ISR.
      */
     void init() {
         pinMode(pin, INPUT_PULLUP);
-        attachInterruptArg(digitalPinToInterrupt(pin), Pushbutton::isrHandler, this, CHANGE);
+        attachISR();
     }
 
     /**
-     * Enable or disable press and release events.
+     * Attach the ISR to the pin.
      */
-    void enableAllEvents(bool enable) {
-        enablePress = enable;
-        enableRelease = enable;
+    void attachISR()
+    {
+        attachInterruptArg(digitalPinToInterrupt(pin), PushbuttonISR, this, CHANGE);
+    }
+
+    /**
+     * Detach the ISR from the pin.
+     */
+    void detachISR()
+    {
+        detachInterrupt(digitalPinToInterrupt(pin));
     }
 
     void enablePressEvent(bool enable) {
@@ -57,18 +68,20 @@ public:
     }
 
     /**
-     * Sets whether to use microseconds for timing instead of milliseconds.
+     * Checks if the button was pressed (read and clear flag).
      */
-    void setUseMicros(bool enable) {
-        useMicros = enable;
+    bool hasPressed() {
+        bool state = _hasPressed;
+        _hasPressed = false;
+        return state;
     }
 
     /**
-     * Checks if the button was pressed (read and clear flag).
+     * Checks if the button was released (read and clear flag).
      */
-    bool readHasPressed() {
-        bool state = hasPressed;
-        hasPressed = false;
+    bool hasReleased() {
+        bool state = _hasReleased;
+        _hasReleased = false;
         return state;
     }
 
@@ -80,32 +93,11 @@ public:
         return digitalRead(pin) == LOW;
     }
 
-private:
-    uint8_t pin;                   // Pin number
-    uint32_t debounceThreshold;    // Debounce threshold in milliseconds or microseconds
-    volatile uint32_t lastDebounceTime; // Last debounce time
-    volatile bool buttonState;     // Current button state
-    volatile bool lastButtonState; // Previous button state
-    volatile bool hasPressed;      // Flag to indicate a press event occurred
-    EventHandler eventHandler;     // Callback for events
-    bool useMicros;                // Whether to use micros() instead of millis()
-    bool enablePress;              // Enable press events
-    bool enableRelease;            // Enable release events
-
-    /**
-     * Static ISR handler. This function is called by the interrupt and delegates
-     * handling to the instance of the class.
-     */
-    static void IRAM_ATTR isrHandler(void *arg) {
-        Pushbutton *self = static_cast<Pushbutton *>(arg);
-        self->handleInterrupt();
-    }
-
     /**
      * Handles the interrupt. This method is responsible for debouncing and
      * invoking the event handler if necessary.
      */
-    void IRAM_ATTR handleInterrupt() {
+    byte IRAM_ATTR handleInterrupt() {
         uint32_t currentTime = useMicros ? micros() : millis();
         bool currentButtonState = isPressed();
 
@@ -115,11 +107,12 @@ private:
                 lastDebounceTime = currentTime;
 
                 if (currentButtonState && enablePress) {
-                    hasPressed = true;
+                    _hasPressed = true;
                     if (eventHandler) {
                         eventHandler(PRESS, currentTime - lastDebounceTime);
                     }
                 } else if (!currentButtonState && enableRelease) {
+                    _hasReleased = true;
                     if (eventHandler) {
                         eventHandler(RELEASE, currentTime - lastDebounceTime);
                     }
@@ -128,6 +121,32 @@ private:
         }
         lastButtonState = currentButtonState;
     }
+
+private:
+    uint8_t pin;                   // Pin number
+    uint32_t debounceThreshold;    // Debounce threshold in milliseconds or microseconds
+    bool useMicros;                // Whether to use micros() instead of millis()
+    PushbuttonEventHandler eventHandler;     // Callback for events
+    volatile uint32_t lastDebounceTime; // Last debounce time
+    volatile bool buttonState;     // Current button state
+    volatile bool lastButtonState; // Previous button state
+    volatile bool _hasPressed;      // Flag to indicate a press event occurred
+    volatile bool _hasReleased;    // Flag to indicate a release event occurred
+    bool enablePress;              // Enable press events
+    bool enableRelease;            // Enable release events
+
+    
 };
+
+/**
+ * Static ISR handler. This function is called by the interrupt and delegates
+ * handling to the instance of the class.
+ */
+static void IRAM_ATTR PushbuttonISR(void *arg) {
+    Pushbutton *self = static_cast<Pushbutton *>(arg);
+    self->detachISR();
+    self->handleInterrupt();
+    self->attachISR();
+}
 
 #endif // PUSHBUTTON_HPP

@@ -6,7 +6,7 @@
 TFT_eSPI * tft_instance = nullptr;
 TFT_eSprite * img_instance = nullptr;
 
-void push_TFT_eSPI()
+void push_TFT_eSprite()
 {
     img_instance->pushSprite(0,0);
 }

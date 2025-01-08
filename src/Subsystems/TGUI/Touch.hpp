@@ -4,63 +4,97 @@
 #include "TGUI.hpp"
 #include "Screen.hpp"
 
+struct TouchDragData
+{
+    ivec2 startPosition; // Start position when pressed
+    ivec2 currentPosition; // Current position of the drag
+    ivec2 endPosition; // End position when released
+};
+
 class Touch {
 protected:
-    int status;
-    ivec2 currentPosition, startPosition, endPosition;
-    int counter;
+    byte status; // Status of the touch event - TouchStatus: press, release, hold, drag
 
-    volatile bool beenTouched;
-    volatile unsigned long lastTime;
-    volatile unsigned long pressStartTime;
+    TouchDragData dragData; // Data for the drag event - start, current, end positions
 
-    //unsigned long holdThreshold = 1000;
-    //float dragDistanceThreshold = 30.0f;
+    volatile unsigned long lastTime; // Last time the button was pressed in milliseconds
+    volatile unsigned long pressStartTime; // Time when the press started in milliseconds
+    unsigned long holdThreshold = 2500; // Hold time in milliseconds
+    float dragDistanceThreshold = 10.0f; // Drag distance in pixels
 
-    //bool enable; 
-    bool enable; // Flags to enable touch events
-    bool flagTemp;
+    byte enable; // Flags to enable touch events
 
     Screen *screen;
 
 public:
     // Constructors
     Touch(Screen *screen) {
-        beenTouched = false;
+        beenTouched = 0;
         lastTime = 0;
         pressStartTime = 0;
         enable = false;
         flagTemp = enable;
     }
 
-    virtual void init(int enable){
+    virtual void enable(int enable){
         this->enable = enable;
     }
 
     virtual void reset(){
-        flagTemp = enable;
-        enable = false;
-        beenTouched = false;
-        status = ready;
-
-        enable = flagTemp;
+        status = TouchStatus::READY;
     }
 
-    virtual void next(ivec2 point, bool isTouched) {
-        if (!enable)
+    virtual void next(ivec2 point, bool isEdge, bool isTouched) {
+        if (enable)
         {
-            return;
+            dragData.currentPosition = point;
+
+            if (status >= TouchStatus::TouchStatus_size) {
+                reset();
+            }
+            
+            if (isEdge)
+            {
+                if (isTouched)
+                {
+                    status = TouchStatus::PRESS;
+                    dragData.startPosition = dragData.currentPosition;
+                    pressStartTime = millis();
+                }
+                else
+                {
+                    status = TouchStatus::RELEASE;
+                    dragData.endPosition = point;
+                }
+            }
+            else if (isTouched && status > TouchStatus::READY)
+            {
+                if (status == TouchStatus::PRESS && millis() - pressStartTime > holdThreshold)
+                {
+                    status = TouchStatus::HOLD;
+                }
+                if (distance(dragData.currentPosition, dragData.startPosition) > dragDistanceThreshold)
+                {
+                    if (status == TouchStatus::HOLD || status == TouchStatus::DRAG)
+                    {
+                        status = TouchStatus::DRAG;
+                    }
+                    else
+                    {
+                        status = TouchStatus::SWIPE;
+                    }
+                }
+            }
+            else
+            {
+                reset();
+            }
+
+            if (enable & (1 << status))
+            {
+                screen->executeTouch(point, TouchStatus(status));
+            }
         }
-        
-        if (status == TouchStatus::TouchStatus_size) {
-            reset();
-        }
-        else if(isTouched != beenTouched)
-        {
-            status++;
-            screen->executeTouch(point,TouchStatus(status));
-        }
-        beenTouched = isTouched;
     }
 };
 

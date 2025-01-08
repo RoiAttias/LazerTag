@@ -16,19 +16,20 @@ protected:
 public:
     ivec2 lastPoint;
     // Constructors
-    Touch_XPT2046(Screen * screen, int isr_pin) : Touch(screen), isr(isr_pin, 5) {
+    Touch_XPT2046(Screen * screen, int isr_pin) : Touch(screen), isr(isr_pin, 10) {
       this->isr_pin = isr_pin;
     }
 
     virtual void init(EventHandler handler, int enable){
       isr.enablePressEvent(true);
-      isr.init(handler,true);
+      isr.enableReleaseEvent(true);
+      isr.init();
       Touch::init(enable);
     }
 
     virtual bool isTouched()
     {
-      return isr.isPressed();
+      return push.isPressed();
     }
 
     virtual ivec2 getPoint(int iterations = 1)
@@ -82,15 +83,20 @@ public:
       return currentPosition;
     }
 
-    void handleInterrupt()
+    void loop()
     {
-      if(!enable)
+      if(enable)
       {
-        return;
+        if (isr.hasPressed()) {
+          next(getPoint(), true, true); // Press
+        }
+        else if (isr.hasReleased()) {
+          next(getPoint(), true, false); // Release
+        }
+        else if (isTouched()) {
+          next(getPoint(), false, true); // Continueus
+        }
       }
-      isr.enableAllEvents(false);
-      next(getPoint(), isTouched());
-      isr.enableAllEvents(true);
     }
 };
 

@@ -12,7 +12,7 @@ ivec2 screenDiamentions;
 
 //Screen screen(GUI_Manager_Activities,GUI_Manager_Activity::GUI_Manager_Activity_size, true);
 Screen screen(nullptr,0);
-//Touch_XPT2046 touch(&screen, 34);
+Touch_XPT2046 touch(&screen, 34);
 unsigned long lastMillis = 0;
 // Event handlers
 void IRAM_ATTR xpt2046_Handler(EventType type, uint32_t time)

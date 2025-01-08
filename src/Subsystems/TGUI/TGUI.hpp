@@ -26,26 +26,27 @@ int newElementID()
 {
     return ++elementIDs;
 }
-enum TouchStatus : byte {
-    ready,
-    pressed,
-    released,
+
+enum TouchStatus : byte{
+    READY,
+    PRESS,
+    RELEASE,
+    SWIPE,
+    HOLD,
+    DRAG,
     TouchStatus_size
 };
-/*
-enum TouchStatus{
-    ready,
-    pressed,
-    hold,
-    released,
-    drag,
-    click,
-    TouchStatus_size
-};
-*/
+
+#define ENABLE_ALL 1
+#define ENABLE_PRESS 1<<TouchStatus::PRESS
+#define ENABLE_RELEASE 1<<TouchStatus::RELEASE
+#define ENABLE_SWIPE 1<<TouchStatus::SWIPE
+#define ENABLE_HOLD 1<<TouchStatus::HOLD
+#define ENABLE_DRAG 1<<TouchStatus::DRAG
 
 
-typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
+
+typedef std::function<void(ivec2, TouchStatus, uint32_t)> TouchEvent;
 
 #include "Element.hpp"
 #include "Activity.hpp"
@@ -58,5 +59,4 @@ typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
     #include "TFT_eSPI_Elements/TFT_eSPI_Elements.hpp"
 #endif
 
-//latest touch
 #endif // TGUI_HPP
