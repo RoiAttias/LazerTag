@@ -6,28 +6,20 @@
 #include "Subsystems/GUI_Manager/GUI_Manager.hpp"
 
 TFT_eSPI tft = TFT_eSPI();   // Invoke library
-TFT_eSprite img = TFT_eSprite(&tft);
 
 ivec2 screenDiamentions;
 
-//Screen screen(GUI_Manager_Activities,GUI_Manager_Activity::GUI_Manager_Activity_size, true);
-Screen screen(nullptr,0);
+Screen screen(GUI_Manager_Activities,GUI_Manager_Activity::GUI_Manager_Activity_size, true);
+//Screen screen(nullptr,0);
 Touch_XPT2046 touch(&screen, 34);
 unsigned long lastMillis = 0;
-// Event handlers
-void IRAM_ATTR xpt2046_Handler(EventType type, uint32_t time)
-{
-    //touch.handleInterrupt();
-}
 
 void manager_init()
 {
     tft_instance = &tft;
-    img_instance = &img;
     screenDiamentions = ivec2(tft_instance->width(),tft_instance->height());
-    screen.setPushHandler(push_TFT_eSPI);
-    screen.init(screenDiamentions ,true,true);
-    //touch.init(xpt2046_Handler,true);
+    screen.init(screenDiamentions ,true);
+    touch.init(xpt2046_Handler,ENABLE_ALL|ENABLE_PRESS);
 }
 
 void manager_setup()
@@ -65,9 +57,10 @@ void manager_setup()
 
 void manager_loop()
 {
-    
+    touch.loop();
     if (screen.shouldRender())
     {
+        /*
         Serial.print(" Rendering");
         img.fillSprite(TFT_BLACK);
         //img.drawString(touch.lastPoint.toString(),0,0);
@@ -80,18 +73,19 @@ void manager_loop()
         screen.renderNpush();
         tft.print(text);
         Serial.println(" is Finished");
-
-        //screen.renderNpush();
+*/
+        screen.renderNpush();
     }
     
     // The rest of the program primarily relies on interrupts, so no logic is needed here
     //delay(10); // Optional: Small delay to stabilize processing
-
+/*
     if (millis() - lastMillis >= 1000) {
         lastMillis = millis();
         screen.callRender();
         Serial.printf("LOOP - %lu\n", millis());
     }
+    */
 
 }
 

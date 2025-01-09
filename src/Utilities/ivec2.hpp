@@ -149,6 +149,40 @@ struct ivec2
         return ivec2(0, 0); // Handle division by zero
     }
 
+    ivec2 operator>(const ivec2& other) const {
+        return ivec2(x > other.x ? 1 : 0, y > other.y ? 1 : 0);
+    }
+
+    ivec2 operator<(const ivec2& other) const {
+        return ivec2(x < other.x ? 1 : 0, y < other.y ? 1 : 0);
+    }
+
+    ivec2 operator>=(const ivec2& other) const {
+        return ivec2(x >= other.x ? 1 : 0, y >= other.y ? 1 : 0);
+    }
+
+    ivec2 operator<=(const ivec2& other) const {
+        return ivec2(x <= other.x ? 1 : 0, y <= other.y ? 1 : 0);
+    }
+
+    ivec2 min(const ivec2& other) const {
+        return ivec2(x < other.x ? x : other.x, y < other.y ? y : other.y);
+    }
+
+    ivec2 max(const ivec2& other) const {
+        return ivec2(x > other.x ? x : other.x, y > other.y ? y : other.y);
+    }
+
+    /**
+     * @brief Calculates the dot product with another vector.
+     * 
+     * @param other The vector to clamp with.
+     * @return Vector with bigger x and smaller y.
+     */
+    ivec2 clamp(const ivec2& other) const {
+        return ivec2(x > other.x ? x : other.x, y < other.y ? y : other.y);
+    }
+
     /**
      * @brief Converts the vector to a string representation.
      * 

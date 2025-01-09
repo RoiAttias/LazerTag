@@ -6,8 +6,6 @@
 #include "TFT_eSPI.h"
 #include "Components/Pushbutton/Pushbutton.hpp"
 
-unsigned long debounceThreshold = 5;
-
 class Touch_XPT2046 : public Touch {
 protected:
     int isr_pin;
@@ -16,11 +14,12 @@ protected:
 public:
     ivec2 lastPoint;
     // Constructors
-    Touch_XPT2046(Screen * screen, int isr_pin) : Touch(screen), isr(isr_pin, 10) {
+    Touch_XPT2046(Screen * screen, int isr_pin, ) : Touch(screen) {
       this->isr_pin = isr_pin;
+      isr = Pushbutton(isr_pin,10)
     }
 
-    virtual void init(EventHandler handler, int enable){
+    virtual void init(int enable){
       isr.enablePressEvent(true);
       isr.enableReleaseEvent(true);
       isr.init();
@@ -29,7 +28,7 @@ public:
 
     virtual bool isTouched()
     {
-      return push.isPressed();
+      return isr.isPressed();
     }
 
     virtual ivec2 getPoint(int iterations = 1)
@@ -37,7 +36,6 @@ public:
         uint16_t x, y, w, x0, y0, x1, y1, x_sum, y_sum, xx, yy;
         for(int i = iterations; i > 0; i--)
         {
-            //if (tft.getTouchRawZ() > 200) {
             tft_instance->getTouchRaw(&x0,&y0);
 
             if(i == iterations)

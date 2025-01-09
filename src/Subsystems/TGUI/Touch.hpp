@@ -4,13 +4,6 @@
 #include "TGUI.hpp"
 #include "Screen.hpp"
 
-struct TouchDragData
-{
-    ivec2 startPosition; // Start position when pressed
-    ivec2 currentPosition; // Current position of the drag
-    ivec2 endPosition; // End position when released
-};
-
 class Touch {
 protected:
     byte status; // Status of the touch event - TouchStatus: press, release, hold, drag

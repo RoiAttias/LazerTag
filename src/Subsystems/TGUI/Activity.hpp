@@ -20,6 +20,7 @@ class Activity : public Element
 {
 public:
     HyperList<Element *> elements; // List of child elements managed by the Activity.
+    int padding[4] = {0, 0, 0, 0}; // Padding for the Activity (left, top, right, bottom)
 
     // Constructors
     /**
@@ -28,31 +29,40 @@ public:
      * @param origin The origin position of the activity on the X and Y axis - for full screen: should be zero.
      * @param scale The width and height of the activity - for full screen: should be screen's diamensions.
      * @param visible Enable rendering for the activity.
+     * @param renderAlways Flag to render the activity without calls.
      * @param OnTouch_enable Enable or disable the Touch event for the activity.
      * @param OnTouch_handler Pointer to the function to handle the Touch event.
+     * @param margin Margin for the activity (left, top, right, bottom)
      */
-    Activity(ivec2 origin = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
-        : Element(origin, ivec2(), scale, visible, OnTouch_enable, OnTouch_handler){}
+    Activity(ivec2 origin = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = false,
+        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr, int margin[4] = {0, 0, 0, 0})
+        : Element(origin, ivec2(), scale, visible, renderAlways, OnTouch_enable, OnTouch_handler, margin){}
 
     // Overrides
     /**
      * @brief Render the Activity and all its child elements.
+     * @param viewport The viewport to render the activity in.
+     * @return The clamped viewport of the activity.
      */
-    virtual void render() override
-    {
-        if (visible)
-        {
-            // Update the positions of all child elements relative to the Activity's location.
-            updatePositions();
-            // Render all visible child elements - first in front
-            for (int i = elements.size(); i > -1; i--)
-            {
-                if (elements.get(i)->visible && inRange(elements.get(i)))
-                {
-                    elements.get(i)->render();
+   virtual Viewport render(Viewport viewport) override {
+        // Call the base class's render function
+        Viewport activityViewport = Element::render(viewport); // Get the clamped viewport of the activity
+        updatePositions(activityViewport);
+        if (visible) {
+            // Render all child elements in the activity
+            Element* element; // Pointer to an element
+            Viewport elementViewport; // Viewport of an element
+            // Render all visible child elements - first in back
+            for (int i = 0; i < getElementCount(); i++) {
+                element = getElement(i);
+                if (element->isVisible() && element->shouldRender() && activityViewport.inRange(element->getViewport())) { 
+                    elementViewport = element->scale != TGUI_AUTO ? element->getViewport() : activityViewport;
+                    elementViewport = elementViewport.clamp(activityViewport);
+                    element->render(elementViewport);
                 }
             }
         }
+        return activityViewport;
     }
 
     /**
@@ -62,21 +72,21 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
+        Element *element; bool continueLoop = true;
         // Executes Touch events in reversed order, opposite of rendering order
-        // the last elements inside the list are in front.
-        for (int i = elements.size() - 1; i >= 0 ; i--)
+        // the last elements inside the list are seen in front.
+        for (int i = getElementCount() - 1; i >= 0 && continueLoop; i--)
         {
+            element = getElement(i);
             // Execute Touch events if child is visible and inside activity range
-            if (elements.get(i)->visible && inRange(elements.get(i)))
+            if (element->visible && inRange(element))
             {
-                // Execute Touch events to child elements if the point is in their range
-                if (elements.get(i)->inRange(point))
-                {
-                    elements.get(i)->OnTouch_execute(point, touchStatus);
-                }
+                element->OnTouch_execute(point, touchStatus);
+                continueLoop = false;
             }
         }
 
+        // Execute Touch events for the activity itself
         Element::OnTouch_execute(point,touchStatus);
     }
 
@@ -86,14 +96,21 @@ public:
      */
     virtual void updatePositions()
     {
-        for (int i = 0; i < elements.size(); i++)
+        Element *element;
+        for (int i = 0; i < getElementCount(); i++)
         {
+            element = getElement(i);
             // Position each element relative to the Activity's position
-            elements.get(i)->offset = getPosition();
+            element->offset = getViewport().positionAfterPadding(padding);
 
-            if (elements.get(i)->scale == TGUI_AUTO)
+            if (element->origin == TGUI_AUTO)
             {
-                elements.get(i)->scale = scale;
+                element->origin = ivec2(0, 0);
+            }
+
+            if (element->scale == TGUI_AUTO)
+            {
+                element->scale = scale;
             }
         }
     }
@@ -118,13 +135,13 @@ public:
      * @param element Pointer to the first element in the array to be added.
      * @param size Size of the array.
      */
-    /*void addElements(Element ** array, int size)
+    void addElements(Element ** array, int size)
     {
         if (array != nullptr)
         {
             elements.addFromArray(array,size);
         }
-    }*/
+    }
 
     /**
      * @brief Remove a child element from the Activity.
@@ -145,7 +162,7 @@ public:
     {
         for (int i = 0; i < elements.size(); i++)
         {
-            if (elements.get(i) == element)
+            if (getElement(i) == element)
             {
                 removeElement(i);
                 break;
@@ -182,5 +199,4 @@ public:
         return (index >= 0 && index < getElementCount()) ? elements.get(index) : nullptr;
     }
 };
-
 #endif // ACTIVITY_HPP

@@ -35,13 +35,15 @@ struct RowDefinition {
 struct Cell {
     Element* element;  ///< Pointer to the element contained in this cell
     ivec2 location;    ///< Location of the cell in the grid (column, row)
-
+    int padding[4];    ///< Padding for the cell (left, top, right, bottom)
     /**
      * @brief Constructor for Cell
      * @param element Pointer to an Element object (default is nullptr)
      * @param location Location of the cell in the grid (default is ivec2())
+     * @param padding Padding for the cell (default is {0,0,0,0})
      */
-    Cell(Element* element = nullptr, ivec2 location = ivec2()) : element(element), location(location) {}
+    Cell(Element* element = nullptr, ivec2 location = ivec2(), int padding[4] = {0,0,0,0})
+        : element(element), location(location), padding(padding) {}
 };
 
 /**
@@ -81,10 +83,11 @@ public:
      * 
      * @param element Pointer to the element to be added to the grid.
      * @param location The grid location (column, row) for the element.
+     * @param padding Padding for the cell (left, top, right, bottom)
      * @return True if the cell was added, false if the location is already occupied.
      */
-    bool addCell(Element* element, ivec2 location) {
-        Cell cell(element, location);
+    bool addCell(Element* element, ivec2 location, int padding[4] = {0,0,0,0}) {
+        Cell cell(element, location, padding);
         return addCell(cell);
     }
 
@@ -95,55 +98,72 @@ public:
     /**
      * @brief Update the positions of all elements in the grid based on their locations and the column/row sizes.
      */
-    void updatePositions() {
+    void updatePositions(Viewport viewport) {
+        Cell* cell;
+        ivec2 point;
         for (int i = 0; i < cells.size(); i++) {
-            Cell* cell = cells.getAddress(i);
+            cell = cells.getAddress(i);
+            
+            point = viewport.position;
 
             // Calculate new X position based on column widths
-            int x = position.x;
-            for (int col = 0; col < cell->location.x; col++) {
-                x += columnDefinitions.get(col).width;
+            for (int col = 1; col < cell->location.x; col++) {
+                point.x += columnDefinitions.get(col-1).width;
             }
 
             // Calculate new Y position based on row heights
-            int y = position.y;
-            for (int row = 0; row < cell->location.y; row++) {
-                y += rowDefinitions.get(row).height;
+            for (int row = 1; row < cell->location.y; row++) {
+                point.y += rowDefinitions.get(row-1).height;
             }
 
             // Set the new position to the element
-            cell->element->setPosition(ivec2(x, y));
+            cell->element->offset(point);
         }
     }
 
     /**
      * @brief Render the grid and all child elements within it.
+     * @param viewport The viewport to render the grid in.
+     * @return The clamped viewport of the grid.
      */
-    virtual void render() override {
+    virtual void render(Viewport viewport) :  {
+        // Call the base class's render function
+        Viewport gridViewport = Element::render(viewport); // Get the clamped viewport of the grid
+        updatePositions(gridViewport);
         if (visible) {
-            // Render all child elements
+            // Render all child elements in cells
+            Cell* cell; // Pointer to a cell
+            Element* cellElement; // Pointer to an element in a cell
+            Viewport cellViewport; // Viewport of a cell
             for (int i = 0; i < cells.size(); i++) {
-                if (cells.getAddress(i)->element->isVisible()) {
-                    cells.getAddress(i)->element->render();
+                cell = cells.getAddress(i);
+                cellElement = cell->element;
+                if (cellElement->isVisible() && cellElement.shouldRender() && gridViewport.inRange(cellElement.getViewport())) {
+                    cellViewport = element->scale != TGUI_AUTO ? cellElement->getViewport() : gridViewport;
+                    cellViewport = cellViewport.clamp(gridViewport);
+                    cellElement->render(cellViewport);
                 }
             }
         }
+        return gridViewport;
     }
 
     /**
-     * @brief Handle click events and forward them to child elements.
+     * @brief Handle touch events and forward them to child elements.
      * 
-     * @param point The point where the click occurred.
+     * @param point The point where the touch occurred.
      */
-    virtual void OnClick_execute(ivec2 point) override {
-        if (OnClick_enable && OnClick_handler) {
-            OnClick_handler(point);
-        }
+    virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override {
+        Element *cellElement;
         
-        // Forward click events to child elements
+        // Execute touch event for the grid itself
+        Element::OnTouch_execute(point,touchStatus);
+
+        // Forward touch events to child elements
         for (int i = 0; i < cells.size(); i++) {
-            if (cells.getAddress(i)->element->inRange(point)) {
-                cells.getAddress(i)->element->OnClick_execute(point);
+            cellElement = cells.getAddress(i)->element;
+            if (cellElement->inRange(point)) {
+                cellElement->OnTouch_execute(point,touchStatus);
             }
         }
     }

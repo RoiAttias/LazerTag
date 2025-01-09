@@ -27,16 +27,25 @@
  */
 class Element
 {
+protected:
+    bool _shouldRender; ///< Flag for rendering when called
 public:
     const int ID = newElementID(); // Unique ID of the element
 
+    // Base properties
     ivec2 origin;               // Origin position of the element - changed by programmer
     ivec2 offset; // Offset the position of the element - changed by containers
     ivec2 scale;                // Scale of the element
     bool visible;               // Visibility flag
+    bool renderAlways;         // Flag to render the element without calls
 
+    // Touch events
     bool OnTouch_enable;        // Flag to enable touch events
     TouchEvent OnTouch_handler; // Press event handler
+
+    // Additional properties
+    int margin[4] = {0,0,0,0}; // Margin for the element (left, top, right, bottom)
+    bool marginAffectViewport; // Flag to include padding in the element's scale
 
     // Constructors
     /**
@@ -46,13 +55,25 @@ public:
      * @param offset The offset of the position of the element on the X and Y axis - for containers.
      * @param scale The width and height of the element.
      * @param visible Enable rendering for the element.
+     * @param renderAlways Flag to render the element without calls.
      * @param OnTouch_enable Enable or disable the touch event for the element.
      * @param OnTouch_handler Pointer to the function to handle the touch event.
+     * @param margin Margin for the element (left, top, right, bottom)
+     * @param marginAffectViewport Flag to add margin in the element's final size.
      */
-    Element(ivec2 origin = TGUI_AUTO, ivec2 offset = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true,
-            bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
-        : origin(origin), offset(offset), scale(scale), visible(visible),
-          OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler) {}
+    Element(ivec2 origin = TGUI_AUTO, ivec2 offset = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = false,
+            bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr,
+            int margin[4] = {0, 0, 0, 0}, bool marginAffectViewport = false)
+        : origin(origin), offset(offset), scale(scale), visible(visible), renderAlways(renderAlways),
+          OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler),
+          margin(margin), marginAffectViewport(marginAffectViewport) {
+            if (origin == TGUI_AUTO) {
+                origin = ivec2(0, 0);
+            }
+            if (scale == TGUI_AUTO) {
+                marginAffectViewport = true;
+            }
+          }
 
     /**
      * @brief Constructor of Element
@@ -64,12 +85,17 @@ public:
      * @param width The scale of the element on the X axis.
      * @param height The scale of the element on the Y axis.
      * @param visible Enable rendering for the element.
+     * @param renderAlways Flag to render the element without calls.
      * @param OnTouch_enable Enable or disable the touch event for the element.
      * @param OnTouch_handler Pointer to the function to handle the touch event.
+     * @param margin Margin for the element (left, top, right, bottom)
+     * @param marginAffectViewport Flag to add margin in the element's final size.
      */
-    Element(int xOrigin, int yOrigin, int xOffset, int yOffset, int width, int height,
-            bool visible = true, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
-        : Element(ivec2(xOrigin, yOrigin), ivec2(xOffset, yOffset), ivec2(width, height), visible, OnTouch_enable, OnTouch_handler) {}
+    Element(int xOrigin, int yOrigin, int xOffset, int yOffset, int width, int height, bool visible = true,
+            bool renderAlways = false, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr,
+            int margin[4] = {0, 0, 0, 0}, bool marginAffectViewport = false)
+        : Element(ivec2(xOrigin, yOrigin), ivec2(xOffset, yOffset), ivec2(width, height), visible, renderAlways
+            OnTouch_enable, OnTouch_handler, margin, marginAffectViewport) {}
 
     // Getters
     /**
@@ -82,16 +108,68 @@ public:
         return origin + offset;
     }
 
+    /**
+     * @brief Get the final size of the element - for containers.
+     *
+     * @return Scale after Margin.
+     */
+    virtual ivec2 getSize() const
+    {
+        if (marginAffectViewport)
+        {
+            return scale - ivec2(margin[0], margin[1]) - ivec2(margin[2], margin[3]);
+        }
+        else
+        {
+            return scale + ivec2(margin[0], margin[1]) + ivec2(margin[2], margin[3]);
+        }
+    }
+    
+    /**
+     * @brief Get the final viewport of the element - for rendering.
+     *
+     * @return Viewport of the element
+     */
+    virtual Viewport getViewport() const
+    {
+        ivec2 add = ivec2(margin[0], margin[1]);
+        ivec2 sub = marginAffectViewport ? ivec2(margin[2], margin[3]) : ivec2(0, 0);
+        return scale != TGUI_AUTO ? {getPosition() + add, scale - sub} : {getPosition(), ivec2(0,0)};
+    }
+
+    bool shouldRender() {
+        return _shouldRender || renderAlways;
+    }
+
     // Setters
+    void callRender() {
+        _shouldRender = true;
+    }
     // Functions to be overridden
     /**
      * @brief Virtual function for rendering the element.
+     * @param viewport The viewport to render the element in.
+     * @return The clamped viewport of the element.
      */
-    virtual void render() {}
+    virtual Viewport render(Viewport viewport) {
+        _shouldRender = false;
+        return getViewport().clamp(viewport);
+    }
 
     // Calculations
     /**
-     * @brief Check if a point is within the element's range.
+     * @brief Check if a point is within the element's viewport range.
+     *
+     * @param point The ivec2 to check.
+     * @return True if the point is within range, false otherwise.
+     */
+    virtual bool inRange(const ivec2 point) const
+    {
+        return getViewport().inRange(point);
+    }
+    
+    /**
+     * @brief Check if a point is within the element's viewport range.
      *
      * @param x The x-coordinate of the point.
      * @param y The y-coordinate of the point.
@@ -99,35 +177,23 @@ public:
      */
     virtual bool inRange(int x, int y) const
     {
-        return (x >= getPosition().x && x <= getPosition().x + scale.x &&
-                y >= getPosition().y && y <= getPosition().y + scale.y);
+        return inRange(ivec2(x, y));
     }
 
     /**
-     * @brief Check if a point is within the element's range.
-     *
-     * @param point The ivec2 to check.
-     * @return True if the point is within range, false otherwise.
-     */
-    virtual bool inRange(const ivec2 point) const
-    {
-        return inRange(point.x, point.y);
-    }
-
-    /**
-     * @brief Check if an element crosses the element's range.
+     * @brief Check if an element crosses the element's viewport range.
      *
      * @param eptr Pointer of the element to check.
      * @return True if one if the element's edges is within range, false otherwise.
      */
     virtual bool inRange(const Element *eptr) const
     {
-        ivec2 e_scale = eptr->scale;
-        ivec2 px0y0 = eptr->getPosition();
-        ivec2 px0y1 = eptr->getPosition() + ivec2(e_scale.y);
-        ivec2 px1y0 = eptr->getPosition() + ivec2(e_scale.x);
-        ivec2 px1y1 = eptr->getPosition() + e_scale;
-        return inRange(px0y0) || inRange(px0y1) || inRange(px1y0) || inRange(px1y1);
+        ivec2 e_scale = eptr->scale;    // Element scale
+        ivec2 pLT= eptr->getPosition(); // Left Top
+        ivec2 pLB = eptr->getPosition() + ivec2(e_scale.y); // Left Bottom
+        ivec2 pRT = eptr->getPosition() + ivec2(e_scale.x); // Right Top
+        ivec2 pRB = eptr->getPosition() + e_scale; // Right Bottom
+        return inRange(pLT) || inRange(pLB) || inRange(pRT) || inRange(pRB);
     }
 
     // Events

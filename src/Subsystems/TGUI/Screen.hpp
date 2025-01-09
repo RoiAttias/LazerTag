@@ -21,6 +21,8 @@ framerate enable cap
  * - **Rendering**: Renders the current active Activity.
  * - **Touch and Push Events**: Handles touch interactions and custom push events.
  */
+
+// Add renderOnlyElementCalls
 class Screen {
 public:
     HyperList<Activity*> activities; ///< List of Activities managed by the Screen.
@@ -57,7 +59,7 @@ public:
         activities.clear();
     }
 
-    void init(ivec2 resolution, bool enTouch, bool enPush)
+    void init(ivec2 resolution, bool enTouch = false, bool enPush = false)
     {
         this->resolution = resolution;
         enableTouch(enTouch);
@@ -117,14 +119,20 @@ public:
         return _shouldRender;
     }
 
+    Viewport getViewport() {
+        return {0, resolution};
+    }
+
     /**
      * @brief Render the current active Activity.
      */
     void render() {
         if (currentActivity >= 0 && currentActivity < activities.size()) {
-            auto activity = activities.get(currentActivity);
+            Activity *activity = activities.get(currentActivity);
             if (activity != nullptr) {
-                activity->render();
+                if (activity->visible || activity->shouldRender() || inRange(activity->getViewport())) {
+                    activity->render();
+                }
             }
         }
         _shouldRender = false;
