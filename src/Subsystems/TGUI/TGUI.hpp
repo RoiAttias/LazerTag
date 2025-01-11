@@ -57,11 +57,11 @@ struct Viewport
 
     bool inRange(const Viewport other) const
     {
-        ivec2 e_scale = eptr->scale;    // Element scale
-        ivec2 pLT= eptr->getPosition(); // Left Top
-        ivec2 pLB = eptr->getPosition() + ivec2(e_scale.y); // Left Bottom
-        ivec2 pRT = eptr->getPosition() + ivec2(e_scale.x); // Right Top
-        ivec2 pRB = eptr->getPosition() + e_scale; // Right Bottom
+        ivec2 e_scale = other.scale;    // Element scale
+        ivec2 pLT= other.position; // Left Top
+        ivec2 pLB = other.position + ivec2(e_scale.y); // Left Bottom
+        ivec2 pRT = other.position + ivec2(e_scale.x); // Right Top
+        ivec2 pRB = other.position + e_scale; // Right Bottom
         return inRange(pLT) || inRange(pLB) || inRange(pRT) || inRange(pRB);
     }
 
@@ -100,7 +100,12 @@ struct Viewport
         ivec2 newPos = max(position, other.position);
         ivec2 newScale = min(position + scale, other.position + other.scale) - newPos;
         ivec2 zero = ivec2(0,0);
-        return ((newScale>zero) != zero) ? Viewport{newPos, newScale} : zero;
+        if ((newScale > zero) == zero)
+        {
+            newPos = zero;
+            newScale = zero;
+        }
+        return Viewport{newPos, newScale};
     }
 };
 
@@ -108,21 +113,21 @@ struct Viewport
  * @brief Status of the touch event.
  */
 enum TouchStatus : byte{
-    READY,
-    PRESS,
-    RELEASE,
-    SWIPE,
-    HOLD,
-    DRAG,
+    TouchStatus_READY,
+    TouchStatus_PRESS,
+    TouchStatus_RELEASE,
+    TouchStatus_SWIPE,
+    TouchStatus_HOLD,
+    TouchStatus_DRAG,
     TouchStatus_size
 };
 
 #define ENABLE_ALL 1
-#define ENABLE_PRESS 1<<TouchStatus::PRESS
-#define ENABLE_RELEASE 1<<TouchStatus::RELEASE
-#define ENABLE_SWIPE 1<<TouchStatus::SWIPE
-#define ENABLE_HOLD 1<<TouchStatus::HOLD
-#define ENABLE_DRAG 1<<TouchStatus::DRAG
+#define ENABLE_PRESS 1<<TouchStatus::TouchStatus_PRESS
+#define ENABLE_RELEASE 1<<TouchStatus::TouchStatus_RELEASE
+#define ENABLE_SWIPE 1<<TouchStatus::TouchStatus_SWIPE
+#define ENABLE_HOLD 1<<TouchStatus::TouchStatus_HOLD
+#define ENABLE_DRAG 1<<TouchStatus::TouchStatus_DRAG
 
 
 struct TouchDragData

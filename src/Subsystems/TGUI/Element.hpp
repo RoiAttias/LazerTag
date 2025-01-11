@@ -61,7 +61,7 @@ public:
      * @param margin Margin for the element (left, top, right, bottom)
      * @param marginAffectViewport Flag to add margin in the element's final size.
      */
-    Element(ivec2 origin = TGUI_AUTO, ivec2 offset = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = false,
+    Element(ivec2 origin = TGUI_AUTO, ivec2 offset = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = true,
             bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr,
             int margin[4] = {0, 0, 0, 0}, bool marginAffectViewport = false)
         : origin(origin), offset(offset), scale(scale), visible(visible), renderAlways(renderAlways),

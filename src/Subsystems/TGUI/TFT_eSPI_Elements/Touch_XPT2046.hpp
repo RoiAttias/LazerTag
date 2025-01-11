@@ -14,16 +14,16 @@ protected:
 public:
     ivec2 lastPoint;
     // Constructors
-    Touch_XPT2046(Screen * screen, int isr_pin, ) : Touch(screen) {
-      this->isr_pin = isr_pin;
-      isr = Pushbutton(isr_pin,10)
+    Touch_XPT2046(Screen * screen, const Pushbutton &isr) : Touch(screen) {
+        this->isr = isr;
+        this->isr_pin = isr.getPin();
     }
 
-    virtual void init(int enable){
+    virtual void init(int enable) override{
       isr.enablePressEvent(true);
       isr.enableReleaseEvent(true);
       isr.init();
-      Touch::init(enable);
+      Touch::enable(enable);
     }
 
     virtual bool isTouched()
@@ -36,7 +36,7 @@ public:
         uint16_t x, y, w, x0, y0, x1, y1, x_sum, y_sum, xx, yy;
         for(int i = iterations; i > 0; i--)
         {
-            tft_instance->getTouchRaw(&x0,&y0);
+            TGUI::tft_instance->getTouchRaw(&x0,&y0);
 
             if(i == iterations)
             {
@@ -62,7 +62,7 @@ public:
       xx = constrain(map(xx, 140, 4000, 0, 320), 0, 319);
       yy = constrain(480 - map(yy, 245, 4000, 0, 480), 0, 480);
 
-      switch (tft_instance->getRotation()) {
+      switch (TGUI::tft_instance->getRotation()) {
         case 1:
           x = yy;
           y = 319 - xx;

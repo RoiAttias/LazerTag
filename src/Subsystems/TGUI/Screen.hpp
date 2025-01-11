@@ -130,8 +130,8 @@ public:
         if (currentActivity >= 0 && currentActivity < activities.size()) {
             Activity *activity = activities.get(currentActivity);
             if (activity != nullptr) {
-                if (activity->visible || activity->shouldRender() || inRange(activity->getViewport())) {
-                    activity->render();
+                if (activity->visible || activity->shouldRender() || getViewport().inRange(activity->getViewport())) {
+                    activity->render(getViewport());
                 }
             }
         }

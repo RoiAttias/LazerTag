@@ -69,12 +69,12 @@ public:
         int len = cells.size();
         HyperList<ivec2> locations;
         for (int i = 0; i < len; i++) {
-            locations.add(cells.get(i).location);
+            locations.addend(cells.get(i).location);
         }
         if (locations.contains(cell.location)) {
             return false;
         }
-        cells.add(cell);
+        cells.addend(cell);
         return true;
     }
 
@@ -86,7 +86,7 @@ public:
      * @param padding Padding for the cell (left, top, right, bottom)
      * @return True if the cell was added, false if the location is already occupied.
      */
-    bool addCell(Element* element, ivec2 location, int padding[4] = {0,0,0,0}) {
+    bool addCell(Element* element, ivec2 location, int padding[4]) {
         Cell cell(element, location, padding);
         return addCell(cell);
     }
@@ -98,7 +98,7 @@ public:
     /**
      * @brief Update the positions of all elements in the grid based on their locations and the column/row sizes.
      */
-    void updatePositions(Viewport viewport) {
+    void updatePositions(const Viewport &viewport) {
         Cell* cell;
         ivec2 point;
         for (int i = 0; i < cells.size(); i++) {
@@ -126,7 +126,7 @@ public:
      * @param viewport The viewport to render the grid in.
      * @return The clamped viewport of the grid.
      */
-    virtual void render(Viewport viewport) :  {
+    virtual Viewport render(const Viewport &viewport) override {
         // Call the base class's render function
         Viewport gridViewport = Element::render(viewport); // Get the clamped viewport of the grid
         updatePositions(gridViewport);

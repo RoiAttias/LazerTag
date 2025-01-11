@@ -22,19 +22,18 @@ protected:
 public:
     // Constructors
     Touch(Screen *screen) {
-        beenTouched = 0;
         lastTime = 0;
         pressStartTime = 0;
         enable = false;
-        flagTemp = enable;
     }
 
-    virtual void enable(int enable){
+    virtual void init(int enable){
         this->enable = enable;
+        reset();
     }
 
     virtual void reset(){
-        status = TouchStatus::READY;
+        status = TouchStatus::TouchStatus_READY;
     }
 
     virtual void next(ivec2 point, bool isEdge, bool isTouched) {
@@ -50,31 +49,31 @@ public:
             {
                 if (isTouched)
                 {
-                    status = TouchStatus::PRESS;
+                    status = TouchStatus::TouchStatus_PRESS;
                     dragData.startPosition = dragData.currentPosition;
                     pressStartTime = millis();
                 }
                 else
                 {
-                    status = TouchStatus::RELEASE;
+                    status = TouchStatus::TouchStatus_RELEASE;
                     dragData.endPosition = point;
                 }
             }
-            else if (isTouched && status > TouchStatus::READY)
+            else if (isTouched && status > TouchStatus::TouchStatus_READY)
             {
-                if (status == TouchStatus::PRESS && millis() - pressStartTime > holdThreshold)
+                if (status == TouchStatus::TouchStatus_PRESS && millis() - pressStartTime > holdThreshold)
                 {
-                    status = TouchStatus::HOLD;
+                    status = TouchStatus::TouchStatus_HOLD;
                 }
                 if (distance(dragData.currentPosition, dragData.startPosition) > dragDistanceThreshold)
                 {
-                    if (status == TouchStatus::HOLD || status == TouchStatus::DRAG)
+                    if (status == TouchStatus::TouchStatus_HOLD || status == TouchStatus::TouchStatus_DRAG)
                     {
-                        status = TouchStatus::DRAG;
+                        status = TouchStatus::TouchStatus_DRAG;
                     }
                     else
                     {
-                        status = TouchStatus::SWIPE;
+                        status = TouchStatus::TouchStatus_SWIPE;
                     }
                 }
             }

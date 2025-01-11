@@ -34,8 +34,8 @@ public:
      * @param OnTouch_handler Pointer to the function to handle the Touch event.
      * @param margin Margin for the activity (left, top, right, bottom)
      */
-    Activity(ivec2 origin = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = false,
-        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr, int margin[4] = {0, 0, 0, 0})
+    Activity(ivec2 origin = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = true,
+        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr, int margin[4])
         : Element(origin, ivec2(), scale, visible, renderAlways, OnTouch_enable, OnTouch_handler, margin){}
 
     // Overrides
@@ -44,10 +44,10 @@ public:
      * @param viewport The viewport to render the activity in.
      * @return The clamped viewport of the activity.
      */
-   virtual Viewport render(Viewport viewport) override {
+    virtual Viewport render(const Viewport &viewport) override {
         // Call the base class's render function
         Viewport activityViewport = Element::render(viewport); // Get the clamped viewport of the activity
-        updatePositions(activityViewport);
+        updatePositions();
         if (visible) {
             // Render all child elements in the activity
             Element* element; // Pointer to an element
@@ -55,7 +55,7 @@ public:
             // Render all visible child elements - first in back
             for (int i = 0; i < getElementCount(); i++) {
                 element = getElement(i);
-                if (element->isVisible() && element->shouldRender() && activityViewport.inRange(element->getViewport())) { 
+                if (element->visible() && element->shouldRender() && activityViewport.inRange(element->getViewport())) { 
                     elementViewport = element->scale != TGUI_AUTO ? element->getViewport() : activityViewport;
                     elementViewport = elementViewport.clamp(activityViewport);
                     element->render(elementViewport);

@@ -11,9 +11,25 @@ enum PushbuttonStatus : byte {
 };
 
 // Define the event handler type
-using PushbuttonEventHandler = void (*)(EventType, uint32_t);
+using PushbuttonEventHandler = void (*)(PushbuttonStatus, uint32_t);
+
+class Pushbutton;
+static void IRAM_ATTR PushbuttonISR(void *arg);
 
 class Pushbutton {
+private:
+    uint8_t pin;                   // Pin number
+    uint32_t debounceThreshold;    // Debounce threshold in milliseconds or microseconds
+    bool useMicros;                // Whether to use micros() instead of millis()
+    PushbuttonEventHandler eventHandler;     // Callback for events
+    volatile uint32_t lastDebounceTime; // Last debounce time
+    volatile bool buttonState;     // Current button state
+    volatile bool lastButtonState; // Previous button state
+    volatile bool _hasPressed;      // Flag to indicate a press event occurred
+    volatile bool _hasReleased;    // Flag to indicate a release event occurred
+    bool enablePress;              // Enable press events
+    bool enableRelease;            // Enable release events
+
 public:
     /**
      * Constructor
@@ -22,7 +38,7 @@ public:
      * @param useMicros Whether to use micros() instead of millis().
      * @param handler Callback function for button events.
      */
-    Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, bool useMicros = false, EventHandler handler = nullptr)
+    Pushbutton(uint8_t buttonPin, uint32_t debounceMs = 50, bool useMicros = false, PushbuttonEventHandler handler = nullptr)
         : pin(buttonPin),
           debounceThreshold(debounceMs),
           useMicros(useMicros),
@@ -33,7 +49,7 @@ public:
           enablePress(false),
           enableRelease(false),
           _hasPressed(false),
-          _hasReleased(false), {}
+          _hasReleased(false) {}
 
     /**
      * Initialize the pushbutton by configuring the pin and setting up the ISR.
@@ -57,6 +73,10 @@ public:
     void detachISR()
     {
         detachInterrupt(digitalPinToInterrupt(pin));
+    }
+
+    int8_t getPin() const {
+        return pin;
     }
 
     void enablePressEvent(bool enable) {
@@ -97,7 +117,7 @@ public:
      * Handles the interrupt. This method is responsible for debouncing and
      * invoking the event handler if necessary.
      */
-    byte IRAM_ATTR handleInterrupt() {
+    void IRAM_ATTR handleInterrupt() {
         uint32_t currentTime = useMicros ? micros() : millis();
         bool currentButtonState = isPressed();
 
@@ -120,22 +140,7 @@ public:
             }
         }
         lastButtonState = currentButtonState;
-    }
-
-private:
-    uint8_t pin;                   // Pin number
-    uint32_t debounceThreshold;    // Debounce threshold in milliseconds or microseconds
-    bool useMicros;                // Whether to use micros() instead of millis()
-    PushbuttonEventHandler eventHandler;     // Callback for events
-    volatile uint32_t lastDebounceTime; // Last debounce time
-    volatile bool buttonState;     // Current button state
-    volatile bool lastButtonState; // Previous button state
-    volatile bool _hasPressed;      // Flag to indicate a press event occurred
-    volatile bool _hasReleased;    // Flag to indicate a release event occurred
-    bool enablePress;              // Enable press events
-    bool enableRelease;            // Enable release events
-
-    
+    }    
 };
 
 /**

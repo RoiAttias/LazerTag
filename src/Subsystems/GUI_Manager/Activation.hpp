@@ -11,7 +11,7 @@ private:
     Element e3;
 */
 public:
-    Activation() : Activity()
+    Activation() : Activity(TGUI_AUTO, TGUI_AUTO)
     {
         //Element* elems[] = {&e1, &e2, &e3};
         //elements.addFromArray(elems,3);

@@ -11,16 +11,8 @@ ivec2 screenDiamentions;
 
 Screen screen(GUI_Manager_Activities,GUI_Manager_Activity::GUI_Manager_Activity_size, true);
 //Screen screen(nullptr,0);
-Touch_XPT2046 touch(&screen, 34);
+Touch_XPT2046 touch(&screen, Pushbutton(34, 10));
 unsigned long lastMillis = 0;
-
-void manager_init()
-{
-    tft_instance = &tft;
-    screenDiamentions = ivec2(tft_instance->width(),tft_instance->height());
-    screen.init(screenDiamentions ,true);
-    touch.init(xpt2046_Handler,ENABLE_ALL|ENABLE_PRESS);
-}
 
 void manager_setup()
 {
@@ -31,28 +23,14 @@ void manager_setup()
     tft.begin();  
     tft.setRotation(0);
     tft.fillScreen(TFT_YELLOW);
-
-    delay(2000);
     Serial.println("TFT initialized.");
 
-    // Sprite Initialization
-    if (img.createSprite(100,100)) {
-        img.fillSprite(TFT_BLACK); 
-        Serial.println("Sprite created successfully.");
-    } else {
-        Serial.println("Error: Sprite creation failed.");
-    }
-
-    manager_init();
-    Serial.println("Manager initialized.");
-
-    img.drawCircle(50, 50, 10, TFT_CYAN);
-    screenDiamentions.display();
-    delay(2000);
-    screen.renderNpush();
-    delay(2000);
-
-    Serial.println("Setup completed.");
+    // TGUI Initialization
+    TGUI::tft_instance = &tft;
+    screenDiamentions = ivec2(TGUI::tft_instance->width(), TGUI::tft_instance->height());
+    screen.init(screenDiamentions ,true);
+    touch.init(ENABLE_ALL|ENABLE_PRESS);
+    Serial.println("TGUI initialized.");
 }
 
 void manager_loop()
@@ -60,21 +38,7 @@ void manager_loop()
     touch.loop();
     if (screen.shouldRender())
     {
-        /*
-        Serial.print(" Rendering");
-        img.fillSprite(TFT_BLACK);
-        //img.drawString(touch.lastPoint.toString(),0,0);
-        img.setTextSize(1); // Ensure text size is set (default is 1).
-        img.setTextFont(1); // Use a valid font ID (1-4 for built-in fonts in TFT_eSPI).
-        img.setTextColor(TFT_WHITE, TFT_BLACK); // White text on black background.
-        img.fillCircle(50, 50, 10, random(0xFFFF));
-        String text = String(millis());
-        img.setCursor(20, 30);
-        screen.renderNpush();
-        tft.print(text);
-        Serial.println(" is Finished");
-*/
-        screen.renderNpush();
+        screen.render();
     }
     
     // The rest of the program primarily relies on interrupts, so no logic is needed here

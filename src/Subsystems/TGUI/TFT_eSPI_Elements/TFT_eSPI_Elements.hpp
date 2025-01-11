@@ -44,7 +44,7 @@ void drawTriangles(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint tr
     }
 }
 
-void fillPolygon(iTFT_eSPI *tftptr, vec2 * vertices, uint vertexCount, uint triangles[][3], uint triangleCount, uint32_t color)
+void fillPolygon(iTFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint triangles[][3], uint triangleCount, uint32_t color)
 {
     ivec2 triangleVertices[3];
     for (int i = 0; i < triangleCount; i++)
