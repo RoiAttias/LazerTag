@@ -1,34 +1,31 @@
 #ifndef TOUCH_XPT2046_HPP
 #define TOUCH_XPT2046_HPP
 
+#include "TFT_eSPI.h"
+
 #include "Subsystems/TGUI/TGUI.hpp"
 #include "Subsystems/TGUI/Touch.hpp"
-#include "TFT_eSPI.h"
 #include "Components/Pushbutton/Pushbutton.hpp"
 
 class Touch_XPT2046 : public Touch {
 protected:
-    int isr_pin;
-    Pushbutton isr;
+    Pushbutton *isr;
+    ivec2 lastPoint;
     
 public:
-    ivec2 lastPoint;
     // Constructors
-    Touch_XPT2046(Screen * screen, const Pushbutton &isr) : Touch(screen) {
-        this->isr = isr;
-        this->isr_pin = isr.getPin();
-    }
+    Touch_XPT2046(Screen * screen, Pushbutton *isr) : Touch(screen), isr(isr) {}
 
     virtual void init(int enable) override{
-      isr.enablePressEvent(true);
-      isr.enableReleaseEvent(true);
-      isr.init();
-      Touch::enable(enable);
+      isr->enablePressEvent(true);
+      isr->enableReleaseEvent(true);
+      isr->init();
+      Touch::init(enable);
     }
 
     virtual bool isTouched()
     {
-      return isr.isPressed();
+      return isr->isPressed();
     }
 
     virtual ivec2 getPoint(int iterations = 1)
@@ -76,19 +73,18 @@ public:
           y = xx;
           break;
       }
-      currentPosition = ivec2(x,y);
-      lastPoint = currentPosition;
-      return currentPosition;
+      lastPoint = ivec2(x,y);
+      return lastPoint;
     }
 
     void loop()
     {
       if(enable)
       {
-        if (isr.hasPressed()) {
+        if (isr->hasPressed()) {
           next(getPoint(), true, true); // Press
         }
-        else if (isr.hasReleased()) {
+        else if (isr->hasReleased()) {
           next(getPoint(), true, false); // Release
         }
         else if (isTouched()) {

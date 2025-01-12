@@ -35,7 +35,7 @@ public:
      * @param margin Margin for the activity (left, top, right, bottom)
      */
     Activity(ivec2 origin = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = true,
-        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr, int margin[4])
+        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr, int margin[4] = nullptr)
         : Element(origin, ivec2(), scale, visible, renderAlways, OnTouch_enable, OnTouch_handler, margin){}
 
     // Overrides
@@ -55,7 +55,7 @@ public:
             // Render all visible child elements - first in back
             for (int i = 0; i < getElementCount(); i++) {
                 element = getElement(i);
-                if (element->visible() && element->shouldRender() && activityViewport.inRange(element->getViewport())) { 
+                if (element->visible && element->shouldRender() && activityViewport.inRange(element->getViewport())) { 
                     elementViewport = element->scale != TGUI_AUTO ? element->getViewport() : activityViewport;
                     elementViewport = elementViewport.clamp(activityViewport);
                     element->render(elementViewport);

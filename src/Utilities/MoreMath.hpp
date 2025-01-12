@@ -2,6 +2,8 @@
 #define MOREMATH_HPP
 
 #include <Arduino.h>
+#include "vec2.hpp"
+#include "ivec2.hpp"
 
 // Precomputed constants for conversions
 constexpr float DEG_TO_RAD_FACTOR = PI / 180.0f; ///< Conversion factor from degrees to radians.
@@ -108,5 +110,30 @@ inline float wrapAngleRad(float angle)
     while (angle < 0.0f) angle += 2.0f * PI;
     return angle;
 }
+
+/**
+ * @brief Computes the distance between two 2d points.
+ * 
+ * @param x1 The x-coordinate of the first point.
+ * @param y1 The y-coordinate of the first point.
+ * @param x2 The x-coordinate of the second point.
+ * @param y2 The y-coordinate of the second point.
+ */
+inline float distance(float x1, float y1, float x2, float y2)
+{
+    return sqrt(sq(x2 - x1) + sq(y2 - y1));
+}
+
+/**
+ * @brief Computes the distance between two 2d points.
+ * 
+ * @param p1 The first point.
+ * @param p2 The second point.
+ */
+inline float distance(const vec2& p1, const vec2& p2)
+{
+    return distance(p1.x, p1.y, p2.x, p2.y);
+}
+
 
 #endif // MOREMATH_HPP

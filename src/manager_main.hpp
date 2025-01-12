@@ -11,7 +11,8 @@ ivec2 screenDiamentions;
 
 Screen screen(GUI_Manager_Activities,GUI_Manager_Activity::GUI_Manager_Activity_size, true);
 //Screen screen(nullptr,0);
-Touch_XPT2046 touch(&screen, Pushbutton(34, 10));
+Pushbutton isr(34, 10);
+Touch_XPT2046 touch(&screen, &isr);
 unsigned long lastMillis = 0;
 
 void manager_setup()

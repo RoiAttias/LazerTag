@@ -36,6 +36,14 @@ struct Viewport
     ivec2 scale; // Width and Height
 
     /**
+     * @brief Constructor for Viewport.
+     * @param position The top left corner of the viewport.
+     * @param scale The width and height of the viewport.
+     */
+    Viewport(ivec2 position = ivec2(0, 0), ivec2 scale = ivec2(0, 0))
+        : position(position), scale(scale) {}
+
+    /**
      * @brief Get the center of the viewport.
      * @return The center of the viewport.
      */
@@ -100,7 +108,7 @@ struct Viewport
         ivec2 newPos = max(position, other.position);
         ivec2 newScale = min(position + scale, other.position + other.scale) - newPos;
         ivec2 zero = ivec2(0,0);
-        if ((newScale > zero) == zero)
+        if (newScale.greaterThan(zero) == zero)
         {
             newPos = zero;
             newScale = zero;
@@ -138,7 +146,7 @@ struct TouchDragData
 };
 
 
-typedef std::function<void(ivec2, TouchStatus, uint32_t)> TouchEvent;
+typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 
 #include "Element.hpp"
 #include "Activity.hpp"

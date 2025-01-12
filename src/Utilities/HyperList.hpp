@@ -84,6 +84,13 @@ public:
     T get(int index);
 
     /**
+     * Retrieves the pointer to the data from the node at the specified index.
+     * @param index Position of the node to retrieve data from.
+     * @return Pointer to the data stored in the node at the specified index.
+     */
+    T* getPointer(int index);
+
+    /**
      * Finds the index of the first occurrence of the given value in the list.
      * @param value Data to find in the list.
      * @return The index of the first occurrence of the value, or -1 if the value is not found.
@@ -119,18 +126,33 @@ public:
      */
     int lastIndexOf(const T value);
 
+
+    /**
+     * Overloaded subscript operator to retrieve the data from the node at the specified index.
+     * @param index Position of the node to retrieve data from.
+     * @return Data stored in the node at the specified index.
+     */
+    T operator[](int index);
+
     /**
      * Replaces the data in the node at the specified index with the given value.
      * @param index Position of the node to replace.
      * @param value New data to be stored in the node.
      */
-    void replace(int index, T value);
+    void replace(const int index, const T value);
 
     /**
      * Removes the node at the specified index from the list.
      * @param index Position of the node to remove.
      */
     void remove(int index);
+
+    /**
+     * Used the replace function to replace the value at the index with the value passed in.
+     * @param index Position of the node to replace.
+     * @param value New data to be stored in the node.
+     */
+    void set(const int index, const T value);
 
     /**
      * Gets the number of nodes in the list.
@@ -164,6 +186,7 @@ private:
      * Retrieves the node at the specified index.
      * @param index Position of the node to retrieve.
      * @return Pointer to the node at the specified index, or nullptr if the index is out of bounds.
+     * @warning You should not store the returned pointer for future use, as it may become invalid after further operations on the list.
      */
     Node<T>* getNode(int index);
 };
@@ -245,6 +268,15 @@ T HyperList<T>::get(const int index) {
         return node->data;
     }
     return T(); // Return default-constructed T if index is out of bounds
+}
+
+template <typename T>
+T* HyperList<T>::getPointer(const int index) {
+    Node<T>* node = getNode(index);
+    if (node != nullptr) {
+        return &node->data;
+    }
+    return nullptr;
 }
 
 template <typename T>
@@ -335,6 +367,11 @@ int HyperList<T>::lastIndexOf(const T value) {
 }
 
 template <typename T>
+T HyperList<T>::operator[](int index) {
+    return get(index);
+}
+
+template <typename T>
 void HyperList<T>::replace(const int index, const T value) {
     Node<T>* node = getNode(index);
     if (node != nullptr) {
@@ -354,6 +391,11 @@ void HyperList<T>::remove(const int index) {
 
     delete node;
     listSize--;
+}
+
+template <typename T>
+void HyperList<T>::set(const int index, const T value) {
+    replace(index, value);
 }
 
 template <typename T>

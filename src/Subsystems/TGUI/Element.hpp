@@ -44,7 +44,7 @@ public:
     TouchEvent OnTouch_handler; // Press event handler
 
     // Additional properties
-    int margin[4] = {0,0,0,0}; // Margin for the element (left, top, right, bottom)
+    int margin[4]; // Margin for the element (left, top, right, bottom)
     bool marginAffectViewport; // Flag to include padding in the element's scale
 
     // Constructors
@@ -63,10 +63,19 @@ public:
      */
     Element(ivec2 origin = TGUI_AUTO, ivec2 offset = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = true,
             bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr,
-            int margin[4] = {0, 0, 0, 0}, bool marginAffectViewport = false)
+            int *margin = nullptr, bool marginAffectViewport = false)
         : origin(origin), offset(offset), scale(scale), visible(visible), renderAlways(renderAlways),
           OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler),
-          margin(margin), marginAffectViewport(marginAffectViewport) {
+          marginAffectViewport(marginAffectViewport) {
+            if (margin != nullptr) {
+                for (int i = 0; i < 4; i++) {
+                    this->margin[i] = margin[i];
+                }
+            } else {
+                for (int i = 0; i < 4; i++) {
+                    this->margin[i] = 0;
+                }
+            }
             if (origin == TGUI_AUTO) {
                 origin = ivec2(0, 0);
             }
@@ -93,8 +102,8 @@ public:
      */
     Element(int xOrigin, int yOrigin, int xOffset, int yOffset, int width, int height, bool visible = true,
             bool renderAlways = false, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr,
-            int margin[4] = {0, 0, 0, 0}, bool marginAffectViewport = false)
-        : Element(ivec2(xOrigin, yOrigin), ivec2(xOffset, yOffset), ivec2(width, height), visible, renderAlways
+            int margin[4] = nullptr, bool marginAffectViewport = false)
+        : Element(ivec2(xOrigin, yOrigin), ivec2(xOffset, yOffset), ivec2(width, height), visible, renderAlways,
             OnTouch_enable, OnTouch_handler, margin, marginAffectViewport) {}
 
     // Getters
@@ -134,7 +143,7 @@ public:
     {
         ivec2 add = ivec2(margin[0], margin[1]);
         ivec2 sub = marginAffectViewport ? ivec2(margin[2], margin[3]) : ivec2(0, 0);
-        return scale != TGUI_AUTO ? {getPosition() + add, scale - sub} : {getPosition(), ivec2(0,0)};
+        return scale != TGUI_AUTO ? Viewport(getPosition() + add, scale - sub) : Viewport(getPosition(), ivec2(0,0));
     }
 
     bool shouldRender() {
@@ -145,13 +154,14 @@ public:
     void callRender() {
         _shouldRender = true;
     }
+
     // Functions to be overridden
     /**
      * @brief Virtual function for rendering the element.
      * @param viewport The viewport to render the element in.
      * @return The clamped viewport of the element.
      */
-    virtual Viewport render(Viewport viewport) {
+    virtual Viewport render(const Viewport &viewport) {
         _shouldRender = false;
         return getViewport().clamp(viewport);
     }
@@ -224,7 +234,7 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus)
     {
-        if (OnTouch_enable && OnTouch_handler && touchStatus > TouchStatus::ready)
+        if (OnTouch_enable && OnTouch_handler && touchStatus > TouchStatus::TouchStatus_READY)
         {
             OnTouch_handler(point, touchStatus);
         }

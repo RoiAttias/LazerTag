@@ -24,18 +24,20 @@ void drawPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint32_t 
     }
 }
 
-void drawTriangles(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint triangles[][3], uint triangleCount, uint32_t color)
+void drawTriangles(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, int triangleCount, uint32_t color)
 {
     ivec2 triangleVertices[3];
-    for (uint i = 0; i < triangleCount; i++)
+    int selectedVertex;
+    for (int i = 0; i < triangleCount; i++)
     {
         for (int j = 0; j < 3; j++)
         {
-            if (triangles[i][j] >= vertexCount)
+            selectedVertex = triangles[i * 3 + j];
+            if (selectedVertex >= vertexCount)
             {
-                triangles[i][j] = 0;
+                selectedVertex = 0;
             }
-            triangleVertices[j] = vertices[triangles[i][j]];
+            triangleVertices[j] = vertices[selectedVertex];
         }
         tftptr->drawTriangle(triangleVertices[0].x, triangleVertices[0].y,
                                    triangleVertices[1].x, triangleVertices[1].y,
@@ -44,18 +46,20 @@ void drawTriangles(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint tr
     }
 }
 
-void fillPolygon(iTFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint triangles[][3], uint triangleCount, uint32_t color)
+void fillPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, uint triangleCount, uint32_t color)
 {
     ivec2 triangleVertices[3];
+    int selectedVertex;
     for (int i = 0; i < triangleCount; i++)
     {
         for (int j = 0; j < 3; j++)
         {
-            if (triangles[i][j] >= vertexCount)
+            selectedVertex = triangles[i * 3 + j];
+            if (selectedVertex >= vertexCount)
             {
-                triangles[i][j] = 0;
+                selectedVertex = 0;
             }
-            triangleVertices[j] = vertices[triangles[i][j]];
+            triangleVertices[j] = vertices[selectedVertex];
         }
         tftptr->fillTriangle(triangleVertices[0].x, triangleVertices[0].y,
                                     triangleVertices[1].x, triangleVertices[1].y,

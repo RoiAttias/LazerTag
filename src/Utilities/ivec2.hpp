@@ -26,17 +26,6 @@ struct ivec2
     ivec2(int x = 0, int y = 0) : x(x), y(y) {}
 
     /**
-     * @brief Constructor for ivec2.
-     * 
-     * @param v The floating vector.
-     */
-    ivec2(vec2 v)
-    {
-        this->x = int(v.x);
-        this->y = int(v.y);
-    }
-
-    /**
      * @brief Addition assignment operator (+=).
      * 
      * @param other The vector to add.
@@ -149,19 +138,19 @@ struct ivec2
         return ivec2(0, 0); // Handle division by zero
     }
 
-    ivec2 operator>(const ivec2& other) const {
+    ivec2 greaterThan(const ivec2& other) const {
         return ivec2(x > other.x ? 1 : 0, y > other.y ? 1 : 0);
     }
 
-    ivec2 operator<(const ivec2& other) const {
+    ivec2 lessThan(const ivec2& other) const {
         return ivec2(x < other.x ? 1 : 0, y < other.y ? 1 : 0);
     }
 
-    ivec2 operator>=(const ivec2& other) const {
+    ivec2 greaterEqual(const ivec2& other) const {
         return ivec2(x >= other.x ? 1 : 0, y >= other.y ? 1 : 0);
     }
 
-    ivec2 operator<=(const ivec2& other) const {
+    ivec2 lessEqual(const ivec2& other) const {
         return ivec2(x <= other.x ? 1 : 0, y <= other.y ? 1 : 0);
     }
 

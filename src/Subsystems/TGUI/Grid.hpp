@@ -42,8 +42,18 @@ struct Cell {
      * @param location Location of the cell in the grid (default is ivec2())
      * @param padding Padding for the cell (default is {0,0,0,0})
      */
-    Cell(Element* element = nullptr, ivec2 location = ivec2(), int padding[4] = {0,0,0,0})
-        : element(element), location(location), padding(padding) {}
+    Cell(Element* element = nullptr, ivec2 location = ivec2(), int *padding = nullptr)
+        : element(element), location(location) {
+        if (padding != nullptr) {
+            for (int i = 0; i < 4; i++) {
+                this->padding[i] = padding[i];
+            }
+        } else {
+            for (int i = 0; i < 4; i++) {
+                this->padding[i] = 0;
+            }
+        }
+    }
 };
 
 /**
@@ -102,7 +112,7 @@ public:
         Cell* cell;
         ivec2 point;
         for (int i = 0; i < cells.size(); i++) {
-            cell = cells.getAddress(i);
+            cell = cells.getPointer(i);
             
             point = viewport.position;
 
@@ -117,7 +127,7 @@ public:
             }
 
             // Set the new position to the element
-            cell->element->offset(point);
+            cell->element->offset = point;
         }
     }
 
@@ -136,10 +146,10 @@ public:
             Element* cellElement; // Pointer to an element in a cell
             Viewport cellViewport; // Viewport of a cell
             for (int i = 0; i < cells.size(); i++) {
-                cell = cells.getAddress(i);
+                cell = cells.getPointer(i);
                 cellElement = cell->element;
-                if (cellElement->isVisible() && cellElement.shouldRender() && gridViewport.inRange(cellElement.getViewport())) {
-                    cellViewport = element->scale != TGUI_AUTO ? cellElement->getViewport() : gridViewport;
+                if (cellElement->visible && cellElement->shouldRender() && gridViewport.inRange(cellElement->getViewport())) {
+                    cellViewport = cellElement->scale != TGUI_AUTO ? cellElement->getViewport() : gridViewport;
                     cellViewport = cellViewport.clamp(gridViewport);
                     cellElement->render(cellViewport);
                 }
@@ -161,7 +171,7 @@ public:
 
         // Forward touch events to child elements
         for (int i = 0; i < cells.size(); i++) {
-            cellElement = cells.getAddress(i)->element;
+            cellElement = cells.getPointer(i)->element;
             if (cellElement->inRange(point)) {
                 cellElement->OnTouch_execute(point,touchStatus);
             }

@@ -2,6 +2,7 @@
 #define VEC2_HPP
 
 #include <Arduino.h>
+#include "ivec2.hpp"
 
 /**
  * @brief Struct representing a point (or vector) in 2D space, similar to OpenGL vectors.
@@ -23,6 +24,13 @@ struct vec2
      * @param y The y-coordinate of the vector (default is 0.0).
      */
     vec2(float x = 0.0f, float y = 0.0f) : x(x), y(y) {}
+
+    /**
+     * @brief Constructor for vec2 from an ivec2.
+     * 
+     * @param intagers The ivec2 to convert to a vec2.
+     */
+    vec2(const ivec2& intagers) : x(intagers.x), y(intagers.y) {}
 
     /**
      * @brief Addition assignment operator (+=).
