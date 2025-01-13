@@ -12,17 +12,10 @@
  * subtraction, scalar multiplication and division, normalization, and dot product, making it useful 
  * for graphics, physics calculations, and general vector math.
  */
-struct ivec2
-{
-    int x; //< The x-coordinate of the vector.
-    int y; //< The y-coordinate of the vector.
+class ivec2 {
+public:
+    int x, y;
 
-    /**
-     * @brief Constructor for ivec2.
-     * 
-     * @param x The x-coordinate of the vector (default is 0).
-     * @param y The y-coordinate of the vector (default is 0).
-     */
     ivec2(int x = 0, int y = 0) : x(x), y(y) {}
 
     /**
@@ -138,28 +131,40 @@ struct ivec2
         return ivec2(0, 0); // Handle division by zero
     }
 
+    bool operator<(const ivec2& other) const {
+        return (x < other.x) && (y < other.y);
+    }
+
+    bool operator>(const ivec2& other) const {
+        return (x > other.x) && (y > other.y);
+    }
+
     ivec2 greaterThan(const ivec2& other) const {
-        return ivec2(x > other.x ? 1 : 0, y > other.y ? 1 : 0);
+        ivec2 result;
+        result.x = x > other.x ? 1 : 0;
+        result.y = y > other.y ? 1 : 0;
+        return result;
     }
 
     ivec2 lessThan(const ivec2& other) const {
-        return ivec2(x < other.x ? 1 : 0, y < other.y ? 1 : 0);
-    }
-
-    ivec2 greaterEqual(const ivec2& other) const {
-        return ivec2(x >= other.x ? 1 : 0, y >= other.y ? 1 : 0);
-    }
-
-    ivec2 lessEqual(const ivec2& other) const {
-        return ivec2(x <= other.x ? 1 : 0, y <= other.y ? 1 : 0);
+        ivec2 result;
+        result.x = x < other.x ? 1 : 0;
+        result.y = y < other.y ? 1 : 0;
+        return result;
     }
 
     ivec2 min(const ivec2& other) const {
-        return ivec2(x < other.x ? x : other.x, y < other.y ? y : other.y);
+        ivec2 result;
+        result.x = x < other.x ? x : other.x;
+        result.y = y < other.y ? y : other.y;
+        return result;
     }
 
     ivec2 max(const ivec2& other) const {
-        return ivec2(x > other.x ? x : other.x, y > other.y ? y : other.y);
+        ivec2 result;
+        result.x = x > other.x ? x : other.x;
+        result.y = y > other.y ? y : other.y;
+        return result;
     }
 
     /**
@@ -169,7 +174,14 @@ struct ivec2
      * @return Vector with bigger x and smaller y.
      */
     ivec2 clamp(const ivec2& other) const {
-        return ivec2(x > other.x ? x : other.x, y < other.y ? y : other.y);
+        ivec2 result;
+        result.x = x < other.x ? x : other.x;
+        result.y = y > other.y ? y : other.y;
+        return result;
+    }
+
+    int dot(const ivec2& other) const {
+        return (x * other.x) + (y * other.y);
     }
 
     /**

@@ -12,7 +12,7 @@
 #include "Components/Pushbutton/Pushbutton.hpp"
 
 
-#define TGUI_AUTO -1
+#define TGUI_AUTO ivec2(-1,-1) // Auto value for origin and scale
 
 // Element IDs
 int elementIDs = 0; // The amount of element created

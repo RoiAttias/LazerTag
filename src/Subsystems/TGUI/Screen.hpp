@@ -77,7 +77,7 @@ public:
             activities.addend(activity);
             if(activity->origin == TGUI_AUTO)
             {
-                activity->origin = 0;
+                activity->origin = ivec2(0,0);
             }
             if (activity->scale == TGUI_AUTO)
             {
@@ -120,7 +120,7 @@ public:
     }
 
     Viewport getViewport() {
-        return {0, resolution};
+        return Viewport(ivec2(0,0), resolution);
     }
 
     /**

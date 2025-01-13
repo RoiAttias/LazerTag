@@ -200,8 +200,8 @@ public:
     {
         ivec2 e_scale = eptr->scale;    // Element scale
         ivec2 pLT= eptr->getPosition(); // Left Top
-        ivec2 pLB = eptr->getPosition() + ivec2(e_scale.y); // Left Bottom
-        ivec2 pRT = eptr->getPosition() + ivec2(e_scale.x); // Right Top
+        ivec2 pLB = eptr->getPosition() + ivec2(0,e_scale.y); // Left Bottom
+        ivec2 pRT = eptr->getPosition() + ivec2(e_scale.x,0); // Right Top
         ivec2 pRB = eptr->getPosition() + e_scale; // Right Bottom
         return inRange(pLT) || inRange(pLB) || inRange(pRT) || inRange(pRB);
     }
