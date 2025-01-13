@@ -131,40 +131,113 @@ public:
         return ivec2(0, 0); // Handle division by zero
     }
 
+    /**
+     * @brief Negation operator (-).
+     * 
+     * @return A new vector that is the negation of this vector.
+     */
+    ivec2 operator-() const {
+        return ivec2(-x, -y);
+    }
+
+    /**
+     * @brief Less than operator (<).
+     * 
+     * @param other The vector to compare against.
+     * @return True if this vector is less than the other vector, false otherwise.
+     */
     bool operator<(const ivec2& other) const {
         return (x < other.x) && (y < other.y);
     }
 
+    /**
+     * @brief Greater than operator (>).
+     * 
+     * @param other The vector to compare against.
+     * @return True if this vector is greater than the other vector, false otherwise.
+     */
     bool operator>(const ivec2& other) const {
         return (x > other.x) && (y > other.y);
     }
 
+    /**
+     * @brief Less than or equal to operator (<=).
+     * 
+     * @param other The vector to compare against.
+     * @return True if this vector is less than or equal to the other vector, false otherwise.
+     */
+    bool operator<=(const ivec2& other) const {
+        return (x <= other.x) && (y <= other.y);
+    }
+
+    /**
+     * @brief Greater than or equal to operator (>=).
+     * 
+     * @param other The vector to compare against.
+     * @return True if this vector is greater than or equal to the other vector, false otherwise.
+     */
+    bool operator>=(const ivec2& other) const {
+        return (x >= other.x) && (y >= other.y);
+    }
+
+    /**
+     * @brief Greater than operator per diamension.
+     * 
+     * @param other The vector to compare against.
+     * @return Vector with 1 in the x and y components if the condition is met, 0 otherwise.
+     */
     ivec2 greaterThan(const ivec2& other) const {
-        ivec2 result;
-        result.x = x > other.x ? 1 : 0;
-        result.y = y > other.y ? 1 : 0;
-        return result;
+        return ivec2(x > other.x ? 1 : 0, y > other.y ? 1 : 0);
     }
 
+    /**
+     * @brief Less than operator per diamension.
+     * 
+     * @param other The vector to compare against.
+     * @return Vector with 1 in the x and y components if the condition is met, 0 otherwise.
+     */
     ivec2 lessThan(const ivec2& other) const {
-        ivec2 result;
-        result.x = x < other.x ? 1 : 0;
-        result.y = y < other.y ? 1 : 0;
-        return result;
+        return ivec2(x < other.x ? 1 : 0, y < other.y ? 1 : 0);
     }
 
+    /**
+     * @brief Greater than or equal to operator per diamension.
+     * 
+     * @param other The vector to compare against.
+     * @return Vector with 1 in the x and y components if the condition is met, 0 otherwise.
+     */
+    ivec2 greaterThanOrEqual(const ivec2& other) const {
+        return ivec2(x >= other.x ? 1 : 0, y >= other.y ? 1 : 0);
+    }
+
+    /**
+     * @brief Less than or equal to operator per diamension.
+     * 
+     * @param other The vector to compare against.
+     * @return Vector with 1 in the x and y components if the condition is met, 0 otherwise.
+     */
+    ivec2 lessThanOrEqual(const ivec2& other) const {
+        return ivec2(x <= other.x ? 1 : 0, y <= other.y ? 1 : 0);
+    }
+
+    /**
+     * @brief Min operator per diamension.
+     * 
+     * @param other The vector to compare against.
+     * @return Vector with smaller x and y.
+     */
     ivec2 min(const ivec2& other) const {
-        ivec2 result;
-        result.x = x < other.x ? x : other.x;
-        result.y = y < other.y ? y : other.y;
-        return result;
+        return ivec2(x < other.x ? x : other.x, y < other.y ? y : other.y);
     }
 
+    /**
+     * @brief Max operator per diamension.
+     * 
+     * @param other The vector to compare against.
+     * @return Vector with bigger x and y.
+     */
     ivec2 max(const ivec2& other) const {
-        ivec2 result;
-        result.x = x > other.x ? x : other.x;
-        result.y = y > other.y ? y : other.y;
-        return result;
+        return ivec2(x > other.x ? x : other.x, y > other.y ? y : other.y);
     }
 
     /**
@@ -174,14 +247,27 @@ public:
      * @return Vector with bigger x and smaller y.
      */
     ivec2 clamp(const ivec2& other) const {
-        ivec2 result;
-        result.x = x < other.x ? x : other.x;
-        result.y = y > other.y ? y : other.y;
-        return result;
+        return ivec2(x < other.x ? x : other.x, y > other.y ? y : other.y);
     }
 
+    /**
+     * @brief Calculates the dot product with another vector.
+     * 
+     * @param other The vector to calculate the dot product with.
+     * @return The dot product of the two vectors.
+     */
     int dot(const ivec2& other) const {
         return (x * other.x) + (y * other.y);
+    }
+
+    /**
+     * @brief Calculates the cross product of this vector and another vector.
+     * 
+     * @param other The other vector.
+     * @return The cross product of the two vectors.
+     */
+    int magnitude() const {
+        return sqrt(x * x + y * y);
     }
 
     /**

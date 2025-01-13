@@ -146,6 +146,15 @@ struct vec2
     }
 
     /**
+     * @brief Negates this vector.
+     * 
+     * @return A new vector that is the negation of this vector.
+     */
+    vec2 operator-() const {
+        return vec2(-x, -y);
+    }
+
+    /**
      * @brief Calculates the dot product with another vector.
      * 
      * @param other The vector to calculate the dot product with.
@@ -153,6 +162,16 @@ struct vec2
      */
     float dot(const vec2& other) const {
         return (x * other.x) + (y * other.y);
+    }
+
+    /**
+     * @brief Calculates the cross product of this vector and another vector.
+     * 
+     * @param other The other vector.
+     * @return The cross product of the two vectors.
+     */
+    float cross(const vec2& other) const {
+        return x * other.y - y * other.x;
     }
 
     /**
@@ -185,6 +204,33 @@ struct vec2
             return vec2(x / mag, y / mag);
         }
         return vec2(0.0f, 0.0f);
+    }
+
+    /**
+     * @brief Calculates the angle between this vector and another vector.
+     * 
+     * @param other The other vector.
+     * @return The angle in radians between the two vectors.
+     */
+    float angle(const vec2& other) const {
+        float dotProd = dot(other);
+        float mags = magnitude() * other.magnitude();
+        return acos(dotProd / mags);
+    }
+
+    /**
+     * @brief Rotates the vector by a given angle in radians.
+     * 
+     * @param angle The angle in radians to rotate the vector.
+     * @return A new vector that is the rotated version of the original vector.
+     */
+    vec2 rotate(float angle) const {
+        float cosAngle = cos(angle);
+        float sinAngle = sin(angle);
+        return vec2(
+            x * cosAngle - y * sinAngle,
+            x * sinAngle + y * cosAngle
+        );
     }
 
     /**

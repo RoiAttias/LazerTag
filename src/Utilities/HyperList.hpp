@@ -148,11 +148,31 @@ public:
     void remove(int index);
 
     /**
+     * Reserves memory for the specified number of additional nodes.
+     * @param additionalNodes Number of additional nodes to reserve memory for.
+     * @param defaultValue Default value to initialize the new nodes with.
+     */
+    bool reserveMore(int additionalNodes, const T& defaultValue);
+
+    /**
+     * Reserves memory for the specified total number of nodes.
+     * @param totalNodes Total number of nodes to reserve memory for.
+     * @param defaultValue Default value to initialize the new nodes with.
+     */
+    bool reserveTotal(int totalNodes, const T& defaultValue);
+
+    /**
      * Used the replace function to replace the value at the index with the value passed in.
      * @param index Position of the node to replace.
      * @param value New data to be stored in the node.
      */
     void set(const int index, const T value);
+
+    /**
+     * Sets the data of all nodes in the list to the given value.
+     * @param value New data to be stored in all nodes.
+     */
+    void setAll(const T value);
 
     /**
      * Gets the number of nodes in the list.
@@ -220,7 +240,7 @@ int HyperList<T>::addFromArray(T array[], int size) {
     for (int i = 0; i < size; i++) {
         result = addend(array[i]);
     }
-    return result - size + 1;
+    return result - size + 1; // Return the index of the first new node inserted
 }
 
 template <typename T>
@@ -394,8 +414,69 @@ void HyperList<T>::remove(const int index) {
 }
 
 template <typename T>
+bool HyperList<T>::reserveMore(int additionalNodes, const T& defaultValue) {
+    if (additionalNodes <= 0) {
+        return false; // Invalid request for non-positive node addition
+    }
+
+    // Allocate memory for additional nodes using new
+    Node<T>* newNodes = new(std::nothrow) Node<T>[additionalNodes];
+    if (newNodes == nullptr) {
+        return false; // Memory allocation failed
+    }
+
+    // Initialize the new nodes with the default value
+    for (int i = 0; i < additionalNodes; ++i) {
+        newNodes[i].data = defaultValue;
+        newNodes[i].next = nullptr;
+        newNodes[i].prev = tail;
+
+        if (tail != nullptr) {
+            tail->next = &newNodes[i]; // Link the new node to the current tail
+        }
+
+        tail = &newNodes[i]; // Update the tail to the new node
+    }
+
+    // If the list was empty, set the head to the first new node
+    if (head == nullptr) {
+        head = &newNodes[0];
+    }
+
+    listSize += additionalNodes; // Update the size by the number of additional nodes
+    return true; // Successful allocation and addition of nodes
+}
+
+template <typename T>
+bool HyperList<T>::reserveTotal(int totalNodes, const T& defaultValue) {
+    if (totalNodes <= 0) {
+        return false; // Invalid total size
+    }
+
+    // If current list size is already greater than or equal to the total size, no need to reserve more
+    if (listSize >= totalNodes) {
+        return true; // No action needed
+    }
+
+    // Calculate how many more nodes are required
+    int additionalNodes = totalNodes - listSize;
+
+    // Use reserveMore to allocate and initialize the additional nodes
+    return reserveMore(additionalNodes, defaultValue);
+}
+
+template <typename T>
 void HyperList<T>::set(const int index, const T value) {
     replace(index, value);
+}
+
+template <typename T>
+void HyperList<T>::setAll(const T value) {
+    Node<T>* current = head;
+    while (current != nullptr) {
+        current->data = value;
+        current = current->next;
+    }
 }
 
 template <typename T>

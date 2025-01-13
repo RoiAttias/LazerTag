@@ -12,22 +12,13 @@
 class Shape : public Element
 {
 public:
-    /**
-     * @brief FillType enumeration defining the methods to fill the shape.
-     */
-    enum FillType
-    {
-        Fan,        ///< Fill the shape using a triangle fan.
-        Triangulate ///< Fill the shape using triangulation.
-    };
-
     // Member variables
     HyperList<vec2> vertices; ///< List of vertices for the shape.
+    HyperList<vec2> fillVertices; ///< List of vertices for the filled shape.
     bool edges;               ///< Whether to render edges.
     bool fill;                ///< Whether to fill the shape.
     bool stretch;             ///< Whether to stretch vertices to the element's dimensions.
     bool points;              ///< Whether to render points at each vertex.
-    FillType fillType;        ///< The fill type to use for rendering.
 
     /**
      * @brief Constructs a Shape object.
@@ -35,13 +26,14 @@ public:
      * @param element The base element properties.
      * @param vertices Array of vertices defining the shape.
      * @param vertexCount Number of vertices in the array.
+     * 
      * @param stretch Whether to stretch vertices to fit the element's dimensions.
      * @param fill Whether to fill the shape.
      * @param edges Whether to render edges of the shape.
      * @param points Whether to render points at the vertices.
      * @param fillType The fill type for the shape (Triangulate or Fan).
      */
-    Shape(Element element, vec2 vertices[], int vertexCount, bool stretch = true, bool fill = false,
+    Shape(const Element &element, vec2 vertices[], int vertexCount, vec2 bool stretch = true, bool fill = false,
           bool edges = true, bool points = false, FillType fillType = Fan)
         : Element(element), stretch(stretch), fill(fill), edges(edges), points(points), fillType(fillType)
     {
