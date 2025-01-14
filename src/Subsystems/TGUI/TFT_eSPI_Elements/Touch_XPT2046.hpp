@@ -10,7 +10,6 @@
 class Touch_XPT2046 : public Touch {
 protected:
     Pushbutton *isr;
-    ivec2 lastPoint;
     
 public:
     // Constructors

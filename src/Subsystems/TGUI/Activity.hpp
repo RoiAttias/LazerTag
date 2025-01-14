@@ -20,7 +20,6 @@ class Activity : public Element
 {
 public:
     HyperList<Element *> elements; // List of child elements managed by the Activity.
-    int padding[4] = {0, 0, 0, 0}; // Padding for the Activity (left, top, right, bottom)
 
     // Constructors
     /**
@@ -72,6 +71,7 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
+        updatePositions();
         Element *element; bool continueLoop = true;
         // Executes Touch events in reversed order, opposite of rendering order
         // the last elements inside the list are seen in front.
@@ -101,13 +101,12 @@ public:
         {
             element = getElement(i);
             // Position each element relative to the Activity's position
-            element->offset = getViewport().positionAfterPadding(padding);
+            element->offset = getViewport().position;
 
             if (element->origin == TGUI_AUTO)
             {
                 element->origin = ivec2(0, 0);
             }
-
             if (element->scale == TGUI_AUTO)
             {
                 element->scale = scale;

@@ -73,8 +73,8 @@ void fillPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *tri
 #include "Touch_XPT2046.hpp"
 
 // Elements
+#include "Rectangle.hpp"
 /*
-rectrangle (round)
 text box (text, font, size, color, onlytext/withbackground/box)
 button
 shape

@@ -114,7 +114,7 @@ public:
         for (int i = 0; i < cells.size(); i++) {
             cell = cells.getPointer(i);
             
-            point = viewport.position;
+            point = viewport.positionAfterPadding(cell->padding);
 
             // Calculate new X position based on column widths
             for (int col = 1; col < cell->location.x; col++) {
@@ -150,6 +150,7 @@ public:
                 cellElement = cell->element;
                 if (cellElement->visible && cellElement->shouldRender() && gridViewport.inRange(cellElement->getViewport())) {
                     cellViewport = cellElement->scale != TGUI_AUTO ? cellElement->getViewport() : gridViewport;
+                    cellViewport.scale = cellViewport.scaleInsidePadding(cell->padding);
                     cellViewport = cellViewport.clamp(gridViewport);
                     cellElement->render(cellViewport);
                 }

@@ -158,6 +158,7 @@ public:
     // Functions to be overridden
     /**
      * @brief Virtual function for rendering the element.
+     * Use the function to reset the _shouldRender flag and to get the clamped viewport.
      * @param viewport The viewport to render the element in.
      * @return The clamped viewport of the element.
      */

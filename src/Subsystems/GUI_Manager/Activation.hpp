@@ -5,16 +5,13 @@
 
 class Activation : public Activity {
 private:
-/*
-    Element e1;
-    Element e2;
-    Element e3;
-*/
+    Rectangle e1;
 public:
-    Activation() : Activity(TGUI_AUTO, TGUI_AUTO)
+    Activation() : Activity(TGUI_AUTO, TGUI_AUTO),
+        e1(Element(ivec2(0,0), TGUI_AUTO, ivec2(120,240)), TFT_RED, TFT_BLACK, true, 10)
     {
-        //Element* elems[] = {&e1, &e2, &e3};
-        //elements.addFromArray(elems,3);
+        Element* elems[] = {&e1};
+        elements.addFromArray(elems,1);
     }
 };
 

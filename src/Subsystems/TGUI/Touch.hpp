@@ -12,6 +12,7 @@ protected:
 
     volatile unsigned long lastTime; // Last time the button was pressed in milliseconds
     volatile unsigned long pressStartTime; // Time when the press started in milliseconds
+    ivec2 lastPoint; // Last point of touch
     unsigned long holdThreshold = 2500; // Hold time in milliseconds
     float dragDistanceThreshold = 10.0f; // Drag distance in pixels
 
@@ -24,6 +25,7 @@ public:
     Touch(Screen *screen) {
         lastTime = 0;
         pressStartTime = 0;
+        lastPoint = ivec2(0, 0);
         enable = false;
     }
 
@@ -36,6 +38,10 @@ public:
         status = TouchStatus::TouchStatus_READY;
     }
 
+    virtual ivec2 getLastPoint() {
+        return lastPoint;
+    }
+    
     virtual void next(ivec2 point, bool isEdge, bool isTouched) {
         if (enable)
         {
