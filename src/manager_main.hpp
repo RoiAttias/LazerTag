@@ -10,11 +10,10 @@ static void IRAM_ATTR PushbuttonISR();
 TFT_eSPI tft = TFT_eSPI();   // Invoke library
 
 ivec2 screenDiamentions;
-Screen screen(GUI_Manager_Activities,GUI_Manager_Activity::GUI_Manager_Activity_size, true);
-Pushbutton isr(34, 100, false, PushbuttonISR);
-Touch_XPT2046 touch(&screen, &isr);
 
-bool lastMillis = false;
+Pushbutton isr(34, 100, false, PushbuttonISR);
+Screen screen(true);
+Touch_XPT2046 touch(&screen, &isr);
 
 static void IRAM_ATTR PushbuttonISR()
 {
@@ -38,25 +37,26 @@ void manager_setup()
     // TGUI Initialization
     TGUI::tft_instance = &tft;
     screenDiamentions = ivec2(TGUI::tft_instance->width(), TGUI::tft_instance->height());
-    screen.init(screenDiamentions ,true);
+    screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
     touch.init(ENABLE_ALL|ENABLE_PRESS);
-    //screen.selectActivity(GUI_Manager_Activity::ACTIVATION);
-    //screen.callRender();
     delay(1000);
     digitalWrite(2, LOW);
     Serial.println("TGUI initialized.");
+
+    screen.callRender();
+    screen.render();
 }
 
 void manager_loop()
 {   
     if (isr.hasPressed())
     {
-            digitalWrite(2, HIGH);
+        digitalWrite(2, HIGH);
         Serial.println("Pressed");
     }
     if (isr.hasReleased())
     {
-            digitalWrite(2, LOW);
+        digitalWrite(2, LOW);
         Serial.println("Released");
     }
     /*

@@ -66,7 +66,7 @@ public:
             int *margin = nullptr, bool marginAffectViewport = false)
         : origin(origin), offset(offset), scale(scale), visible(visible), renderAlways(renderAlways),
           OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler),
-          marginAffectViewport(marginAffectViewport) {
+          marginAffectViewport(marginAffectViewport), _shouldRender(true) {
             if (margin != nullptr) {
                 for (int i = 0; i < 4; i++) {
                     this->margin[i] = margin[i];

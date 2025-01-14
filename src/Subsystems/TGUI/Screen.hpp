@@ -3,15 +3,6 @@
 
 #include "TGUI.hpp"
 #include "Activity.hpp"
-#if defined(LUMINAUI_USE_TFT_ESPI)
-#include "TFT_eSPI_Elements/TFT_eSPI_Elements.hpp"
-#endif
-
-/*
-framerate mode
-rendertime pushtime variables
-framerate enable cap
-*/
 
 /**
  * @brief Screen class manages multiple Activities and handles their rendering and input interactions.
@@ -36,22 +27,10 @@ public:
      * @param activity Pointer to the first Activity in the array.
      * @param amount Number of Activities to add.
      */
-    Screen(Activity** activity, int amount, bool renderAfterOnTouch = false)
-        : _shouldRender(false), resolution(TGUI_AUTO), renderAfterOnTouch(renderAfterOnTouch),
-        currentActivity(0), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) { 
-        if (activity && amount > 0) {
-            addActivities(activity, amount);
-        }
-    }
-
-    /**
-     * @brief Constructor to initialize a Screen with a single Activity.
-     *
-     * @param activity Pointer to the initial Activity.
-     */
-    Screen(Activity** activity, bool renderAfterOnTouch = false)
-        : Screen(activity, 1){}
-
+    Screen(bool renderAfterOnTouch = false)
+        : resolution(TGUI_AUTO), renderAfterOnTouch(renderAfterOnTouch), _shouldRender(false),
+        currentActivity(0), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) {}
+    
     /**
      * @brief Destructor to clean up resources.
      */
@@ -59,43 +38,13 @@ public:
         activities.clear();
     }
 
-    void init(ivec2 resolution, bool enTouch = false, bool enPush = false)
+    void init(ivec2 resolution, Activity * activity[], int amount, bool enTouch = false, bool enPush = false)
     {
         this->resolution = resolution;
+        addActivities(activity, amount);
         enableTouch(enTouch);
         enablePush(enPush);
-    }
-
-    // Activity Management
-    /**
-     * @brief Add a single Activity to the Screen.
-     *
-     * @param activity Pointer to the Activity to add.
-     */
-    void addActivity(Activity * activity) {
-        if (activity) {
-            activities.addend(activity);
-            if(activity->origin == TGUI_AUTO)
-            {
-                activity->origin = ivec2(0,0);
-            }
-            if (activity->scale == TGUI_AUTO)
-            {
-                activity->scale == resolution;
-            }
-        }
-    }
-
-    /**
-     * @brief Add multiple Activities to the Screen.
-     *
-     * @param activity Pointer to the first Activity in the array.
-     * @param amount Number of Activities to add.
-     */
-    void addActivities(Activity * activity[], int amount) {
-        for (int i = 0; i < amount; i++) {
-            addActivity(activity[i]);
-        }
+        selectActivity(0);
     }
 
     /**
@@ -106,6 +55,40 @@ public:
     void selectActivity(int index) {
         if (index >= 0 && index < activities.size()) {
             currentActivity = index;
+        }
+    }
+
+    // Activity Management
+    /**
+     * @brief Add a single Activity to the Screen.
+     *
+     * @param activity Pointer to the Activity to add.
+     */
+    void addActivity(Activity * activity) {
+        if (activity) {
+            if(activity->origin == TGUI_AUTO)
+            {
+                activity->origin = ivec2(0,0);
+            }
+            if (activity->scale == TGUI_AUTO)
+            {
+                activity->scale = resolution;
+            }
+            activities.addend(activity);
+        }
+    }
+
+    /**
+     * @brief Add multiple Activities to the Screen.
+     *
+     * @param activity Pointer to the first Activity in the array.
+     * @param amount Number of Activities to add.
+     */
+    void addActivities(Activity ** activity, int amount) {
+        if (activity && amount > 0) {
+            for (int i = 0; i < amount; i++) {
+                addActivity(activity[i]);
+            }
         }
     }
 

@@ -12,7 +12,7 @@
 #include "Components/Pushbutton/Pushbutton.hpp"
 
 
-#define TGUI_AUTO ivec2(-1,-1) // Auto value for origin and scale
+const ivec2 TGUI_AUTO = ivec2(-1,-1); // Auto value for origin and scale
 
 // Element IDs
 int elementIDs = 0; // The amount of element created
@@ -105,15 +105,26 @@ struct Viewport
 
     Viewport clamp(const Viewport &other) const
     {
-        ivec2 newPos = max(position, other.position);
-        ivec2 newScale = min(position + scale, other.position + other.scale) - newPos;
-        ivec2 zero = ivec2(0,0);
-        if (newScale.greaterThan(zero) == zero)
+        // Calculate the overlapping position and scale
+        ivec2 newPos = position.max(other.position);
+        ivec2 newEnd = position + scale;
+        newEnd = newEnd.min(other.position + other.scale);
+        ivec2 newScale = newEnd - newPos;
+
+        // If there's no overlap, return an empty viewport
+        if (newScale.x <= 0 || newScale.y <= 0)
         {
-            newPos = zero;
-            newScale = zero;
+            return Viewport{ivec2(0, 0), ivec2(0, 0)};
         }
+
+        // Return the intersected viewport
         return Viewport{newPos, newScale};
+    }
+
+    String toString() const
+    {
+        String result = "Viewport: {Position: " + position.toString() + " Scale: " + scale.toString() + "}";
+        return result;
     }
 };
 

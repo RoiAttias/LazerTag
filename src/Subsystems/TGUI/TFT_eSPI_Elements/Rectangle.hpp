@@ -19,16 +19,17 @@ public:
     Viewport render(const Viewport &viewport) override {
         Viewport rectViewport = Element::render(viewport);
         TGUI::tft_instance->setViewport(rectViewport.position.x, rectViewport.position.y, rectViewport.scale.x, rectViewport.scale.y);
+        int corRad = min(cornerRadius, min(rectViewport.scale.x, rectViewport.scale.y) / 2); // Radius cannot be larger than half the width or height
         if (fillColor != TFT_TRANSPARENT) {
-            if (cornerRadius > 0) {
-                TGUI::tft_instance->fillRoundRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, cornerRadius, fillColor);
+            if (corRad > 0) {
+                TGUI::tft_instance->fillRoundRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, corRad, fillColor);
             } else {
                 TGUI::tft_instance->fillRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, fillColor);
             }
         }
         if (drawBorder && borderColor != TFT_TRANSPARENT) {
-            if (cornerRadius > 0) {
-                TGUI::tft_instance->drawRoundRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, cornerRadius, borderColor);
+            if (corRad > 0) {
+                TGUI::tft_instance->drawRoundRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, corRad, borderColor);
             } else {
                 TGUI::tft_instance->drawRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, borderColor);
             }
