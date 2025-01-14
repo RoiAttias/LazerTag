@@ -30,7 +30,7 @@ void manager_setup()
     // TFT Initialization
     tft.begin();  
     tft.setRotation(0);
-    tft.fillScreen(TFT_YELLOW);
+    tft.fillScreen(TFT_BLACK);
     tft.getTouchRawZ();
     Serial.println("TFT initialized.");
 
