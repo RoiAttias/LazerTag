@@ -29,7 +29,7 @@ public:
      */
     Screen(bool renderAfterOnTouch = false)
         : resolution(TGUI_AUTO), renderAfterOnTouch(renderAfterOnTouch), _shouldRender(false),
-        currentActivity(0), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) {}
+        currentActivity(-1), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) {}
     
     /**
      * @brief Destructor to clean up resources.
@@ -44,7 +44,6 @@ public:
         addActivities(activity, amount);
         enableTouch(enTouch);
         enablePush(enPush);
-        selectActivity(0);
     }
 
     /**
@@ -75,6 +74,9 @@ public:
                 activity->scale = resolution;
             }
             activities.addend(activity);
+            if (currentActivity == -1) {
+                currentActivity = 0;
+            }
         }
     }
 
@@ -153,17 +155,16 @@ public:
      * @param touchStatus The status of the touch event (e.g., press, drag, release).
      */
     void executeTouch(ivec2 point, TouchStatus touchStatus) {
+        Serial.println("Screen::executeTouch");
+
+        Serial.println(touchEnabled);
+        Serial.println(currentActivity >= 0 && currentActivity < activities.size());
+
         if (touchEnabled && currentActivity >= 0 && currentActivity < activities.size()) {
-            auto activity = activities.get(currentActivity);
+            Activity *activity = activities.get(currentActivity);
             if (activity != nullptr) {
                 activity->OnTouch_execute(point, touchStatus);
             }
-        }
-
-        if (renderAfterOnTouch)
-        {
-            callRender();
-        }
     }
 
     /**
@@ -184,7 +185,7 @@ public:
         pushHandler = handler;
     }
 
-protected:
+//protected:
     /**
      * @brief Execute the push handler function if enabled.
      */

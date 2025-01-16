@@ -35,7 +35,14 @@ public:
      */
     Activity(ivec2 origin = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = true,
         bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr, int margin[4] = nullptr)
-        : Element(origin, ivec2(), scale, visible, renderAlways, OnTouch_enable, OnTouch_handler, margin){}
+        : Element(origin, ivec2(), scale, visible, renderAlways, OnTouch_enable, OnTouch_handler, margin){
+            if (origin == TGUI_AUTO) {
+                origin = ivec2(0, 0);
+            }
+            if (scale == TGUI_AUTO) {
+                scale = this->scale;
+            }
+        }
 
     // Overrides
     /**
@@ -71,18 +78,23 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
+        Serial.println("Activity::OnTouch");
         updatePositions();
         Element *element; bool continueLoop = true;
         // Executes Touch events in reversed order, opposite of rendering order
         // the last elements inside the list are seen in front.
+        Serial.println("Activity::OnTouch - Looping through elements");
         for (int i = getElementCount() - 1; i >= 0 && continueLoop; i--)
         {
             element = getElement(i);
-            // Execute Touch events if child is visible and inside activity range
-            if (element->visible && inRange(element))
-            {
-                element->OnTouch_execute(point, touchStatus);
-                continueLoop = false;
+            // Check if the element is not null
+            if (element != nullptr){
+                // Execute Touch events if child is visible and inside activity range
+                if (element->visible && inRange(element) && element->OnTouch_enable && element->OnTouch_handler != nullptr)
+                {
+                    element->OnTouch_execute(point, touchStatus);
+                    continueLoop = false;
+                }
             }
         }
 
@@ -99,18 +111,25 @@ public:
         Element *element;
         for (int i = 0; i < getElementCount(); i++)
         {
+            // Get the element from the list
             element = getElement(i);
-            // Position each element relative to the Activity's position
-            element->offset = getViewport().position;
 
+            // Default origin is (0,0) if not set
             if (element->origin == TGUI_AUTO)
             {
                 element->origin = ivec2(0, 0);
             }
+
+            // Position each element relative to the Activity's position
+            element->offset = getViewport().position;
+            
+            // Default scale is the Activity's scale if not set
             if (element->scale == TGUI_AUTO)
             {
                 element->scale = scale;
             }
+
+            
         }
     }
 

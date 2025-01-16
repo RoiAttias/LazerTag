@@ -69,14 +69,23 @@ void fillPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *tri
 }
 }; // namespace TGUI
 
+// Fonts
+#include "Free_Fonts.h"
+
 // Touch Drivers
 #include "Touch_XPT2046.hpp"
 
-// Elements
+// Base Elements
 #include "Rectangle.hpp"
+#include "Text.hpp"
+
+// Combined Elements
+#include "Textbox.hpp"
+
+// Overriden Elements
+#include "Button.hpp"
+#include "Circle.hpp"
 /*
-text box (text, font, size, color, onlytext/withbackground/box)
-button
 shape
 image
 polygon

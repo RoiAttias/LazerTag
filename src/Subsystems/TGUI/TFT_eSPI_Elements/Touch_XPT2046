@@ -5,24 +5,35 @@
 
 #include "Subsystems/TGUI/TGUI.hpp"
 #include "Subsystems/TGUI/Touch.hpp"
+#include "Components/Pushbutton/Pushbutton.hpp"
 
 class Touch_XPT2046 : public Touch {
 private:
-    bool wasTouched; // Tracks the previous touch state
+    Pushbutton *isr;    // For handling press using interrupts
+    bool wasTouched;    // Tracks the previous touch state
 
 public:
-    // Constructor
-    Touch_XPT2046(Screen *screen) : Touch(screen), wasTouched(false) {}
+    /**
+     * Constructor
+     * @param screen The associated screen.
+     * @param isr Pointer to the Pushbutton instance for handling interrupts.
+     */
+    Touch_XPT2046(Screen *screen, Pushbutton *isr) : Touch(screen), isr(isr), wasTouched(false) {}
 
     /**
      * Initialize the touch system.
      */
     virtual void init(int enable) override {
+        if (isr) {
+            isr->enablePressEvent(true); // Enable only press event
+            isr->enableReleaseEvent(false); // Disable release event
+            isr->init();
+        }
         Touch::init(enable);
     }
 
     /**
-     * Checks if the screen is being touched.
+     * Check if the screen is being touched.
      * Uses getTouchRawZ() for touch detection.
      */
     virtual bool isTouched() {
@@ -94,16 +105,18 @@ public:
      */
     void loop() {
         if (enable) {
+            if (isr && isr->hasPressed()) {
+                // Interrupt-based press detection
+                next(getPoint(), true, true); // Press
+            }
+
             bool isCurrentlyTouched = isTouched();
 
-            if (isCurrentlyTouched && !wasTouched) {
-                // Touch started
-                next(getPoint(), true, true); // Press
-            } else if (!isCurrentlyTouched && wasTouched) {
+            if (!isCurrentlyTouched && wasTouched) {
                 // Touch ended
                 next(getPoint(), true, false); // Release
             } else if (isCurrentlyTouched) {
-                // Touch continued
+                // Continuous touch
                 next(getPoint(), false, true); // Continuous
             }
 

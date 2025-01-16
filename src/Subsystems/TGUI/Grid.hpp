@@ -110,24 +110,30 @@ public:
      */
     void updatePositions(const Viewport &viewport) {
         Cell* cell;
-        ivec2 point;
+        ivec2 point, newScale;
+        Viewport cellViewport;
         for (int i = 0; i < cells.size(); i++) {
             cell = cells.getPointer(i);
             
-            point = viewport.positionAfterPadding(cell->padding);
+            cell->element->origin = ivec2(0, 0);
+            point = viewport.position;
 
             // Calculate new X position based on column widths
             for (int col = 1; col < cell->location.x; col++) {
                 point.x += columnDefinitions.get(col-1).width;
             }
+            newScale.x = columnDefinitions.get(cell->location.x-1).width;
 
             // Calculate new Y position based on row heights
             for (int row = 1; row < cell->location.y; row++) {
                 point.y += rowDefinitions.get(row-1).height;
             }
+            newScale.y = rowDefinitions.get(cell->location.y-1).height;
+            cellViewport = Viewport(point, newScale).afterPadding(cell->padding);
+            cellViewport = cellViewport.clamp(viewport);
 
-            // Set the new position to the element
-            cell->element->offset = point;
+            cell->element->offset = cellViewport.position;
+            cell->element->scale = cellViewport.scale;
         }
     }
 
@@ -146,13 +152,19 @@ public:
             Element* cellElement; // Pointer to an element in a cell
             Viewport cellViewport; // Viewport of a cell
             for (int i = 0; i < cells.size(); i++) {
-                cell = cells.getPointer(i);
-                cellElement = cell->element;
-                if (cellElement->visible && cellElement->shouldRender() && gridViewport.inRange(cellElement->getViewport())) {
-                    cellViewport = cellElement->scale != TGUI_AUTO ? cellElement->getViewport() : gridViewport;
-                    cellViewport.scale = cellViewport.scaleInsidePadding(cell->padding);
-                    cellViewport = cellViewport.clamp(gridViewport);
-                    cellElement->render(cellViewport);
+                cell = cells.getPointer(i); // Get the cell from the list
+                // Check if the cell isn't null
+                if (cell->element != nullptr) {
+                    cellElement = cell->element; // Get the element from the cell
+                    // Check if the element pointer isn't null
+                    if (cellElement != nullptr) {
+                        // Render the element if it's visible and should be rendered
+                        if (cellElement->visible && cellElement->shouldRender() && gridViewport.inRange(cellElement->getViewport())) {
+                            cellViewport = cellElement->scale != TGUI_AUTO ? cellElement->getViewport() : gridViewport;
+                            cellViewport = cellViewport.clamp(gridViewport);
+                            cellElement->render(cellViewport);
+                        }
+                    }
                 }
             }
         }
@@ -169,6 +181,8 @@ public:
         
         // Execute touch event for the grid itself
         Element::OnTouch_execute(point,touchStatus);
+
+        updatePositions(getViewport());
 
         // Forward touch events to child elements
         for (int i = 0; i < cells.size(); i++) {

@@ -1,8 +1,6 @@
 #ifndef TGUI_HPP
 #define TGUI_HPP
 
-#include <functional>
-
 #include "Utilities/MoreMath.hpp"
 #include "Utilities/ivec2.hpp"
 #include "Utilities/vec2.hpp"
@@ -155,9 +153,6 @@ struct TouchDragData
     ivec2 currentPosition; // Current position of the drag
     ivec2 endPosition; // End position when released
 };
-
-
-typedef std::function<void(ivec2, TouchStatus)> TouchEvent;
 
 #include "Element.hpp"
 #include "Activity.hpp"

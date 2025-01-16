@@ -11,15 +11,16 @@ TFT_eSPI tft = TFT_eSPI();   // Invoke library
 
 ivec2 screenDiamentions;
 
-Pushbutton isr(34, 100, false, PushbuttonISR);
 Screen screen(true);
-Touch_XPT2046 touch(&screen, &isr);
+Touch_XPT2046 touch(&screen);
+/*
+Pushbutton isr(34, 100, false, PushbuttonISR);
 
 static void IRAM_ATTR PushbuttonISR()
 {
     isr.handleInterrupt();
 }
-
+*/
 void manager_setup()
 {
     pinMode(2, OUTPUT);
@@ -43,12 +44,18 @@ void manager_setup()
     digitalWrite(2, LOW);
     Serial.println("TGUI initialized.");
 
+    Serial.println(screen.touchEnabled);
+    Serial.println(screen.currentActivity >= 0 && screen.currentActivity < screen.activities.size());
+
+    screen.executeTouch(ivec2(100,200), TouchStatus_PRESS);
+
     screen.callRender();
     screen.render();
 }
 
 void manager_loop()
 {   
+    /*
     if (isr.hasPressed())
     {
         digitalWrite(2, HIGH);
@@ -59,12 +66,8 @@ void manager_loop()
         digitalWrite(2, LOW);
         Serial.println("Released");
     }
-    /*
-    touch.loop();
-    
-    touch.getLastPoint().display();
-    tft.drawPixel(touch.getLastPoint().x, touch.getLastPoint().y, TFT_BLACK);
     */
+    touch.loop();
     
     // The rest of the program primarily relies on interrupts, so no logic is needed here
     //delay(10); // Optional: Small delay to stabilize processing

@@ -2,6 +2,7 @@
 #define ELEMENT_HPP
 
 #include "TGUI.hpp"
+using TouchEvent = void(*)(ivec2, TouchStatus);
 
 /**
  * @brief The Element class serves as a base class for GUI elements.
@@ -142,7 +143,7 @@ public:
     virtual Viewport getViewport() const
     {
         ivec2 add = ivec2(margin[0], margin[1]);
-        ivec2 sub = marginAffectViewport ? ivec2(margin[2], margin[3]) : ivec2(0, 0);
+        ivec2 sub = marginAffectViewport ? ivec2(margin[0] + margin[2], margin[1] + margin[3]) : ivec2(0, 0);
         return scale != TGUI_AUTO ? Viewport(getPosition() + add, scale - sub) : Viewport(getPosition(), ivec2(0,0));
     }
 
