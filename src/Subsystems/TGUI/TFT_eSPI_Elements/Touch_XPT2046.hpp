@@ -3,15 +3,20 @@
 
 #include "TFT_eSPI.h"
 
-#include "Subsystems/TGUI/TGUI.hpp"
+#include "TFT_eSPI_Elements.hpp"
 #include "Subsystems/TGUI/Touch.hpp"
+#include "Components/Pushbutton/Pushbutton.hpp"
 
 class Touch_XPT2046 : public Touch {
 private:
-    bool wasTouched; // Tracks the previous touch state
+    bool wasTouched;    // Tracks the previous touch state
 
 public:
-    // Constructor
+    /**
+     * Constructor
+     * @param screen The associated screen.
+     * @param isr Pointer to the Pushbutton instance for handling interrupts.
+     */
     Touch_XPT2046(Screen *screen) : Touch(screen), wasTouched(false) {}
 
     /**
@@ -22,11 +27,11 @@ public:
     }
 
     /**
-     * Checks if the screen is being touched.
+     * Check if the screen is being touched.
      * Uses getTouchRawZ() for touch detection.
      */
     virtual bool isTouched() {
-        return TGUI::tft_instance->getTouchRawZ() > 150;
+        return TGUI::tft_instance->getTouchRawZ() > 200;
     }
 
     /**
@@ -36,7 +41,7 @@ public:
      */
     virtual ivec2 getPoint(int iterations = 1) {
         uint16_t x, y, x_sum = 0, y_sum = 0;
-        uint16_t x0, y0, x1 = 0, y1 = 0;
+        uint16_t x0 = 0, y0 = 0, x1 = 0, y1 = 0;
 
         for (int i = 0; i < iterations; ++i) {
             TGUI::tft_instance->getTouchRaw(&x0, &y0);
@@ -95,15 +100,14 @@ public:
     void loop() {
         if (enable) {
             bool isCurrentlyTouched = isTouched();
-
-            if (isCurrentlyTouched && !wasTouched) {
-                // Touch started
+            if (!isCurrentlyTouched && wasTouched) {
+                // Touch ended
                 next(getPoint(), true, true); // Press
             } else if (!isCurrentlyTouched && wasTouched) {
                 // Touch ended
                 next(getPoint(), true, false); // Release
-            } else if (isCurrentlyTouched) {
-                // Touch continued
+            } else if (isCurrentlyTouched && wasTouched) {
+                // Continuous touch
                 next(getPoint(), false, true); // Continuous
             }
 

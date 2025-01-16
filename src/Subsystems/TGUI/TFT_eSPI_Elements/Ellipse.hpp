@@ -12,7 +12,7 @@ public:
     bool renderFill;
     bool renderBorder;
 
-    Ellipse(Element element, uint32_t fillColor = TFT_WHITE, uint32_t borderColor = TFT_BLACK,
+    Ellipse(const Element& element, uint32_t fillColor = TFT_WHITE, uint32_t borderColor = TFT_BLACK,
             bool renderFill = true, bool renderBorder = false) : Element(element), fillColor(fillColor),
         borderColor(borderColor), renderFill(renderFill), renderBorder(renderBorder) {}
 

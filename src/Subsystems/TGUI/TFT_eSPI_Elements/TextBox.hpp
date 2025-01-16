@@ -1,9 +1,7 @@
 #ifndef TEXTBOX_HPP
 #define TEXTBOX_HPP
 
-#include "TFT_eSPI_Elements.hpp"s
-#include "Rectangle.hpp"
-#include "Text.hpp"
+#include "TFT_eSPI_Elements.hpp"
 #include <TFT_eSPI.h>
 
 class Textbox : public Element {
@@ -34,7 +32,7 @@ public:
     Viewport render(const Viewport& viewport) override {
         Viewport rectViewport = Element::render(viewport);
         // Render background (Rectangle)
-        rect = background.render(rectViewport);
+        rectViewport = background.render(rectViewport);
         // Render text (Text)
         calculateTextMargin();
         text.render(rectViewport);

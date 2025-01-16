@@ -1,72 +1,73 @@
 #ifndef TFT_ESPI_ELEMENTS_HPP
 #define TFT_ESPI_ELEMENTS_HPP
 
+#include "Subsystems/TGUI/TGUI.hpp"
 #include <TFT_eSPI.h>
 
 namespace TGUI
 {
-TFT_eSPI * tft_instance = nullptr;
-TFT_eSprite * img_instance = nullptr;
+    TFT_eSPI * tft_instance;
+    TFT_eSprite * img_instance;
 
-void push_TFT_eSprite()
-{
-    img_instance->pushSprite(0,0);
-}
-
-void drawPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint32_t color)
-{
-    ivec2 p1,p2;
-    for (uint i = 0; i < vertexCount; i++)
+    void push_TFT_eSprite()
     {
-        p1 = ivec2(vertices[i].x, vertices[i].y);
-        p2 = ivec2(vertices[(i + 1) % vertexCount].x, vertices[(i + 1) % vertexCount].y);
-        tftptr->drawLine(p1.x, p1.y, p2.x, p2.y, color);
+        img_instance->pushSprite(0,0);
     }
-}
 
-void drawTriangles(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, int triangleCount, uint32_t color)
-{
-    ivec2 triangleVertices[3];
-    int selectedVertex;
-    for (int i = 0; i < triangleCount; i++)
+    void drawPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint32_t color)
     {
-        for (int j = 0; j < 3; j++)
+        ivec2 p1,p2;
+        for (uint i = 0; i < vertexCount; i++)
         {
-            selectedVertex = triangles[i * 3 + j];
-            if (selectedVertex >= vertexCount)
-            {
-                selectedVertex = 0;
-            }
-            triangleVertices[j] = vertices[selectedVertex];
+            p1 = ivec2(vertices[i].x, vertices[i].y);
+            p2 = ivec2(vertices[(i + 1) % vertexCount].x, vertices[(i + 1) % vertexCount].y);
+            tftptr->drawLine(p1.x, p1.y, p2.x, p2.y, color);
         }
-        tftptr->drawTriangle(triangleVertices[0].x, triangleVertices[0].y,
-                                   triangleVertices[1].x, triangleVertices[1].y,
-                                   triangleVertices[2].x, triangleVertices[2].y,
-                                   color);
     }
-}
 
-void fillPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, uint triangleCount, uint32_t color)
-{
-    ivec2 triangleVertices[3];
-    int selectedVertex;
-    for (int i = 0; i < triangleCount; i++)
+    void drawTriangles(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, int triangleCount, uint32_t color)
     {
-        for (int j = 0; j < 3; j++)
+        ivec2 triangleVertices[3];
+        int selectedVertex;
+        for (int i = 0; i < triangleCount; i++)
         {
-            selectedVertex = triangles[i * 3 + j];
-            if (selectedVertex >= vertexCount)
+            for (int j = 0; j < 3; j++)
             {
-                selectedVertex = 0;
+                selectedVertex = triangles[i * 3 + j];
+                if (selectedVertex >= vertexCount)
+                {
+                    selectedVertex = 0;
+                }
+                triangleVertices[j] = vertices[selectedVertex];
             }
-            triangleVertices[j] = vertices[selectedVertex];
-        }
-        tftptr->fillTriangle(triangleVertices[0].x, triangleVertices[0].y,
+            tftptr->drawTriangle(triangleVertices[0].x, triangleVertices[0].y,
                                     triangleVertices[1].x, triangleVertices[1].y,
                                     triangleVertices[2].x, triangleVertices[2].y,
                                     color);
+        }
     }
-}
+
+    void fillPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, uint triangleCount, uint32_t color)
+    {
+        ivec2 triangleVertices[3];
+        int selectedVertex;
+        for (int i = 0; i < triangleCount; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                selectedVertex = triangles[i * 3 + j];
+                if (selectedVertex >= vertexCount)
+                {
+                    selectedVertex = 0;
+                }
+                triangleVertices[j] = vertices[selectedVertex];
+            }
+            tftptr->fillTriangle(triangleVertices[0].x, triangleVertices[0].y,
+                                        triangleVertices[1].x, triangleVertices[1].y,
+                                        triangleVertices[2].x, triangleVertices[2].y,
+                                        color);
+        }
+    }
 }; // namespace TGUI
 
 // Fonts
@@ -78,12 +79,14 @@ void fillPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *tri
 // Base Elements
 #include "Rectangle.hpp"
 #include "Text.hpp"
+#include "Ellipse.hpp"
+//#include "Table.hpp" - not ready
 
 // Combined Elements
-#include "Textbox.hpp"
+//#include "Textbox.hpp" - not ready
 
 // Overriden Elements
-#include "Button.hpp"
+//#include "Button.hpp"
 #include "Circle.hpp"
 /*
 shape

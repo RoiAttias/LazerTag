@@ -2,13 +2,13 @@
 #define CIRCLE_HPP
 
 #include "TFT_eSPI_Elements.hpp"
-#include "Ellipse.hpp"
+#include "Ellipse.hpp" // Include the header file for the Ellipse class
 #include <TFT_eSPI.h>
 
 class Circle : public Ellipse {
 public:
     // Constructor for Circle: Calls Ellipse constructor but ensures equal radii for both axes
-    Circle(Element element, uint32_t fillColor = TFT_WHITE, uint32_t borderColor = TFT_BLACK,
+    Circle(const Element& element, uint32_t fillColor = TFT_WHITE, uint32_t borderColor = TFT_BLACK,
            bool renderFill = true, bool renderBorder = false)
         : Ellipse(element, fillColor, borderColor, renderFill, renderBorder) {}
 

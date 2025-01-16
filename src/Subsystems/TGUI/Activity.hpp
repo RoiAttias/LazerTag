@@ -53,18 +53,26 @@ public:
     virtual Viewport render(const Viewport &viewport) override {
         // Call the base class's render function
         Viewport activityViewport = Element::render(viewport); // Get the clamped viewport of the activity
+        Serial.println("Activity::render");
         updatePositions();
+        Serial.println("Activity::render");
         if (visible) {
+            Serial.println("Activity::render");
             // Render all child elements in the activity
             Element* element; // Pointer to an element
             Viewport elementViewport; // Viewport of an element
             // Render all visible child elements - first in back
             for (int i = 0; i < getElementCount(); i++) {
+                Serial.printf("element element element - %d\n", i);
                 element = getElement(i);
-                if (element->visible && element->shouldRender() && activityViewport.inRange(element->getViewport())) { 
+                Serial.printf("element element - %d\n", i);
+                if (element != nullptr) {
                     elementViewport = element->scale != TGUI_AUTO ? element->getViewport() : activityViewport;
-                    elementViewport = elementViewport.clamp(activityViewport);
-                    element->render(elementViewport);
+                    if (element->visible && element->shouldRender() && activityViewport.inRange(elementViewport)) { 
+                        Serial.printf("element - %d\n", i);
+                        elementViewport = elementViewport.clamp(activityViewport);
+                        element->render(elementViewport);
+                    }
                 }
             }
         }
@@ -79,6 +87,7 @@ public:
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
         Serial.println("Activity::OnTouch");
+        Element::OnTouch_execute(point,touchStatus);
         updatePositions();
         Element *element; bool continueLoop = true;
         // Executes Touch events in reversed order, opposite of rendering order
@@ -109,27 +118,33 @@ public:
     virtual void updatePositions()
     {
         Element *element;
-        for (int i = 0; i < getElementCount(); i++)
+        for (size_t i = 0; i < getElementCount(); i++)
         {
+            Serial.printf("Activity::updatePositions - %d\n", i);
             // Get the element from the list
             element = getElement(i);
+
+            if (element == nullptr)
+            {
+                continue;
+            }
 
             // Default origin is (0,0) if not set
             if (element->origin == TGUI_AUTO)
             {
-                element->origin = ivec2(0, 0);
+                element->origin = this->origin;
             }
 
             // Position each element relative to the Activity's position
-            element->offset = getViewport().position;
-            
+            element->offset = this->getViewport().position;
+                                    Serial.printf("Activity::updatePositions - %d\n", i);
+
             // Default scale is the Activity's scale if not set
             if (element->scale == TGUI_AUTO)
             {
-                element->scale = scale;
+                element->scale = this->scale;
             }
-
-            
+            Serial.printf("Activity::updatePositions - %d\n", i);
         }
     }
 

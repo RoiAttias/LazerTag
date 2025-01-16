@@ -6,14 +6,17 @@
 
 // Paths to Activities
 #include "Activation.hpp"
+#include "Dashboard.hpp"
 
 enum GUI_Manager_Activity : uint8_t {
     ACTIVATION,
+    DASHBOARD,
     GUI_Manager_Activity_size
 };
 
 Activity * GUI_Manager_Activities[] = {
-    new Activation()
+    new Activation(),
+    new Dashboard()
 };
 
 #endif // GUI_MANAGER_HPP

@@ -139,7 +139,6 @@ enum TouchStatus : byte{
     TouchStatus_size
 };
 
-#define ENABLE_ALL 1
 #define ENABLE_PRESS 1<<TouchStatus::TouchStatus_PRESS
 #define ENABLE_RELEASE 1<<TouchStatus::TouchStatus_RELEASE
 #define ENABLE_SWIPE 1<<TouchStatus::TouchStatus_SWIPE

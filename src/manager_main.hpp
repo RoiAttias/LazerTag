@@ -10,17 +10,16 @@ static void IRAM_ATTR PushbuttonISR();
 TFT_eSPI tft = TFT_eSPI();   // Invoke library
 
 ivec2 screenDiamentions;
+Pushbutton isr(34, 100, false, PushbuttonISR);
 
 Screen screen(true);
 Touch_XPT2046 touch(&screen);
-/*
-Pushbutton isr(34, 100, false, PushbuttonISR);
 
 static void IRAM_ATTR PushbuttonISR()
 {
     isr.handleInterrupt();
 }
-*/
+
 void manager_setup()
 {
     pinMode(2, OUTPUT);
@@ -39,17 +38,21 @@ void manager_setup()
     TGUI::tft_instance = &tft;
     screenDiamentions = ivec2(TGUI::tft_instance->width(), TGUI::tft_instance->height());
     screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
-    touch.init(ENABLE_ALL|ENABLE_PRESS);
+    touch.init(ENABLE_PRESS | ENABLE_RELEASE);
     delay(1000);
     digitalWrite(2, LOW);
     Serial.println("TGUI initialized.");
-
-    Serial.println(screen.touchEnabled);
-    Serial.println(screen.currentActivity >= 0 && screen.currentActivity < screen.activities.size());
-
-    screen.executeTouch(ivec2(100,200), TouchStatus_PRESS);
-
+    
+    screen.selectActivity(GUI_Manager_Activity::ACTIVATION);
+    Serial.println("Activation selected.");
     screen.callRender();
+    screen.render();
+    delay(3000);
+    
+    screen.selectActivity(GUI_Manager_Activity::DASHBOARD);
+    Serial.println("Dashboard selected.");
+    screen.callRender();
+    Serial.println("Start render - Dashboard.");
     screen.render();
 }
 
@@ -70,7 +73,7 @@ void manager_loop()
     touch.loop();
     
     // The rest of the program primarily relies on interrupts, so no logic is needed here
-    //delay(10); // Optional: Small delay to stabilize processing
+    delay(10); // Optional: Small delay to stabilize processing
 /*
     if (millis() - lastMillis >= 1000) {
         lastMillis = millis();

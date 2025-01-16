@@ -19,7 +19,13 @@ public:
     HyperList<Activity*> activities; ///< List of Activities managed by the Screen.
     ivec2 resolution;
     bool renderAfterOnTouch;
-
+    
+    bool _shouldRender; ///< Flag for rendering inside a loop
+    int currentActivity; ///< Index of the currently active Activity.
+    bool touchEnabled;   ///< Indicates whether touch is enabled.
+    bool pushEnabled;    ///< Indicates whether push is enabled.
+    
+    void (*pushHandler)(void); ///< Function pointer to the custom push handler.
     // Constructors and Destructor
     /**
      * @brief Constructor to initialize a Screen with multiple Activities.
@@ -113,10 +119,14 @@ public:
      */
     void render() {
         if (currentActivity >= 0 && currentActivity < activities.size()) {
+            Serial.printf("Screen::render - %d\n", currentActivity);
             Activity *activity = activities.get(currentActivity);
             if (activity != nullptr) {
+                Serial.printf("Screen::render activity - %d\n", currentActivity);
                 if (activity->visible || activity->shouldRender() || getViewport().inRange(activity->getViewport())) {
+                    Serial.printf("Screen::render activity if - %d\n", currentActivity);
                     activity->render(getViewport());
+                    Serial.printf("rendered - %d\n", currentActivity);
                 }
             }
         }
@@ -155,16 +165,19 @@ public:
      * @param touchStatus The status of the touch event (e.g., press, drag, release).
      */
     void executeTouch(ivec2 point, TouchStatus touchStatus) {
-        Serial.println("Screen::executeTouch");
-
-        Serial.println(touchEnabled);
-        Serial.println(currentActivity >= 0 && currentActivity < activities.size());
-
+        Serial.printf("Screen::executeTouch - %d\n", touchStatus);
+        Serial.printf("CurrentActivity - %d\n", currentActivity);
+        Serial.printf("Activities size - %d\n", activities.size());
+        Serial.printf("TouchEnabled - %d\n", touchEnabled);
         if (touchEnabled && currentActivity >= 0 && currentActivity < activities.size()) {
-            Activity *activity = activities.get(currentActivity);
+            Serial.printf("1");
+            Activity *activity = activities[currentActivity];
+            Serial.printf("2");
             if (activity != nullptr) {
                 activity->OnTouch_execute(point, touchStatus);
             }
+        }
+        
     }
 
     /**
@@ -185,7 +198,6 @@ public:
         pushHandler = handler;
     }
 
-//protected:
     /**
      * @brief Execute the push handler function if enabled.
      */
@@ -194,12 +206,6 @@ public:
             pushHandler();
         }
     }
-    bool _shouldRender; ///< Flag for rendering inside a loop
-    int currentActivity; ///< Index of the currently active Activity.
-    bool touchEnabled;   ///< Indicates whether touch is enabled.
-    bool pushEnabled;    ///< Indicates whether push is enabled.
-    
-    void (*pushHandler)(void); ///< Function pointer to the custom push handler.
 };
 
 #endif // SCREEN_HPP

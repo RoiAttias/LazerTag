@@ -19,7 +19,7 @@ public:
     Text text;
 
     // Constructor
-    Activation() : Activity(TGUI_AUTO, TGUI_AUTO,true, true, true,&button),
+    Activation() : Activity(TGUI_AUTO, TGUI_AUTO,true, true, true,button),
         rect(Element(ivec2(random(0, 240),random(0, 320)), TGUI_AUTO, ivec2(50,100)), TFT_RED, TFT_BLACK, true, true, 15),
         text(Element(), "0", TFT_WHITE, 1, 2, 2.0f, &FreeSans9pt7b)
     {
