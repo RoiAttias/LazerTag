@@ -50,6 +50,12 @@ public:
         addActivities(activity, amount);
         enableTouch(enTouch);
         enablePush(enPush);
+
+        Serial.println("Screen::init");
+        Serial.printf("CurrentActivity - %d\n", currentActivity);
+        Serial.printf("Activities size - %d\n", activities.size());
+        Serial.printf("TouchEnabled - %d\n", touchEnabled);
+        Serial.println("Success!");
     }
 
     /**
@@ -119,14 +125,10 @@ public:
      */
     void render() {
         if (currentActivity >= 0 && currentActivity < activities.size()) {
-            Serial.printf("Screen::render - %d\n", currentActivity);
             Activity *activity = activities.get(currentActivity);
             if (activity != nullptr) {
-                Serial.printf("Screen::render activity - %d\n", currentActivity);
                 if (activity->visible || activity->shouldRender() || getViewport().inRange(activity->getViewport())) {
-                    Serial.printf("Screen::render activity if - %d\n", currentActivity);
                     activity->render(getViewport());
-                    Serial.printf("rendered - %d\n", currentActivity);
                 }
             }
         }
@@ -166,9 +168,9 @@ public:
      */
     void executeTouch(ivec2 point, TouchStatus touchStatus) {
         Serial.printf("Screen::executeTouch - %d\n", touchStatus);
-        Serial.printf("CurrentActivity - %d\n", currentActivity);
-        Serial.printf("Activities size - %d\n", activities.size());
-        Serial.printf("TouchEnabled - %d\n", touchEnabled);
+        Serial.print("Current Activity: ");
+        currentActivity = 0;
+        Serial.println(currentActivity);
         if (touchEnabled && currentActivity >= 0 && currentActivity < activities.size()) {
             Serial.printf("1");
             Activity *activity = activities[currentActivity];

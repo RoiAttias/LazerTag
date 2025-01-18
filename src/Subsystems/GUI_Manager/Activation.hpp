@@ -24,8 +24,8 @@ public:
         text(Element(), "0", TFT_WHITE, 1, 2, 2.0f, &FreeSans9pt7b)
     {
         // Add all Rectangle elements to the array
-        Element* elems[] = {&rect, &text};
-        elements.addFromArray(elems, 2);
+        Element* elems[] = {new Background(TFT_PURPLE),&rect, &text};
+        elements.addFromArray(elems, 3);
     }
 };
 

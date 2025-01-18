@@ -10,15 +10,9 @@ static void IRAM_ATTR PushbuttonISR();
 TFT_eSPI tft = TFT_eSPI();   // Invoke library
 
 ivec2 screenDiamentions;
-Pushbutton isr(34, 100, false, PushbuttonISR);
 
 Screen screen(true);
 Touch_XPT2046 touch(&screen);
-
-static void IRAM_ATTR PushbuttonISR()
-{
-    isr.handleInterrupt();
-}
 
 void manager_setup()
 {
@@ -45,14 +39,15 @@ void manager_setup()
     
     screen.selectActivity(GUI_Manager_Activity::ACTIVATION);
     Serial.println("Activation selected.");
-    screen.callRender();
     screen.render();
     delay(3000);
-    
+    screen.executeTouch(ivec2(120, 160), TouchStatus::TouchStatus_PRESS);
     screen.selectActivity(GUI_Manager_Activity::DASHBOARD);
     Serial.println("Dashboard selected.");
-    screen.callRender();
-    Serial.println("Start render - Dashboard.");
+    screen.render();
+    delay(3000);
+    screen.selectActivity(GUI_Manager_Activity::HAVE_A_GOOD_WEEK);
+    Serial.println("Have a good week selected.");
     screen.render();
 }
 

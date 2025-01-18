@@ -7,6 +7,7 @@
 class Dashboard : public Activity {
 public:
     // Elements
+    Background background;     // A background element
     Rectangle header;         // A header rectangle for the title
     Text titleText;           // Title text displayed in the header
     Ellipse statusIndicator;   // A circle indicating system status
@@ -14,17 +15,15 @@ public:
 
     // Constructor
     Dashboard() : Activity(),
+        background(TFT_BROWN),
         header(Element(ivec2(0, 0), TGUI_AUTO, ivec2(240, 40)), TFT_BLUE, TFT_BLACK),
-        titleText(Element(ivec2(120, 20), TGUI_AUTO, TGUI_AUTO), "Dashboard", TFT_WHITE, 1, 1, 2.5f, &FreeSans12pt7b),
+        titleText(Element(ivec2(120, 20), TGUI_AUTO, TGUI_AUTO), String("Dashboard"), TFT_WHITE, 1, 1, 2.5f, &FreeSans9pt7b),
         statusIndicator(Element(ivec2(50, 100), TGUI_AUTO,ivec2(50, 30)), TFT_GREEN, TFT_BLACK, true, true),
         buttonRect(Element(ivec2(70, 260), TGUI_AUTO, ivec2(100, 40)), TFT_RED, TFT_BLACK, true, true, 10)
     {
-        // Align title text to the center of the header
-        titleText.origin = ivec2(header.offset.x + header.scale.x / 2, header.offset.y + header.scale.y / 2);
-
         // Add all elements to the `elements` HyperList
-        Element* elems[] = {&header, &titleText, &statusIndicator, &buttonRect};
-        elements.addFromArray(elems, 4);
+        Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect};
+        elements.addFromArray(elems, 5);
     }
 
     /**

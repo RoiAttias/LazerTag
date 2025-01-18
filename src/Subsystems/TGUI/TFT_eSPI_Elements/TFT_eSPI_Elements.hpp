@@ -80,6 +80,9 @@ namespace TGUI
 #include "Rectangle.hpp"
 #include "Text.hpp"
 #include "Ellipse.hpp"
+#include "Background.hpp"
+
+// Layout Elements
 //#include "Table.hpp" - not ready
 
 // Combined Elements

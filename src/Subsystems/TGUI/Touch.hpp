@@ -6,7 +6,7 @@
 
 class Touch {
 protected:
-    byte status; // Status of the touch event - TouchStatus: press, release, hold, drag
+    TouchStatus status; // Status of the touch event - TouchStatus: press, release, hold, drag
 
     TouchDragData dragData; // Data for the drag event - start, current, end positions
 
@@ -43,57 +43,57 @@ public:
     }
     
     virtual void next(ivec2 point, bool isEdge, bool isTouched) {
-        if (enable)
-        {
-            dragData.currentPosition = point;
+    if (enable) {
+        // Update the current touch position
+        dragData.currentPosition = point;
 
-            if (status >= TouchStatus::TouchStatus_size) {
-                reset();
+        // If the status is invalid, reset
+        if (status >= TouchStatus::TouchStatus_size) {
+            reset();
+        }
+
+        // Handle the edge (press/release) events
+        if (isEdge) {
+            if (isTouched) {
+                // Handle press event
+                status = TouchStatus::TouchStatus_PRESS;
+                dragData.startPosition = dragData.currentPosition;
+                pressStartTime = millis();
+            } else {
+                // Handle release event
+                status = TouchStatus::TouchStatus_RELEASE;
+                dragData.endPosition = dragData.currentPosition;
             }
-            
-            if (isEdge)
-            {
-                if (isTouched)
-                {
-                    status = TouchStatus::TouchStatus_PRESS;
-                    dragData.startPosition = dragData.currentPosition;
-                    pressStartTime = millis();
-                }
-                else
-                {
-                    status = TouchStatus::TouchStatus_RELEASE;
-                    dragData.endPosition = point;
-                }
-            }
-            else if (isTouched && status > TouchStatus::TouchStatus_READY)
-            {
-                if (status == TouchStatus::TouchStatus_PRESS && millis() - pressStartTime > holdThreshold)
-                {
-                    status = TouchStatus::TouchStatus_HOLD;
-                }
-                if (distance(dragData.currentPosition, dragData.startPosition) > dragDistanceThreshold)
-                {
-                    if (status == TouchStatus::TouchStatus_HOLD || status == TouchStatus::TouchStatus_DRAG)
-                    {
-                        status = TouchStatus::TouchStatus_DRAG;
-                    }
-                    else
-                    {
-                        status = TouchStatus::TouchStatus_SWIPE;
-                    }
-                }
-            }
-            else
-            {
-                reset();
+        } 
+        // Handle other touch interactions (hold, drag, swipe)
+        else if (isTouched && status > TouchStatus::TouchStatus_READY) {
+            // Check if it's a hold event
+            if (status == TouchStatus::TouchStatus_PRESS && millis() - pressStartTime > holdThreshold) {
+                status = TouchStatus::TouchStatus_HOLD;
             }
 
-            if (enable & (1 << status))
-            {
-                screen->executeTouch(point, TouchStatus(status));
+            // Check for drag or swipe based on movement
+            if (distance(dragData.currentPosition, dragData.startPosition) > dragDistanceThreshold) {
+                if (status == TouchStatus::TouchStatus_HOLD || status == TouchStatus::TouchStatus_DRAG) {
+                    status = TouchStatus::TouchStatus_DRAG;
+                } else {
+                    status = TouchStatus::TouchStatus_SWIPE;
+                }
             }
+        } 
+        // Reset touch status when not touched
+        else {
+            reset();
+        }
+        Serial.printf("Point: %d, %d\n", point.x, point.y);
+        Serial.printf("Touch Status: %d\n", status);
+        // If the current status is enabled, trigger the screen's touch event
+        if (enable & (1 << status)) {
+            screen->executeTouch(point, status);
         }
     }
+}
+
 };
 
 #endif // TOUCH_HPP

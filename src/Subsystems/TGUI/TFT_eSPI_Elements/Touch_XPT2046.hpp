@@ -99,6 +99,7 @@ public:
      */
     void loop() {
         if (enable) {
+            /*
             bool isCurrentlyTouched = isTouched();
             if (!isCurrentlyTouched && wasTouched) {
                 // Touch ended
@@ -112,6 +113,11 @@ public:
             }
 
             wasTouched = isCurrentlyTouched;
+            */
+           Serial.print("Touching.....");
+           getPoint().display();
+           next(getPoint(), true, true);
+           delay(1000);
         }
     }
 };

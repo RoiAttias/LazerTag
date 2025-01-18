@@ -9,18 +9,18 @@ class Background : public Element
 public:
     uint32_t fillColor;
 
-    Rectangle(uint32_t fillColor = TFT_TRANSPARENT)
+    Background(uint32_t fillColor = TFT_BLACK)
     : Element(), fillColor(fillColor) {}
 
     Viewport render(const Viewport &viewport) override {
-        Viewport rectViewport = Element::render(viewport);
-        TGUI::tft_instance->setViewport(rectViewport.position.x, rectViewport.position.y, rectViewport.scale.x, rectViewport.scale.y);
-        int corRad = min(cornerRadius, min(rectViewport.scale.x, rectViewport.scale.y) / 2); // Radius cannot be larger than half the width or height
+        // Call the base class's render function
+        Element::render(viewport); // Updating _shouldRender flag, no need to clamp the viewport
+        TGUI::tft_instance->setViewport(viewport.position.x, viewport.position.y, viewport.scale.x, viewport.scale.y);
         if (fillColor != TFT_TRANSPARENT) {
             TGUI::tft_instance->fillScreen(fillColor);
         }
         TGUI::tft_instance->resetViewport();
-        return rectViewport;
+        return viewport;
     }
 };
 

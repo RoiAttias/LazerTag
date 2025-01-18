@@ -536,16 +536,12 @@ Node<T>* HyperList<T>::getNode(const int index) {
         // Use the lastNode as the starting point
         current = lastNode;
         if (current == nullptr) {
-            // Log error and return or handle appropriately
-            Serial.println("Error: lastNode is null");
             return nullptr; // or handle the error as needed
         }
         if (index < lastIndex) {
             // Move backwards from lastNode
             for (int i = lastIndex; i > index; --i) {
                 if (current->prev == nullptr) {
-                    // Log error and return or handle appropriately
-                    Serial.printf("Error: current->prev is null at index %d", i);
                     return nullptr; // or handle the error as needed
                 }
                 current = current->prev;
@@ -554,8 +550,6 @@ Node<T>* HyperList<T>::getNode(const int index) {
             // Move forwards from lastNode
             for (int i = lastIndex; i < index; ++i) {
                 if (current->next == nullptr) {
-                    // Log error and return or handle appropriately
-                    Serial.printf("Error: current->next is null at index %d", i);
                     return nullptr; // or handle the error as needed
                 }
                 current = current->next;
@@ -565,14 +559,10 @@ Node<T>* HyperList<T>::getNode(const int index) {
         // Traverse from the head
         current = head;
         if (current == nullptr) {
-            // Log error and return or handle appropriately
-            Serial.println("Error: head is null");
             return nullptr; // or handle the error as needed
         }
         for (int i = 0; i < index; ++i) {
             if (current->next == nullptr) {
-                // Log error and return or handle appropriately
-                Serial.printf("Error: current->next is null at index %d", i);
                 return nullptr; // or handle the error as needed
             }
             current = current->next;
@@ -581,14 +571,10 @@ Node<T>* HyperList<T>::getNode(const int index) {
         // Traverse from the tail
         current = tail;
         if (current == nullptr) {
-            // Log error and return or handle appropriately
-            Serial.println("Error: tail is null");
             return nullptr; // or handle the error as needed
         }
         for (int i = listSize - 1; i > index; --i) {
             if (current->prev == nullptr) {
-                // Log error and return or handle appropriately
-                Serial.printf("Error: current->prev is null at index %d", i);
                 return nullptr; // or handle the error as needed
             }
             current = current->prev;
@@ -598,7 +584,6 @@ Node<T>* HyperList<T>::getNode(const int index) {
     // Update lastNode and lastIndex for future access
     lastNode = current;
     lastIndex = index;
-    Serial.printf("HyperList::getNode - Returning index %d", index);
     return current;
 }
 
