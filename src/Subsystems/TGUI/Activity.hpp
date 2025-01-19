@@ -98,9 +98,6 @@ public:
                 }
             }
         }
-
-        // Execute Touch events for the activity itself
-        Element::OnTouch_execute(point,touchStatus);
     }
 
     // Calculations

@@ -1,7 +1,7 @@
 #ifndef TEXTBOX_HPP
 #define TEXTBOX_HPP
 
-#include "TFT_eSPI_Elements.hpp"
+#include "TFT_eSPI_Elements.h"
 #include <TFT_eSPI.h>
 
 class Textbox : public Element {

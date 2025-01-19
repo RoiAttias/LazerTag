@@ -3,7 +3,7 @@
 
 #include "TFT_eSPI.h"
 
-#include "TFT_eSPI_Elements.hpp"
+#include "TFT_eSPI_Elements.h"
 #include "Subsystems/TGUI/Touch.hpp"
 #include "Components/Pushbutton/Pushbutton.hpp"
 

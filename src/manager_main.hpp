@@ -5,8 +5,6 @@
 #include <TFT_eSPI.h>
 #include "Subsystems/GUI_Manager/GUI_Manager.hpp"
 
-static void IRAM_ATTR PushbuttonISR();
-
 TFT_eSPI tft = TFT_eSPI();   // Invoke library
 
 ivec2 screenDiamentions;
@@ -32,7 +30,7 @@ void manager_setup()
     TGUI::tft_instance = &tft;
     screenDiamentions = ivec2(TGUI::tft_instance->width(), TGUI::tft_instance->height());
     screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
-    touch.init(ENABLE_PRESS | ENABLE_RELEASE);
+    touch.init(ENABLE_PRESS);
     delay(1000);
     digitalWrite(2, LOW);
     Serial.println("TGUI initialized.");
@@ -41,7 +39,8 @@ void manager_setup()
     Serial.println("Activation selected.");
     screen.render();
     delay(3000);
-    screen.executeTouch(ivec2(120, 160), TouchStatus::TouchStatus_PRESS);
+    screen.executeTouch(ivec2(120, 160), TouchStatus::TouchStatus_PRESS); // yo
+    touch.next(ivec2(120, 160), true, true); // yo
     screen.selectActivity(GUI_Manager_Activity::DASHBOARD);
     Serial.println("Dashboard selected.");
     screen.render();
@@ -65,7 +64,7 @@ void manager_loop()
         Serial.println("Released");
     }
     */
-    touch.loop();
+    //touch.loop();
     
     // The rest of the program primarily relies on interrupts, so no logic is needed here
     delay(10); // Optional: Small delay to stabilize processing

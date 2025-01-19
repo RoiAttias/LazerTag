@@ -1,7 +1,7 @@
 #ifndef TEXT_HPP
 #define TEXT_HPP
 
-#include "TFT_eSPI_Elements.hpp"
+#include "TFT_eSPI_Elements.h"
 #include <TFT_eSPI.h>
 
 /*

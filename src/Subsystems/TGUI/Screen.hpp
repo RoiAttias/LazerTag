@@ -20,8 +20,8 @@ public:
     ivec2 resolution;
     bool renderAfterOnTouch;
     
-    bool _shouldRender; ///< Flag for rendering inside a loop
-    int currentActivity; ///< Index of the currently active Activity.
+    volatile bool _shouldRender; ///< Flag for rendering inside a loop
+    volatile int currentActivity; ///< Index of the currently active Activity.
     bool touchEnabled;   ///< Indicates whether touch is enabled.
     bool pushEnabled;    ///< Indicates whether push is enabled.
     
@@ -46,6 +46,8 @@ public:
 
     void init(ivec2 resolution, Activity * activity[], int amount, bool enTouch = false, bool enPush = false)
     {
+        activities.clear();
+
         this->resolution = resolution;
         addActivities(activity, amount);
         enableTouch(enTouch);
@@ -169,13 +171,13 @@ public:
     void executeTouch(ivec2 point, TouchStatus touchStatus) {
         Serial.printf("Screen::executeTouch - %d\n", touchStatus);
         Serial.print("Current Activity: ");
-        currentActivity = 0;
-        Serial.println(currentActivity);
+        Serial.printf("%d\n", currentActivity);
         if (touchEnabled && currentActivity >= 0 && currentActivity < activities.size()) {
             Serial.printf("1");
             Activity *activity = activities[currentActivity];
             Serial.printf("2");
             if (activity != nullptr) {
+                Serial.printf("3");
                 activity->OnTouch_execute(point, touchStatus);
             }
         }
@@ -207,6 +209,34 @@ public:
         if (pushEnabled && pushHandler) {
             pushHandler();
         }
+    }
+
+    // Getters and Setters
+    /**
+     * @brief Get the current active Activity.
+     *
+     * @return Pointer to the current active Activity.
+     */
+    Activity *getCurrentActivity() {
+        return activities.get(currentActivity);
+    }
+
+    /**
+     * @brief Get the number of Activities managed by the Screen.
+     *
+     * @return Number of Activities.
+     */
+    int getActivityCount() {
+        return activities.size();
+    }
+
+    /**
+     * @brief Get the index of the current active Activity.
+     *
+     * @return Index of the current active Activity.
+     */
+    int getCurrentActivityIndex() {
+        return currentActivity;
     }
 };
 

@@ -1,8 +1,8 @@
 #ifndef GUI_MANAGER_HPP
 #define GUI_MANAGER_HPP
 
+#define LUMINAUI_USE_TFT_ESPI
 #include "Subsystems/TGUI/TGUI.hpp"
-
 
 // Paths to Activities
 #include "Activation.hpp"

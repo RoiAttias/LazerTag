@@ -4,11 +4,14 @@
 #include "GUI_Manager.hpp"
 #include <Arduino.h>
 
+int counter = 0;
 
 void button(ivec2 point, TouchStatus touchStatus) {
-    
-        Serial.println("Button pressed");
-//        text.content = String(text.content.toInt() + 1);
+    if (touchStatus == TouchStatus_PRESS) {
+        Serial.printf("Button %d pressed\n", counter++);
+    } else if (touchStatus == TouchStatus_RELEASE) {
+        Serial.printf("Button %d released\n", counter++);
+    }
 }
 
 

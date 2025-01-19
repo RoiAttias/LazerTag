@@ -1,7 +1,6 @@
 #ifndef TOUCH_HPP
 #define TOUCH_HPP
 
-#include "TGUI.hpp"
 #include "Screen.hpp"
 
 class Touch {
@@ -89,7 +88,8 @@ public:
         Serial.printf("Touch Status: %d\n", status);
         // If the current status is enabled, trigger the screen's touch event
         if (enable & (1 << status)) {
-            screen->executeTouch(point, status);
+            //screen->executeTouch(point, status);
+            screen->executeTouch(ivec2(50,40), TouchStatus::TouchStatus_PRESS);
         }
     }
 }
