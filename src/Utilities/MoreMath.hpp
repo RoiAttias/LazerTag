@@ -124,16 +124,4 @@ inline float distance(float x1, float y1, float x2, float y2)
     return sqrt(sq(x2 - x1) + sq(y2 - y1));
 }
 
-/**
- * @brief Computes the distance between two 2d points.
- * 
- * @param p1 The first point.
- * @param p2 The second point.
- */
-inline float distance(const vec2& p1, const vec2& p2)
-{
-    return distance(p1.x, p1.y, p2.x, p2.y);
-}
-
-
 #endif // MOREMATH_HPP

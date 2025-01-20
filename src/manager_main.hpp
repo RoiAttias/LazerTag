@@ -2,6 +2,9 @@
 #define MANAGER_MAIN_HPP
 
 #include <Arduino.h>
+
+void switchActivity(int activity);
+
 #include <TFT_eSPI.h>
 #include "Subsystems/GUI_Manager/GUI_Manager.hpp"
 
@@ -11,6 +14,11 @@ ivec2 screenDiamentions;
 
 Screen screen(true);
 Touch_XPT2046 touch(&screen);
+
+void switchActivity(int activity)
+{
+    screen.selectActivity(activity);
+}
 
 void manager_setup()
 {
@@ -30,7 +38,7 @@ void manager_setup()
     TGUI::tft_instance = &tft;
     screenDiamentions = ivec2(TGUI::tft_instance->width(), TGUI::tft_instance->height());
     screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
-    touch.init(ENABLE_PRESS);
+    touch.init(ENABLE_ALL);
     delay(1000);
     digitalWrite(2, LOW);
     Serial.println("TGUI initialized.");
@@ -39,8 +47,8 @@ void manager_setup()
     Serial.println("Activation selected.");
     screen.render();
     delay(3000);
-    screen.executeTouch(ivec2(120, 160), TouchStatus::TouchStatus_PRESS); // yo
-    touch.next(ivec2(120, 160), true, true); // yo
+
+    /*
     screen.selectActivity(GUI_Manager_Activity::DASHBOARD);
     Serial.println("Dashboard selected.");
     screen.render();
@@ -48,6 +56,7 @@ void manager_setup()
     screen.selectActivity(GUI_Manager_Activity::HAVE_A_GOOD_WEEK);
     Serial.println("Have a good week selected.");
     screen.render();
+    */
 }
 
 void manager_loop()
@@ -64,18 +73,10 @@ void manager_loop()
         Serial.println("Released");
     }
     */
-    //touch.loop();
-    
-    // The rest of the program primarily relies on interrupts, so no logic is needed here
-    delay(10); // Optional: Small delay to stabilize processing
-/*
-    if (millis() - lastMillis >= 1000) {
-        lastMillis = millis();
-        screen.callRender();
-        Serial.printf("LOOP - %lu\n", millis());
+    touch.loop();
+    if (screen.shouldRender()) {
+        screen.render();
     }
-    */
-
 }
 
 #endif // MANAGER_MAIN_HPP

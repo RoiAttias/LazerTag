@@ -2,7 +2,6 @@
 #define IVEC2_HPP
 
 #include <Arduino.h>
-#include "vec2.hpp"
 
 /**
  * @brief Struct representing a point (or vector) in 2D space with integer coordinates.
@@ -241,33 +240,15 @@ public:
     }
 
     /**
-     * @brief Calculates the dot product with another vector.
+     * @brief Clamps the vector components to the provided vector.
      * 
-     * @param other The vector to clamp with.
-     * @return Vector with bigger x and smaller y.
+     * @param minVec The minimum vector values.
+     * @param maxVec The maximum vector values.
+     * @return Vector with x and y components clamped between minVec and maxVec.
      */
-    ivec2 clamp(const ivec2& other) const {
-        return ivec2(x < other.x ? x : other.x, y > other.y ? y : other.y);
-    }
-
-    /**
-     * @brief Calculates the dot product with another vector.
-     * 
-     * @param other The vector to calculate the dot product with.
-     * @return The dot product of the two vectors.
-     */
-    int dot(const ivec2& other) const {
-        return (x * other.x) + (y * other.y);
-    }
-
-    /**
-     * @brief Calculates the cross product of this vector and another vector.
-     * 
-     * @param other The other vector.
-     * @return The cross product of the two vectors.
-     */
-    int magnitude() const {
-        return sqrt(x * x + y * y);
+    ivec2 clamp(const ivec2& minVec, const ivec2& maxVec) const {
+        return ivec2(x < minVec.x ? minVec.x : (x > maxVec.x ? maxVec.x : x),
+                    y < minVec.y ? minVec.y : (y > maxVec.y ? maxVec.y : y));
     }
 
     /**

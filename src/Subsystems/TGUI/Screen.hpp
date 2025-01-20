@@ -52,12 +52,6 @@ public:
         addActivities(activity, amount);
         enableTouch(enTouch);
         enablePush(enPush);
-
-        Serial.println("Screen::init");
-        Serial.printf("CurrentActivity - %d\n", currentActivity);
-        Serial.printf("Activities size - %d\n", activities.size());
-        Serial.printf("TouchEnabled - %d\n", touchEnabled);
-        Serial.println("Success!");
     }
 
     /**
@@ -68,6 +62,8 @@ public:
     void selectActivity(int index) {
         if (index >= 0 && index < activities.size()) {
             currentActivity = index;
+            activities[currentActivity]->callRender();
+            callRender();
         }
     }
 
@@ -129,7 +125,7 @@ public:
         if (currentActivity >= 0 && currentActivity < activities.size()) {
             Activity *activity = activities.get(currentActivity);
             if (activity != nullptr) {
-                if (activity->visible || activity->shouldRender() || getViewport().inRange(activity->getViewport())) {
+                if (activity->visible && activity->shouldRender() && getViewport().inRange(activity->getViewport())) {
                     activity->render(getViewport());
                 }
             }
@@ -169,19 +165,15 @@ public:
      * @param touchStatus The status of the touch event (e.g., press, drag, release).
      */
     void executeTouch(ivec2 point, TouchStatus touchStatus) {
-        Serial.printf("Screen::executeTouch - %d\n", touchStatus);
-        Serial.print("Current Activity: ");
-        Serial.printf("%d\n", currentActivity);
         if (touchEnabled && currentActivity >= 0 && currentActivity < activities.size()) {
-            Serial.printf("1");
             Activity *activity = activities[currentActivity];
-            Serial.printf("2");
             if (activity != nullptr) {
-                Serial.printf("3");
                 activity->OnTouch_execute(point, touchStatus);
             }
         }
-        
+        if (renderAfterOnTouch) {
+            callRender();
+        }
     }
 
     /**
@@ -212,15 +204,6 @@ public:
     }
 
     // Getters and Setters
-    /**
-     * @brief Get the current active Activity.
-     *
-     * @return Pointer to the current active Activity.
-     */
-    Activity *getCurrentActivity() {
-        return activities.get(currentActivity);
-    }
-
     /**
      * @brief Get the number of Activities managed by the Screen.
      *

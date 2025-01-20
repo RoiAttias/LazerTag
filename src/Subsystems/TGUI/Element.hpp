@@ -238,7 +238,7 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus)
     {
-        if (OnTouch_enable && OnTouch_handler && touchStatus > TouchStatus::TouchStatus_READY)
+        if (OnTouch_enable && OnTouch_handler && inRange(point) && touchStatus > TouchStatus::TouchStatus_READY && touchStatus < TouchStatus::TouchStatus_size)
         {
             OnTouch_handler(point, touchStatus);
         }

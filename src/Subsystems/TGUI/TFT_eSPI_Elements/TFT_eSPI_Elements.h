@@ -81,6 +81,7 @@ namespace TGUI
 #include "Text.hpp"
 #include "Ellipse.hpp"
 #include "Background.hpp"
+#include "Line.hpp"
 
 // Layout Elements
 //#include "Table.hpp" - not ready
@@ -89,15 +90,12 @@ namespace TGUI
 //#include "Textbox.hpp" - not ready
 
 // Overriden Elements
-//#include "Button.hpp"
+#include "Button.hpp"
 #include "Circle.hpp"
 /*
 shape
 image
 polygon
-circle
-line
-devider(horizonal, vertical)
 progress bar
 table(pointer of grid, pointer to list of grids)
 */

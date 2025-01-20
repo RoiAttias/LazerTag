@@ -8,18 +8,21 @@
 #include "Activation.hpp"
 #include "Dashboard.hpp"
 #include "HaveAGoodWeek.hpp"
+#include "Story.hpp"
 
 enum GUI_Manager_Activity : uint8_t {
     ACTIVATION,
     DASHBOARD,
     HAVE_A_GOOD_WEEK,
+    STORY,
     GUI_Manager_Activity_size
 };
 
 Activity * GUI_Manager_Activities[] = {
-    new Activation(),
+    activation,
     new Dashboard(),
-    new HaveAGoodWeek()
+    new HaveAGoodWeek(),
+    new Story()
 };
 
 #endif // GUI_MANAGER_HPP

@@ -1,7 +1,8 @@
 #ifndef TGUI_HPP
 #define TGUI_HPP
 
-#include "Utilities/MoreMath.hpp"
+#include <Arduino.h>
+
 #include "Utilities/ivec2.hpp"
 #include "Utilities/vec2.hpp"
 
@@ -133,18 +134,28 @@ enum TouchStatus : byte{
     TouchStatus_READY,
     TouchStatus_PRESS,
     TouchStatus_RELEASE,
-    TouchStatus_SWIPE,
     TouchStatus_HOLD,
     TouchStatus_DRAG,
     TouchStatus_size
 };
 
+String TouchStatus_str[] = {
+    "READY", "PRESS", "RELEASE", "HOLD", "DRAG", "size"
+};
+
 #define ENABLE_PRESS 1<<TouchStatus::TouchStatus_PRESS
 #define ENABLE_RELEASE 1<<TouchStatus::TouchStatus_RELEASE
-#define ENABLE_SWIPE 1<<TouchStatus::TouchStatus_SWIPE
 #define ENABLE_HOLD 1<<TouchStatus::TouchStatus_HOLD
 #define ENABLE_DRAG 1<<TouchStatus::TouchStatus_DRAG
+#define ENABLE_ALL 0xFF ^ 1<<TouchStatus::TouchStatus_READY // All except READY
 
+struct TouchData
+{
+    TouchStatus status; // Current status of the touch
+    ivec2 startPosition; // Start position when pressed
+    ivec2 currentPosition; // Current position of the drag
+    ivec2 endPosition; // End position when released
+};
 
 struct TouchDragData
 {

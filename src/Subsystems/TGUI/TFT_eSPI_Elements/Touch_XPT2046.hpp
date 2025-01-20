@@ -10,114 +10,129 @@
 class Touch_XPT2046 : public Touch {
 private:
     bool wasTouched;    // Tracks the previous touch state
+    uint16_t pressureThreshold = 150;
+    int pointSamples = 3; // Number of samples to average touch point
+    int pressureSamples = 5; // Number of samples to average touch pressure
 
 public:
     /**
-     * Constructor
+     * @brief Constructor for the Touch_XPT2046 class.
      * @param screen The associated screen.
-     * @param isr Pointer to the Pushbutton instance for handling interrupts.
      */
     Touch_XPT2046(Screen *screen) : Touch(screen), wasTouched(false) {}
 
     /**
-     * Initialize the touch system.
+     * @brief Check if the screen is currently being touched.
+     * @param samplesCount The number of samples to average.
+     * @return True if the screen is being touched, false otherwise.
      */
-    virtual void init(int enable) override {
-        Touch::init(enable);
+    virtual bool isTouched(int pressureThreshold, int samplesCount = 1) {
+        if (samplesCount > 1) {
+            int validSamples = 0;
+            for (int i = 0; i < samplesCount; i++) {
+                if (TGUI::tft_instance->getTouchRawZ() > pressureThreshold) {
+                    validSamples++;
+                }
+            }
+            return validSamples >= samplesCount / 2;
+        }
+        return TGUI::tft_instance->getTouchRawZ() > pressureThreshold;
     }
 
     /**
-     * Check if the screen is being touched.
-     * Uses getTouchRawZ() for touch detection.
-     */
-    virtual bool isTouched() {
-        return TGUI::tft_instance->getTouchRawZ() > 200;
-    }
-
-    /**
-     * Get the current touch point, averaging over multiple iterations.
-     * @param iterations Number of samples to average.
+     * @brief Get the current touch point, averaging over multiple iterations.
+     * @param sampleCount Number of samples to average.
      * @return The average touch point as ivec2.
      */
-    virtual ivec2 getPoint(int iterations = 1) {
-        uint16_t x, y, x_sum = 0, y_sum = 0;
-        uint16_t x0 = 0, y0 = 0, x1 = 0, y1 = 0;
+    virtual ivec2 getPoint(int sampleCount = 1) {
+        uint16_t rawTouch[2];
+        ivec2 currentTouch(0, 0);
+        ivec2 previousTouch(0, 0);
+        ivec2 accumulatedTouch(0, 0);  // Accumulates touch coordinates
+        ivec2 result(0, 0);
+        int validSampleCount = 0;  // Tracks valid touch samples
 
-        for (int i = 0; i < iterations; ++i) {
-            TGUI::tft_instance->getTouchRaw(&x0, &y0);
+        const int maxAttempts = sampleCount * 2;  // Allow extra retries for noisy data
+        const int noiseThreshold = 50;  // Maximum allowed touch variation
 
-            if (i == 0) {
-                x1 = x0;
-                y1 = y0;
+        // Collect multiple samples to average touch coordinates
+        // Stop when the required number of valid samples is collected or max attempts are reached
+        for (int attempt = 0; attempt < maxAttempts && validSampleCount < sampleCount; ++attempt) {
+            TGUI::tft_instance->getTouchRaw(&rawTouch[0],&rawTouch[1]);
+            currentTouch = ivec2(rawTouch[0], rawTouch[1]);
+
+            // Initialize first sample as reference
+            if (validSampleCount == 0) {
+                previousTouch = currentTouch;
             }
 
-            if (sqrt(pow(x0 - x1, 2) + pow(y0 - y1, 2)) > 50) {
-                --iterations; // Ignore noisy touch
-                continue;
+            // Check if touch point deviation exceeds the noise threshold
+            ivec2 delta = currentTouch - previousTouch;
+            if (sqrt(pow(delta.x, 2) + pow(delta.y, 2)) > noiseThreshold) {
+                continue;  // Ignore noisy sample
             }
 
-            x_sum += x0;
-            y_sum += y0;
-            x1 = x0;
-            y1 = y0;
+            // Accumulate valid touch points
+            accumulatedTouch += currentTouch;
+            previousTouch = currentTouch;
+            validSampleCount++;
         }
 
-        uint16_t xx = x_sum / iterations;
-        uint16_t yy = y_sum / iterations;
+        // Return last known point if no valid samples were collected
+        if (validSampleCount == 0) {
+            return lastPoint;
+        }
 
-        // Map raw values to screen coordinates
-        xx = constrain(map(xx, 140, 4000, 0, 320), 0, 319);
-        yy = constrain(480 - map(yy, 245, 4000, 0, 480), 0, 480);
+        // Calculate the averaged touch coordinates
+        ivec2 averagedTouch = accumulatedTouch / validSampleCount;
 
-        // Adjust based on screen rotation
+        // Map raw touch coordinates to screen coordinates
+        const ivec2 rawMin(140, 245);
+        const ivec2 rawMax(4000, 4000);
+        const ivec2 screenSize(320, 480);
+
+        ivec2 mappedTouch;
+        mappedTouch.x = constrain(map(averagedTouch.x, rawMin.x, rawMax.x, 0, screenSize.x), 0, screenSize.x - 1);
+        mappedTouch.y = constrain(screenSize.y - map(averagedTouch.y, rawMin.y, rawMax.y, 0, screenSize.y), 0, screenSize.y);
+
+        // Adjust coordinates based on screen rotation
         switch (TGUI::tft_instance->getRotation()) {
             case 1:
-                x = yy;
-                y = 319 - xx;
+                result = ivec2(mappedTouch.y, screenSize.x - 1 - mappedTouch.x);
                 break;
             case 2:
-                x = 319 - xx;
-                y = 479 - yy;
+                result = ivec2(screenSize.x - 1 - mappedTouch.x, screenSize.y - 1 - mappedTouch.y);
                 break;
             case 3:
-                x = 479 - yy;
-                y = xx;
+                result = ivec2(screenSize.y - 1 - mappedTouch.y, mappedTouch.x);
                 break;
-            default: // Case 0
-                x = xx;
-                y = yy;
+            default:  // Case 0
+                result = mappedTouch;
                 break;
         }
-
-        lastPoint = ivec2(x, y);
-        return lastPoint;
+        lastPoint = result;
+        return result;
     }
 
+
     /**
-     * Handle touch events in the loop.
-     * Detect press, release, and continuous touch.
+     * @brief Perform touch detection and handle touch events.
+     * Put this function in a loop to handle touch events.
      */
     void loop() {
         if (enable) {
-            /*
-            bool isCurrentlyTouched = isTouched();
-            if (!isCurrentlyTouched && wasTouched) {
-                // Touch ended
-                next(getPoint(), true, true); // Press
+            bool isCurrentlyTouched = isTouched(pressureThreshold,pressureSamples);
+            if (isCurrentlyTouched && !wasTouched) {
+                next(getPoint(pointSamples), true, true); // Press
             } else if (!isCurrentlyTouched && wasTouched) {
-                // Touch ended
-                next(getPoint(), true, false); // Release
+                next(lastPoint, true, false); // Release
             } else if (isCurrentlyTouched && wasTouched) {
-                // Continuous touch
-                next(getPoint(), false, true); // Continuous
+                next(getPoint(pointSamples), false, true); // Continuous
             }
 
-            wasTouched = isCurrentlyTouched;
-            */
-           Serial.print("Touching.....");
-           getPoint().display();
-           next(getPoint(), true, true);
-           delay(1000);
+            if (isCurrentlyTouched || wasTouched) {
+                wasTouched = isCurrentlyTouched;
+            }
         }
     }
 };

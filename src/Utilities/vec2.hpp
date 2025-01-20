@@ -28,9 +28,9 @@ struct vec2
     /**
      * @brief Constructor for vec2 from an ivec2.
      * 
-     * @param intagers The ivec2 to convert to a vec2.
+     * @param i The ivec2 to convert to a vec2.
      */
-    vec2(const ivec2& intagers) : x(intagers.x), y(intagers.y) {}
+    vec2(ivec2 i) : x(i.x), y(i.y) {}
 
     /**
      * @brief Addition assignment operator (+=).
@@ -154,6 +154,15 @@ struct vec2
         return vec2(-x, -y);
     }
 
+     /**
+     * @brief Calculates the angle of the vector in radians.
+     * 
+     * @return The angle of the vector in radians.
+     */
+    float angle() const {
+        return atan2(y, x);
+    }
+
     /**
      * @brief Calculates the dot product with another vector.
      * 
@@ -180,8 +189,8 @@ struct vec2
      * @param other The vector to calculate the distance to with.
      * @return The distance between the two vectors.
      */
-    float distance(const vec2& other) const {
-        return sqrt(dot(other));
+    float distanceTo(const vec2& other) const {
+        return sqrt(((x - other.x) * (x - other.x)) + ((y - other.y) * (y - other.y)));
     }
 
     /**
@@ -204,18 +213,6 @@ struct vec2
             return vec2(x / mag, y / mag);
         }
         return vec2(0.0f, 0.0f);
-    }
-
-    /**
-     * @brief Calculates the angle between this vector and another vector.
-     * 
-     * @param other The other vector.
-     * @return The angle in radians between the two vectors.
-     */
-    float angle(const vec2& other) const {
-        float dotProd = dot(other);
-        float mags = magnitude() * other.magnitude();
-        return acos(dotProd / mags);
     }
 
     /**

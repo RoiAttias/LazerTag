@@ -80,6 +80,7 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override
     {
+        // Call the base class's Touch event handler
         Element::OnTouch_execute(point,touchStatus);
         updatePositions();
         Element *element; bool continueLoop = true;
@@ -90,8 +91,15 @@ public:
             element = getElement(i);
             // Check if the element is not null
             if (element != nullptr){
-                // Execute Touch events if child is visible and inside activity range
-                if (element->visible && inRange(element) && element->OnTouch_enable && element->OnTouch_handler != nullptr)
+                /**
+                 * Conditions for executing the Touch event:
+                 * - The element is visible.
+                 * - The element is in range of the activity.
+                 * - The Touch event occurred within the element's bounds.
+                 * - The element has Touch event enabled.
+                 * - The element has a Touch event handler.
+                 */
+                if (element->visible && inRange(element) && element->inRange(point) && element->OnTouch_enable && element->OnTouch_handler != nullptr)
                 {
                     element->OnTouch_execute(point, touchStatus);
                     continueLoop = false;
