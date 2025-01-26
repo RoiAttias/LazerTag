@@ -2,100 +2,97 @@
 #define IRRECEIVER_HPP
 
 #include "IRremoteESP32.hpp"
-#include "Utilities\HyperMap.hpp"
-
-typedef void (*voidFuncPtr)(void);
-typedef void (*voidFuncPtrArg)(void*);
-
-class IRreceiver;
-void registerReceiver(int recvPin, IRreceiver *recvPtr);
-void IRAM_ATTR decodeHandler(void *arg);
-
-enum NEC_STAGE
-{
-  headerMark,
-  headerSpace,
-  bitMark,
-  bitSpace,
-};
-
-bool compare (unsigned long value, unsigned long valToCompare, unsigned long epsilon)
-{
-  return value >= (valToCompare - epsilon) && value <= (valToCompare + epsilon);
-}
+#include "Components/Pushbutton/PushButton.hpp"
 
 class IRreceiver
 {
 private:
   int recvPin;
-  bool invert;
+  Pushbutton isr;
 
-  unsigned long data;
-  bool dataAvailable;
+  NEC_DATA data;
 
-  unsigned long dataRead;
-  unsigned long lastTime;
-  unsigned long currentTime;
-  unsigned long duration;
+  uint32_t dataRead;
+  uint32_t lastTime;
+  uint32_t currentTime;
+  uint32_t duration;
   int bitCount;
   NEC_STAGE nec_stage;
 
+  bool validateData;  // Flag to enable/disable validation
+
+  NEC_DATA buffer[IR_RECEIVER_BUFFER_SIZE]; // Buffer to store received data
+  int bufferIndex;
+
 public:
-  IRreceiver(int pin)
+  IRreceiver(int pin, ISRpointer isrPointer, bool validate = false)
+  : recvPin(pin), isr(pin, NEC_BOUNCE_STOP_FILTER, true, isrPointer),
+    data(0UL), dataRead(0UL), lastTime(0), currentTime(0), duration(0),
+    bitCount(0), nec_stage(headerMark), validateData(validate),
+    bufferIndex(0)
   {
-    recvPin = pin;
-    //invert = invertedSignal;
-    dataRead = 0UL;
-    data = 0UL;
-    bitCount = 0;
-    dataAvailable = false;
-    
-    pinMode(recvPin, INPUT_PULLUP);
+    memset(buffer, 0, sizeof(buffer));
   }
 
-  ~IRreceiver()
-  {
-    detachInterrupt(digitalPinToInterrupt(recvPin));
-  }
+  ~IRreceiver() {}
 
   void init()
   {
-    registerReceiver(recvPin, this);
-    
     lastTime = micros();
     nec_stage = headerMark;
+
+    pinMode(recvPin, INPUT_PULLUP);
+
+    isr.enablePressEvent(true);
+    isr.enableReleaseEvent(true);
+    isr.init();
   }
 
-  int getPin()
+  int available()
   {
-    return recvPin;
+    return bufferIndex;
   }
 
-  bool available()
+  NEC_DATA read()
   {
-    return dataAvailable;
+    NEC_DATA value;
+    if (bufferIndex > 0)
+    {
+      value = buffer[0];
+      // Shift the buffer contents
+      for (int i = 1; i < bufferIndex; i++)
+      {
+        buffer[i - 1] = buffer[i];
+      }
+      bufferIndex--;
+    }
+    return value;
   }
 
-  unsigned long read()
+  uint32_t readFull()
   {
-    dataAvailable = false;
-    return data;
+    return read().data;
   }
 
-  NEC_STAGE getNEC_STAGE()
+  uint16_t readValid()
   {
-    return nec_stage;
+    NEC_DATA input = read();
+    uint16_t result = input.command;
+    result = (result << 8) | input.address;
+    return result;
   }
 
   void decodeNEC()
   {
-    if(dataAvailable)
+    if (bufferIndex >= IR_RECEIVER_BUFFER_SIZE)
       return;
-    
+
+    if (!isr.hasPressed() && !isr.hasReleased())
+      return;
+
     currentTime = micros();
     duration = currentTime - lastTime;
-    Serial.println(duration);
-    if(duration < NEC_BOUNCE_STOP_FILTER)
+    if (duration < NEC_BOUNCE_STOP_FILTER)
       return;
 
     lastTime = currentTime;
@@ -109,7 +106,7 @@ public:
       }
       else
       {
-        nec_stage = headerMark; // Reset to header mark nec_stage if not matched
+        nec_stage = headerMark; // Reset to header mark if not matched
       }
       break;
 
@@ -122,7 +119,7 @@ public:
       }
       else
       {
-        nec_stage = headerMark; // Reset to header mark nec_stage if not matched
+        nec_stage = headerMark; // Reset to header mark if not matched
       }
       break;
 
@@ -133,7 +130,7 @@ public:
       }
       else
       {
-        nec_stage = headerMark; // Reset to header mark nec_stage if not matched
+        nec_stage = headerMark; // Reset to header mark if not matched
       }
       break;
 
@@ -150,13 +147,31 @@ public:
       }
       else
       {
-        nec_stage = headerMark; // Reset to header mark nec_stage if not matched
+        nec_stage = headerMark; // Reset to header mark if not matched
       }
 
       if (bitCount == NEC_BITS)
-      { // Check if we have received all bits
-        data = dataRead;
-        dataAvailable = true;
+      { 
+        bool valid = true;
+        if (validateData)
+        {
+          // Check if the second byte is the inverse of the first, and the fourth is inverse of third
+          uint8_t byte1 = (dataRead >> 24) & 0xFF;
+          uint8_t byte2 = (dataRead >> 16) & 0xFF;
+          uint8_t byte3 = (dataRead >> 8) & 0xFF;
+          uint8_t byte4 = dataRead & 0xFF;
+
+          valid = (byte1 == (byte2 ^ 0xFF)) && (byte3 == (byte4 ^ 0xFF));
+        }
+
+        if (valid)
+        {
+          if (bufferIndex < IR_RECEIVER_BUFFER_SIZE)
+          {
+            buffer[bufferIndex++].data = dataRead;
+          }
+        }
+        
         nec_stage = headerMark; // Reset for next signal
       }
       else
@@ -167,21 +182,5 @@ public:
     }
   }
 };
-
-HyperMap<int,IRreceiver*> receiverInfoList;
-
-void registerReceiver(int recvPin, IRreceiver *recvPtr)
-{
-  receiverInfoList.put(recvPin, recvPtr);
-  void* recvPinValue = reinterpret_cast<void*>(recvPin);
-  attachInterruptArg(digitalPinToInterrupt(recvPin),decodeHandler, recvPinValue, CHANGE);
-}
-
-void IRAM_ATTR decodeHandler(void *arg)
-{
-  int recvPin = reinterpret_cast<int>(arg);
-  IRreceiver *irrptr = receiverInfoList.get(recvPin);
-  irrptr->decodeNEC();
-}
 
 #endif // IRRECEIVER_HPP

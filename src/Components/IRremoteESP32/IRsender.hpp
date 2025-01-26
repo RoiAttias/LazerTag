@@ -1,17 +1,7 @@
 #ifndef IRSENDER_HPP
 #define IRSENDER_HPP
 
-#include <Arduino.h>
-
-#define NEC_BITS 32
-#define NEC_HEADER_MARK 9000UL
-#define NEC_HEADER_SPACE 4500UL
-#define NEC_BIT_MARK 562UL
-#define NEC_ONE_SPACE 1687UL
-#define NEC_ZERO_SPACE 562UL
-#define NEC_THRESHOLD 100UL
-#define NEC_BOUNCE_STOP_FILTER (NEC_THRESHOLD * 2UL)
-#define NEC_MAX_LENGTH
+#include "IRremoteESP32.hpp"
 
 class IRsender {
   private:
@@ -43,10 +33,10 @@ class IRsender {
       space(0);
     }
 
-    void sendNEC(unsigned long data, int nbits = 32) {
+    void sendNEC(uint32_t data, uint8_t nbits = 32) {
       mark(NEC_HEADER_MARK);
       space(NEC_HEADER_SPACE);
-      for (unsigned long mask = 1UL << (nbits - 1); mask; mask = mask >> 1) {
+      for (uint32_t mask = 1UL << (nbits - 1); mask; mask = mask >> 1) {
         if (data & mask) {
           mark(NEC_BIT_MARK);
           space(NEC_ONE_SPACE);
@@ -57,6 +47,19 @@ class IRsender {
       }
       mark(NEC_BIT_MARK);
       space(0);
+    }
+
+    void sendNEC(NEC_DATA data) {
+      sendNEC(data.data);
+    }
+
+    void sendNEC(uint8_t address, uint8_t command) {
+      NEC_DATA data;
+      data.address = address;
+      data.address_inv = ~address;
+      data.command = command;
+      data.command_inv = ~command;
+      sendNEC(data);
     }
 };
 

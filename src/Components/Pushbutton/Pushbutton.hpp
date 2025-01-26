@@ -55,6 +55,10 @@ public:
           enableRelease(false),
           _hasPressed(false),
           _hasReleased(false) {}
+    
+    ~Pushbutton() {
+        detachInterrupt(digitalPinToInterrupt(pin));
+    }
 
     /**
      * Initialize the pushbutton by configuring the pin and setting up the ISR.
@@ -118,7 +122,7 @@ public:
      * Interrupt Service Routine (ISR) for handling button events.
      * This method should be as fast as possible to avoid ISR overhead.
      */
-    void IRAM_ATTR handleInterrupt() {
+    void handleInterrupt() IRAM_ATTR {
         bool currentButtonState = isPressed();
         currentTime = getTime();
 
