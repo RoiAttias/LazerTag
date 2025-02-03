@@ -14,7 +14,7 @@
 const ivec2 TGUI_AUTO = ivec2(-1,-1); // Auto value for origin and scale
 
 // Element IDs
-int elementIDs = 0; // The amount of element created
+int elementIDs = 0; // The amount of elements created
 
 /**
  * @brief Gives each element a unique ID number.

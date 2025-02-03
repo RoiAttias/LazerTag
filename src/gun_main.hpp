@@ -17,18 +17,18 @@
 
 // Define pin configurations
 const uint8_t buttonPin = 5; // Replace with your button pin
-const uint8_t irPin = 18;     // Replace with your IR LED pin
+const uint8_t irPin = 4;     // Replace with your IR LED pin
 
 // Define the IR signal
-const unsigned long fireSignal = 0xFF00FF; // Example NEC signal for "fire"
+const uint32_t fireSignal = 0x20DF10EF; // Example NEC signal for "fire"
 
 volatile bool shotNow = false;
 volatile int counter = 0;
 
 // Instances of classes
-Pushbutton trigger(buttonPin);
-IRsender irSender(irPin, 0, 38000); // Using channel 0 and 38kHz frequency
-
+//Pushbutton trigger(buttonPin);
+//IRsender irSender(irPin, 0, 38000); // Using channel 0 and 38kHz frequency
+/*
 // Event handler for button
 void handleButtonEvent(Pushbutton::EventType eventType, uint32_t timeSincePress)
 {
@@ -42,8 +42,8 @@ void handleButtonEvent(Pushbutton::EventType eventType, uint32_t timeSincePress)
         digitalWrite(irPin, LOW);
     }
 }
-
-U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
+*/
+//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
 
 String str1, str2;
 int ammo, maxAmmo = 20;
@@ -66,7 +66,9 @@ int map(int val, int fromMin, int fromMax, int toMin, int toMax)
 void gun_setup()
 {
     Serial.begin(115200);
-
+    pinMode(irPin, OUTPUT);
+    //irSender.init();
+/*
     // Initialize the trigger button
     trigger.init(handleButtonEvent, true); // Enable all events
     trigger.enablePressEvent(true);
@@ -75,7 +77,7 @@ void gun_setup()
     u8g2.begin();
     str2 = String(maxAmmo);
     ammo = maxAmmo;
-
+*/
     delay(4000);
 
     // Additional setup logic if needed
@@ -84,6 +86,12 @@ void gun_setup()
 
 void gun_loop()
 {
+    //irSender.sendNEC(fireSignal); // Send fire signal when the trigger is pressed
+    delay(1000);
+    digitalWrite(irPin, HIGH);
+    delay(1000);
+    digitalWrite(irPin, LOW);
+    /*
     if (shotNow)
     {
         trigger.enableAllEvents(false);
@@ -125,6 +133,7 @@ void gun_loop()
         digitalWrite(irPin, LOW);
         trigger.enableAllEvents(true);
     }
+    */
 
     // The rest of the program primarily relies on interrupts, so no logic is needed here
     // delay(10); // Optional: Small delay to stabilize processing

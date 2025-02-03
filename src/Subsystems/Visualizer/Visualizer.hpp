@@ -19,7 +19,7 @@ private:
 
 public:
     // Constructor
-    Visualizer(uint16_t numPixels, uint8_t pin, neoPixelType type)
+    Visualizer(uint16_t numPixels, uint8_t pin, neoPixelType type = NEO_GRB + NEO_KHZ800)
         : strip(numPixels, pin, type) {}
 
     // Initialize the NeoPixel strip

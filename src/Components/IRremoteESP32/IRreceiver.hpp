@@ -41,7 +41,7 @@ public:
     lastTime = micros();
     nec_stage = headerMark;
 
-    pinMode(recvPin, INPUT_PULLUP);
+    pinMode(recvPin, INPUT);
 
     isr.enablePressEvent(true);
     isr.enableReleaseEvent(true);

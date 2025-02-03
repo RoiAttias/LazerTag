@@ -12,14 +12,23 @@ void IRAM_ATTR recv_isr() {
 
 void vest_setup() {
   Serial.begin(115200);  // Initialize Serial for output
-  recv.init(); // Initializes the receiver object
+  //recv.init(); // Initializes the receiver object
+  Serial.println("Vest Ready!");
 }
 
 void vest_loop() {
   // Checks if message decoded and received
+  /*
   if(recv.available())
   {
     // Prints HEX value of received message
     Serial.println(recv.read().data,HEX);
+  }
+  */
+  if (digitalRead(18) == LOW) {
+    digitalWrite(2, HIGH);
+  }
+  else {
+    digitalWrite(2, LOW);
   }
 }

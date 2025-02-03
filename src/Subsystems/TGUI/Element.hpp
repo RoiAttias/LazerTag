@@ -29,7 +29,7 @@ using TouchEvent = void(*)(ivec2, TouchStatus);
 class Element
 {
 protected:
-    int ID; // Unique ID of the element
+    const int ID = newElementID(); // Unique ID of the element
 
     bool _shouldRender; ///< Flag for rendering when called
 public:
@@ -69,7 +69,6 @@ public:
         : origin(origin), offset(offset), scale(scale), visible(visible), renderAlways(renderAlways),
           OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler),
           marginAffectViewport(marginAffectViewport), _shouldRender(true) {
-            ID = newElementID();
             if (margin != nullptr) {
                 for (int i = 0; i < 4; i++) {
                     this->margin[i] = margin[i];

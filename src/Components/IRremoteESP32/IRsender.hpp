@@ -4,7 +4,7 @@
 #include "IRremoteESP32.hpp"
 
 class IRsender {
-  private:
+  public:
     int ledPin;
     int channel;
     int freq;
@@ -26,12 +26,17 @@ class IRsender {
     
   public:
     IRsender(int pin, int channel, int frequency, bool invertSignal = false)
-      : ledPin(pin), channel(channel), freq(frequency), invert(invertSignal) {
+      : ledPin(pin), channel(channel), freq(frequency), invert(invertSignal) {}
+    
+    
+    void init() {
       pinMode(ledPin,OUTPUT);
       ledcSetup(channel, freq, 10); // Setup LEDC with 38Khz and 10-bit resolution
       ledcAttachPin(ledPin, channel);
       space(0);
     }
+
+    
 
     void sendNEC(uint32_t data, uint8_t nbits = 32) {
       mark(NEC_HEADER_MARK);
