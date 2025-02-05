@@ -27,7 +27,7 @@ volatile int counter = 0;
 
 // Instances of classes
 //Pushbutton trigger(buttonPin);
-//IRsender irSender(irPin, 0, 38000); // Using channel 0 and 38kHz frequency
+IRsender irSender(irPin, 0, 38000); // Using channel 0 and 38kHz frequency
 /*
 // Event handler for button
 void handleButtonEvent(Pushbutton::EventType eventType, uint32_t timeSincePress)
@@ -66,8 +66,8 @@ int map(int val, int fromMin, int fromMax, int toMin, int toMax)
 void gun_setup()
 {
     Serial.begin(115200);
-    pinMode(irPin, OUTPUT);
-    //irSender.init();
+    irSender.init();
+    //pinMode(irPin, OUTPUT);
 /*
     // Initialize the trigger button
     trigger.init(handleButtonEvent, true); // Enable all events
@@ -87,10 +87,9 @@ void gun_setup()
 void gun_loop()
 {
     //irSender.sendNEC(fireSignal); // Send fire signal when the trigger is pressed
-    delay(1000);
-    digitalWrite(irPin, HIGH);
-    delay(1000);
-    digitalWrite(irPin, LOW);
+    irSender.mark(3e6);
+    ///irSender.space(3e6);
+    //digitalWrite(irPin, HIGH);
     /*
     if (shotNow)
     {

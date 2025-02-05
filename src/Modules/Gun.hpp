@@ -29,12 +29,21 @@ public:
     volatile GunStatus status;
 
     // Multipliers
-    float damageMultiplier = 1.0;
-    float fireRateMultiplier = 1.0;
-    float reloadTimeMultiplier = 1.0;
+    float damageMultiplier = 1.0f;
+    float fireRateMultiplier = 1.0f;
+    float reloadTimeMultiplier = 1.0f;
 
     // Constructor
-    Gun(String name, int damage, int magazine, int roundsPerMinute, unsigned long reloadTime, bool fullAuto) :
+    /**
+     * @brief Construct a new Gun object
+     * @param name The name of the gun
+     * @param damage The damage of the gun
+     * @param magazine The magazine size of the gun
+     * @param roundsPerMinute The rounds per minute of the gun
+     * @param reloadTime The reload time of the gun in milliseconds
+     * @param fullAuto Whether the gun is full auto or not, default is false
+    */
+    Gun(String name, int damage, int magazine, int roundsPerMinute, unsigned long reloadTime, bool fullAuto = false) :
         name(name),
         damage(damage),
         magazine(magazine),
@@ -48,7 +57,11 @@ public:
     {}
 
     // Loop
-
+    /**
+     * @brief The loop function for the gun
+     * This function is used to update the status of the gun
+     * based on the time passed since the last shot or reload
+     */
     void loop() {
         unsigned long currentMillis = millis();
         if (status == SHOOTING) {
@@ -64,7 +77,27 @@ public:
         }
     }
 
+    // Getters
+    int getAmmo() {
+        return ammo;
+    }
+
+    GunStatus getStatus() {
+        return status;
+    }
+
+    int getDamage() {
+        return int(damage * damageMultiplier);
+    }
+
+    // Setters
+    bool enable()
+
     // Methods
+    /**
+     * @brief Shoot the gun
+     * @return Whether the gun was able to shoot or not
+     */
     bool shoot() {
         if (status == READY && ammo > 0) {
             unsigned long currentMillis = millis();
@@ -79,6 +112,10 @@ public:
         return false;
     }
 
+    /**
+     * @brief Reload the gun
+     * @return Whether the gun was able to reload or not
+     */
     bool reload() {
         if (status == READY && ammo < magazine) {
             status = RELOADING;
@@ -89,8 +126,22 @@ public:
     }
 };
 
+class AssaultRifle : public Gun
+{
+public:
+    AssaultRifle() : Gun("Assault Rifle", 20, 30, 600, 3000, true) {}
+};
+
 class Sidearm : public Gun
 {
+public:
+    Sidearm() : Gun("Sidearm", 28, 10, 100, 2000, false) {}
+};
+
+class HandCannon : public Gun
+{
+public:
+    HandCannon() : Gun("Hand Cannon", 35, 6, 70, 3000, false) {}
 };
 
 #endif // GUN_HPP
