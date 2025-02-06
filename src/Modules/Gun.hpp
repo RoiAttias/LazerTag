@@ -91,7 +91,14 @@ public:
     }
 
     // Setters
-    bool enable()
+    bool enable(bool newState) {
+        if (newState && status == NOT_READY) {
+            status = READY;
+        } else {
+            status = NOT_READY;
+        }
+        return newState;
+    }
 
     // Methods
     /**

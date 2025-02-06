@@ -2,36 +2,98 @@
 #define VISUALIZER_HPP
 
 #include <Adafruit_NeoPixel.h>
-#include "HyperList.hpp" // Assuming your custom HyperList library is available
+#include "Utilities/HyperList.hpp"
+#include "Utilities/MoreMath.hpp"
 
 // Struct to hold animation data
 struct AnimationSegment {
     uint16_t startIndex;                // Starting index on the strip
     uint16_t length;                    // Number of LEDs covered
-    void (*animationFunc)(uint32_t*, uint16_t); // Function to perform the animation
+    void (*animationFunc)(uint32_t*, uint16_t, float); // Function to perform the animation
 };
+
+// Struct to hold animation timing data
+struct AnimationTiming {
+    AnimationSegment anim;
+    unsigned long startTimeMS = 0;        // Start time of the animation
+    unsigned long durationMS = 0;      // Duration of the animation in milliseconds
+    bool repeat = false;           // Whether the animation repeats
+    bool paused = false;           // Whether the animation is paused
+    float currentFactor = 0.0f;    // Current factor for animation progress
+
+    float run() {
+        currentFactor = float(millis() - startTimeMS) / durationMS;
+        return currentFactor;
+    }
+
+    bool isRunning() const {
+        return startTimeMS != 0 && !paused && currentFactor < 1.0f;
+    }
+
+    bool shouldRun(unsigned long currentTime) const {
+        return isRunning() && (currentTime - startTimeMS < durationMS || repeat);
+    }
+
+    void start(unsigned long currentTime) {
+        startTimeMS = currentTime;
+        paused = false;
+        currentFactor = 0.0f;
+    }
+
+    void pause() {
+        paused = true;
+    }
+
+    void resume(unsigned long currentTime) {
+        if (paused) {
+            startTimeMS = currentTime - (startTimeMS % durationMS);
+            paused = false;
+        }
+    }
+
+    void stop() {
+        startTimeMS = 0;
+        paused = false;
+        currentFactor = 1.0f;
+    }
+};
+
+// An example for animation function
+void rainbowAnimation(uint32_t* buffer, uint16_t length, float factor = 0.0f) {
+    const uint16_t factorOffset = uint16_t(0xFFFF * factor);
+    const uint16_t offsetPerFactor = 0xFFFF / length;
+    uint16_t hue;
+    for (uint16_t i = 0; i < length; i++) {
+        hue = (offsetPerFactor * i) + factorOffset;
+        buffer[i] = Adafruit_NeoPixel::ColorHSV(hue);
+    }
+}
 
 // Visualizer class to manage the strip and animations
 class Visualizer {
 private:
     Adafruit_NeoPixel strip;
-    HyperList<AnimationSegment> animations;    // List of active animations
+    unsigned long lastUpdateTime = 0;
+    unsigned long frameIntervalMS;
 
 public:
+    HyperList<AnimationTiming> animations;
     // Constructor
-    Visualizer(uint16_t numPixels, uint8_t pin, neoPixelType type = NEO_GRB + NEO_KHZ800)
-        : strip(numPixels, pin, type) {}
+    Visualizer(uint16_t numPixels, uint8_t pin, int fps, neoPixelType type = NEO_GRB + NEO_KHZ800)
+        : strip(numPixels, pin, type) {
+        frameIntervalMS = fps > 100 ? 10 : (1000 / fps);
+    }
 
     // Initialize the NeoPixel strip
-    void begin() {
+    void init() {
         strip.begin();
         strip.show(); // Initialize all pixels to 'off'
     }
 
     // Add a new animation
-    void addAnimation(uint16_t startIndex, uint16_t length, void (*animationFunc)(uint32_t*, uint16_t)) {
-        AnimationSegment anim = {startIndex, length, animationFunc};
-        animations.addend(anim);
+    void addAnimation(uint16_t startIndex, uint16_t length, void (*animationFunc)(uint32_t*, uint16_t, float), unsigned long durationMS, bool repeat = false) {
+        AnimationTiming animTiming = {{startIndex, length, animationFunc}, millis(), durationMS, repeat};
+        animations.addend(animTiming);
     }
 
     // Remove an animation (by index in the HyperList)
@@ -40,15 +102,30 @@ public:
     }
 
     // Update all animations
-    void update() {
-        for (uint16_t i = 0; i < animations.size(); i++) {
-            AnimationSegment& anim = animations[i];
-            uint32_t tempBuffer[anim.length]; // Temporary buffer for animation
-            anim.animationFunc(tempBuffer, anim.length);
+    void loop() {
+        unsigned long currentTime = millis();
+        if (currentTime - lastUpdateTime < frameIntervalMS) return; // Frame rate cap
+        lastUpdateTime = currentTime;
 
+        for (int i = 0; i < animations.size(); i++) {
+            AnimationTiming& animTiming = animations[i];
+            if (!animTiming.shouldRun(currentTime)) {
+                if (animTiming.repeat) {
+                    animTiming.start(currentTime);
+                } else {
+                    animations.remove(i);
+                    i--; // Adjust index after removal
+                    continue;
+                }
+            }
+            
+            animTiming.currentFactor = float(currentTime - animTiming.startTimeMS) / animTiming.durationMS;
+            uint32_t tempBuffer[animTiming.anim.length]; // Temporary buffer for animation
+            animTiming.anim.animationFunc(tempBuffer, animTiming.anim.length, animTiming.currentFactor);
+            
             // Update the corresponding section on the strip
-            for (uint16_t j = 0; j < anim.length; j++) {
-                strip.setPixelColor(anim.startIndex + j, tempBuffer[j]);
+            for (uint16_t j = 0; j < animTiming.anim.length; j++) {
+                strip.setPixelColor(animTiming.anim.startIndex + j, tempBuffer[j]);
             }
         }
         strip.show(); // Apply all changes
