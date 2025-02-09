@@ -16,10 +16,10 @@ public:
     // Constructor
     Dashboard() : Activity(),
         background(TFT_BROWN),
-        header(Element(ivec2(0, 0), TGUI_AUTO, ivec2(240, 40)), TFT_BLUE, TFT_BLACK),
-        titleText(Element(ivec2(120, 20), TGUI_AUTO, TGUI_AUTO), String("Dashboard"), TFT_WHITE, 1, 1, 2.5f, &FreeSans9pt7b),
-        statusIndicator(Element(ivec2(50, 100), TGUI_AUTO,ivec2(50, 30)), TFT_GREEN, TFT_BLACK, true, true),
-        buttonRect(Element(ivec2(70, 260), TGUI_AUTO, ivec2(100, 40)), TFT_RED, TFT_BLACK, true, true, 10)
+        header(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(240, 40)), TFT_BLUE, TFT_BLACK),
+        titleText(Element(ivec2(120, 20), LuminaUI_AUTO, LuminaUI_AUTO), String("Dashboard"), TFT_WHITE, 1, 1, 2.5f, &FreeSans9pt7b),
+        statusIndicator(Element(ivec2(50, 100), LuminaUI_AUTO,ivec2(50, 30)), TFT_GREEN, TFT_BLACK, true, true),
+        buttonRect(Element(ivec2(70, 260), LuminaUI_AUTO, ivec2(100, 40)), TFT_RED, TFT_BLACK, true, true, 10)
     {
         // Add all elements to the `elements` HyperList
         Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect};

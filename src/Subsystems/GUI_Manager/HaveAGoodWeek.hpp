@@ -19,26 +19,26 @@ public:
     // Constructor
     HaveAGoodWeek() : Activity(),
         background(TFT_SKYBLUE),
-        titleText(Element(ivec2(30, 20), TGUI_AUTO, ivec2(180,300)), String("Dear group:"), TFT_DARKCYAN, 1, TL_DATUM, 1, &FreeSansBold12pt7b),
-        subtitleText(Element(ivec2(90, 90), TGUI_AUTO, ivec2(230,100)), String("Have a Good Week!"), TFT_WHITE, 1, TC_DATUM, 1, &FreeSansOblique18pt7b),
-        signatureText(Element(ivec2(50, 175), TGUI_AUTO, TGUI_AUTO), String("From Roi"), TFT_DARKGREY, 1, TC_DATUM, 1, &FreeSans9pt7b),
-        sun(Element(ivec2(230, 20), TGUI_AUTO, ivec2(30, 30)), TFT_YELLOW, TFT_ORANGE, true, true)
+        titleText(Element(ivec2(30, 20), LuminaUI_AUTO, ivec2(180,300)), String("Dear group:"), TFT_DARKCYAN, 1, TL_DATUM, 1, &FreeSansBold12pt7b),
+        subtitleText(Element(ivec2(90, 90), LuminaUI_AUTO, ivec2(230,100)), String("Have a Good Week!"), TFT_WHITE, 1, TC_DATUM, 1, &FreeSansOblique18pt7b),
+        signatureText(Element(ivec2(50, 175), LuminaUI_AUTO, LuminaUI_AUTO), String("From Roi"), TFT_DARKGREY, 1, TC_DATUM, 1, &FreeSans9pt7b),
+        sun(Element(ivec2(230, 20), LuminaUI_AUTO, ivec2(30, 30)), TFT_YELLOW, TFT_ORANGE, true, true)
     {
         // Define clouds with 4-5 ellipses each
-        cloud1[0] = new Ellipse(Element(ivec2(50, 150), TGUI_AUTO, ivec2(40, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud1[1] = new Ellipse(Element(ivec2(70, 140), TGUI_AUTO, ivec2(50, 30)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud1[2] = new Ellipse(Element(ivec2(90, 150), TGUI_AUTO, ivec2(40, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud1[3] = new Ellipse(Element(ivec2(70, 160), TGUI_AUTO, ivec2(60, 35)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud1[0] = new Ellipse(Element(ivec2(50, 150), LuminaUI_AUTO, ivec2(40, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud1[1] = new Ellipse(Element(ivec2(70, 140), LuminaUI_AUTO, ivec2(50, 30)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud1[2] = new Ellipse(Element(ivec2(90, 150), LuminaUI_AUTO, ivec2(40, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud1[3] = new Ellipse(Element(ivec2(70, 160), LuminaUI_AUTO, ivec2(60, 35)), TFT_WHITE, TFT_SKYBLUE, true, true);
 
-        cloud2[0] = new Ellipse(Element(ivec2(110, 180), TGUI_AUTO, ivec2(50, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud2[1] = new Ellipse(Element(ivec2(130, 170), TGUI_AUTO, ivec2(60, 30)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud2[2] = new Ellipse(Element(ivec2(150, 180), TGUI_AUTO, ivec2(50, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud2[3] = new Ellipse(Element(ivec2(130, 190), TGUI_AUTO, ivec2(70, 35)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud2[0] = new Ellipse(Element(ivec2(110, 180), LuminaUI_AUTO, ivec2(50, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud2[1] = new Ellipse(Element(ivec2(130, 170), LuminaUI_AUTO, ivec2(60, 30)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud2[2] = new Ellipse(Element(ivec2(150, 180), LuminaUI_AUTO, ivec2(50, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud2[3] = new Ellipse(Element(ivec2(130, 190), LuminaUI_AUTO, ivec2(70, 35)), TFT_WHITE, TFT_SKYBLUE, true, true);
 
-        cloud3[0] = new Ellipse(Element(ivec2(170, 130), TGUI_AUTO, ivec2(40, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud3[1] = new Ellipse(Element(ivec2(190, 120), TGUI_AUTO, ivec2(50, 30)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud3[2] = new Ellipse(Element(ivec2(210, 130), TGUI_AUTO, ivec2(40, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
-        cloud3[3] = new Ellipse(Element(ivec2(190, 140), TGUI_AUTO, ivec2(60, 35)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud3[0] = new Ellipse(Element(ivec2(170, 130), LuminaUI_AUTO, ivec2(40, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud3[1] = new Ellipse(Element(ivec2(190, 120), LuminaUI_AUTO, ivec2(50, 30)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud3[2] = new Ellipse(Element(ivec2(210, 130), LuminaUI_AUTO, ivec2(40, 25)), TFT_WHITE, TFT_SKYBLUE, true, true);
+        cloud3[3] = new Ellipse(Element(ivec2(190, 140), LuminaUI_AUTO, ivec2(60, 35)), TFT_WHITE, TFT_SKYBLUE, true, true);
 
         ivec2 o1 = ivec2(-30, -50);
         ivec2 o2 = ivec2(100, 20);

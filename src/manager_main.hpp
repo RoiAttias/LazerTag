@@ -34,14 +34,14 @@ void manager_setup()
     tft.getTouchRawZ();
     Serial.println("TFT initialized.");
 
-    // TGUI Initialization
-    TGUI::tft_instance = &tft;
-    screenDiamentions = ivec2(TGUI::tft_instance->width(), TGUI::tft_instance->height());
+    // LuminaUI Initialization
+    LuminaUI::tft_instance = &tft;
+    screenDiamentions = ivec2(LuminaUI::tft_instance->width(), LuminaUI::tft_instance->height());
     screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
     touch.init(ENABLE_ALL);
     delay(1000);
     digitalWrite(2, LOW);
-    Serial.println("TGUI initialized.");
+    Serial.println("LuminaUI initialized.");
     
     screen.selectActivity(GUI_Manager_Activity::ACTIVATION);
     Serial.println("Activation selected.");
