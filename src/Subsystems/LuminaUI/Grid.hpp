@@ -1,7 +1,7 @@
 #ifndef GRID_HPP
 #define GRID_HPP
 
-#include "TGUI.hpp"
+#include "LuminaUI.hpp"
 
 /**
  * @brief Defines the column's properties, such as width.
@@ -160,7 +160,7 @@ public:
                     if (cellElement != nullptr) {
                         // Render the element if it's visible and should be rendered
                         if (cellElement->visible && cellElement->shouldRender() && gridViewport.inRange(cellElement->getViewport())) {
-                            cellViewport = cellElement->scale != TGUI_AUTO ? cellElement->getViewport() : gridViewport;
+                            cellViewport = cellElement->scale != LuminaUI_AUTO ? cellElement->getViewport() : gridViewport;
                             cellViewport = cellViewport.clamp(gridViewport);
                             cellElement->render(cellViewport);
                         }

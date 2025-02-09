@@ -1,7 +1,7 @@
 #ifndef ELEMENT_HPP
 #define ELEMENT_HPP
 
-#include "TGUI.hpp"
+#include "LuminaUI.hpp"
 using TouchEvent = void(*)(ivec2, TouchStatus);
 
 /**
@@ -63,7 +63,7 @@ public:
      * @param margin Margin for the element (left, top, right, bottom)
      * @param marginAffectViewport Flag to add margin in the element's final size.
      */
-    Element(ivec2 origin = TGUI_AUTO, ivec2 offset = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = true,
+    Element(ivec2 origin = LuminaUI_AUTO, ivec2 offset = LuminaUI_AUTO, ivec2 scale = LuminaUI_AUTO, bool visible = true, bool renderAlways = true,
             bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr,
             int *margin = nullptr, bool marginAffectViewport = false)
         : origin(origin), offset(offset), scale(scale), visible(visible), renderAlways(renderAlways),
@@ -78,10 +78,10 @@ public:
                     this->margin[i] = 0;
                 }
             }
-            if (origin == TGUI_AUTO) {
+            if (origin == LuminaUI_AUTO) {
                 origin = ivec2(0, 0);
             }
-            if (scale == TGUI_AUTO) {
+            if (scale == LuminaUI_AUTO) {
                 marginAffectViewport = true;
             }
           }
@@ -145,7 +145,7 @@ public:
     {
         ivec2 add = ivec2(margin[0], margin[1]);
         ivec2 sub = marginAffectViewport ? ivec2(margin[0] + margin[2], margin[1] + margin[3]) : ivec2(0, 0);
-        return scale != TGUI_AUTO ? Viewport(getPosition() + add, scale - sub) : Viewport(getPosition(), ivec2(0,0));
+        return scale != LuminaUI_AUTO ? Viewport(getPosition() + add, scale - sub) : Viewport(getPosition(), ivec2(0,0));
     }
 
     bool shouldRender() {

@@ -20,23 +20,23 @@ public:
 
     Viewport render(const Viewport &viewport) override {
         Viewport rectViewport = Element::render(viewport);
-        TGUI::tft_instance->setViewport(rectViewport.position.x, rectViewport.position.y, rectViewport.scale.x, rectViewport.scale.y);
+        LuminaUI::tft_instance->setViewport(rectViewport.position.x, rectViewport.position.y, rectViewport.scale.x, rectViewport.scale.y);
         int corRad = min(cornerRadius, min(rectViewport.scale.x, rectViewport.scale.y) / 2); // Radius cannot be larger than half the width or height
         if (renderFill) {
             if (corRad > 0) {
-                TGUI::tft_instance->fillRoundRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, corRad, fillColor);
+                LuminaUI::tft_instance->fillRoundRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, corRad, fillColor);
             } else {
-                TGUI::tft_instance->fillRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, fillColor);
+                LuminaUI::tft_instance->fillRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, fillColor);
             }
         }
         if (renderBorder) {
             if (corRad > 0) {
-                TGUI::tft_instance->drawRoundRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, corRad, borderColor);
+                LuminaUI::tft_instance->drawRoundRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, corRad, borderColor);
             } else {
-                TGUI::tft_instance->drawRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, borderColor);
+                LuminaUI::tft_instance->drawRect(0, 0, rectViewport.scale.x, rectViewport.scale.y, borderColor);
             }
         }
-        TGUI::tft_instance->resetViewport();
+        LuminaUI::tft_instance->resetViewport();
         return rectViewport;
     }
 };

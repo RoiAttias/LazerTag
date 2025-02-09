@@ -1,7 +1,7 @@
 #ifndef SCREEN_HPP
 #define SCREEN_HPP
 
-#include "TGUI.hpp"
+#include "LuminaUI.hpp"
 #include "Activity.hpp"
 
 /**
@@ -34,7 +34,7 @@ public:
      * @param amount Number of Activities to add.
      */
     Screen(bool renderAfterOnTouch = false)
-        : resolution(TGUI_AUTO), renderAfterOnTouch(renderAfterOnTouch), _shouldRender(false),
+        : resolution(LuminaUI_AUTO), renderAfterOnTouch(renderAfterOnTouch), _shouldRender(false),
         currentActivity(-1), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) {}
     
     /**
@@ -75,11 +75,11 @@ public:
      */
     void addActivity(Activity * activity) {
         if (activity) {
-            if(activity->origin == TGUI_AUTO)
+            if(activity->origin == LuminaUI_AUTO)
             {
                 activity->origin = ivec2(0,0);
             }
-            if (activity->scale == TGUI_AUTO)
+            if (activity->scale == LuminaUI_AUTO)
             {
                 activity->scale = resolution;
             }

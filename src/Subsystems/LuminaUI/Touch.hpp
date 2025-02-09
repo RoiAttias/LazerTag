@@ -1,7 +1,7 @@
 #ifndef TOUCH_HPP
 #define TOUCH_HPP
 
-#include "TGUI.hpp"
+#include "LuminaUI.hpp"
 
 class Touch {
 protected:

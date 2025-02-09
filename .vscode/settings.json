@@ -3,6 +3,7 @@
     "files.associations": {
         "iterator": "cpp",
         "cmath": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "random": "cpp"
     }
 }

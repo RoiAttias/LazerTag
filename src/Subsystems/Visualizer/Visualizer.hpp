@@ -21,13 +21,13 @@ struct AnimationTiming {
     bool paused = false;           // Whether the animation is paused
     float currentFactor = 0.0f;    // Current factor for animation progress
 
-    float run() {
-        currentFactor = float(millis() - startTimeMS) / durationMS;
+    float run(unsigned long currentTime) {
+        currentFactor = float(currentTime - startTimeMS) / durationMS;
         return currentFactor;
     }
 
     bool isRunning() const {
-        return startTimeMS != 0 && !paused && currentFactor < 1.0f;
+        return startTimeMS != 0 && !paused && currentFactor <= 1.0f;
     }
 
     bool shouldRun(unsigned long currentTime) const {
@@ -46,7 +46,7 @@ struct AnimationTiming {
 
     void resume(unsigned long currentTime) {
         if (paused) {
-            startTimeMS = currentTime - (startTimeMS % durationMS);
+            startTimeMS = currentTime - (unsigned long)(currentFactor * durationMS);
             paused = false;
         }
     }
@@ -54,7 +54,7 @@ struct AnimationTiming {
     void stop() {
         startTimeMS = 0;
         paused = false;
-        currentFactor = 1.0f;
+        currentFactor = 0.0f;
     }
 };
 
@@ -73,21 +73,36 @@ void rainbowAnimation(uint32_t* buffer, uint16_t length, float factor = 0.0f) {
 class Visualizer {
 private:
     Adafruit_NeoPixel strip;
+    neoPixelType stripType;
     unsigned long lastUpdateTime = 0;
     unsigned long frameIntervalMS;
 
 public:
     HyperList<AnimationTiming> animations;
     // Constructor
-    Visualizer(uint16_t numPixels, uint8_t pin, int fps, neoPixelType type = NEO_GRB + NEO_KHZ800)
-        : strip(numPixels, pin, type) {
-        frameIntervalMS = fps > 100 ? 10 : (1000 / fps);
+    Visualizer(uint16_t numPixels, uint8_t pin, unsigned long frameIntervalMS, neoPixelType type = NEO_GRB + NEO_KHZ800)
+        : strip(numPixels, pin, type), stripType(type) {
+        calculateOffsets();
     }
 
     // Initialize the NeoPixel strip
-    void init() {
+    void init(uint brightness = 50) {
         strip.begin();
+        strip.setBrightness(brightness);
         strip.show(); // Initialize all pixels to 'off'
+    }
+
+    // Function to calculate the offsets based on neoPixelType
+    void calculateOffsets() {
+        wOffset = (stripType >> 6) & 0b11;
+        rOffset = (stripType >> 4) & 0b11;
+        gOffset = (stripType >> 2) & 0b11;
+        bOffset = stripType & 0b11;
+    }
+
+    // Set the brightness of the strip
+    void setBrightness(uint8_t brightness) {
+        strip.setBrightness(brightness);
     }
 
     // Add a new animation
@@ -107,28 +122,19 @@ public:
         if (currentTime - lastUpdateTime < frameIntervalMS) return; // Frame rate cap
         lastUpdateTime = currentTime;
 
-        for (int i = 0; i < animations.size(); i++) {
+        strip.clear();
+        for (uint16_t i = 0; i < animations.size(); i++) {
             AnimationTiming& animTiming = animations[i];
-            if (!animTiming.shouldRun(currentTime)) {
-                if (animTiming.repeat) {
-                    animTiming.start(currentTime);
-                } else {
-                    animations.remove(i);
-                    i--; // Adjust index after removal
-                    continue;
-                }
-            }
-            
-            animTiming.currentFactor = float(currentTime - animTiming.startTimeMS) / animTiming.durationMS;
-            uint32_t tempBuffer[animTiming.anim.length]; // Temporary buffer for animation
-            animTiming.anim.animationFunc(tempBuffer, animTiming.anim.length, animTiming.currentFactor);
-            
-            // Update the corresponding section on the strip
-            for (uint16_t j = 0; j < animTiming.anim.length; j++) {
-                strip.setPixelColor(animTiming.anim.startIndex + j, tempBuffer[j]);
+            if (animTiming.shouldRun(currentTime)) {
+                float factor = animTiming.run();
+                animTiming.anim.animationFunc(strip.getPixels(), animTiming.anim.length, factor);
+                strip.show();
+            } else {
+                animTiming.stop();
             }
         }
-        strip.show(); // Apply all changes
+
+        strip.show();
     }
 };
 

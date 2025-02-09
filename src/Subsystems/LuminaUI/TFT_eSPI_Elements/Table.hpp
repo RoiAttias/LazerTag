@@ -30,19 +30,19 @@ public:
             int xPos = tableViewport.position.x;
             for (int i = 0; i < grid->columnDefinitions.size(); i++) {
                 ColumnDefinition colDef = grid->columnDefinitions.get(i);
-                TGUI::tft_instance->drawFastVLine(xPos, tableViewport.position.y, tableViewport.scale.y, TFT_WHITE);
+                LuminaUI::tft_instance->drawFastVLine(xPos, tableViewport.position.y, tableViewport.scale.y, TFT_WHITE);
                 xPos += colDef.width;
             }
-            TGUI::tft_instance->drawFastVLine(xPos, tableViewport.position.y, tableViewport.scale.y, TFT_WHITE);
+            LuminaUI::tft_instance->drawFastVLine(xPos, tableViewport.position.y, tableViewport.scale.y, TFT_WHITE);
 
             // Calculate and render the horizontal lines (rows)
             int yPos = tableViewport.position.y;
             for (int i = 0; i < grid->rowDefinitions.size(); i++) {
                 RowDefinition rowDef = grid->rowDefinitions.get(i);
-                TGUI::tft_instance->drawFastHLine(tableViewport.position.x, yPos, tableViewport.scale.x, TFT_WHITE);
+                LuminaUI::tft_instance->drawFastHLine(tableViewport.position.x, yPos, tableViewport.scale.x, TFT_WHITE);
                 yPos += rowDef.height;
             }
-            TGUI::tft_instance->drawFastHLine(tableViewport.position.x, yPos, tableViewport.scale.x, TFT_WHITE);
+            LuminaUI::tft_instance->drawFastHLine(tableViewport.position.x, yPos, tableViewport.scale.x, TFT_WHITE);
         }
         
         return tableViewport;

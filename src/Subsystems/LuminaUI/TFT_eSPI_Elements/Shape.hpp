@@ -1,7 +1,7 @@
 #ifndef SHAPE_HPP
 #define SHAPE_HPP
 
-#include "TGUI.hpp"
+#include "LuminaUI.hpp"
 
 /**
  * @brief Shape class representing a drawable polygon or circle element.

@@ -18,7 +18,7 @@ public:
 
     Viewport render(const Viewport &viewport) override {
         Viewport ellipseViewport = Element::render(viewport);
-        TGUI::tft_instance->setViewport(ellipseViewport.position.x, ellipseViewport.position.y, ellipseViewport.scale.x, ellipseViewport.scale.y);
+        LuminaUI::tft_instance->setViewport(ellipseViewport.position.x, ellipseViewport.position.y, ellipseViewport.scale.x, ellipseViewport.scale.y);
 
         int centerX = ellipseViewport.scale.x / 2;
         int centerY = ellipseViewport.scale.y / 2;
@@ -27,21 +27,21 @@ public:
 
         if (renderFill) {
             if (radiusX != radiusY) {
-                TGUI::tft_instance->fillEllipse(centerX, centerY, radiusX, radiusY, fillColor);
+                LuminaUI::tft_instance->fillEllipse(centerX, centerY, radiusX, radiusY, fillColor);
             } else {
-                TGUI::tft_instance->fillCircle(centerX, centerY, radiusX, fillColor);
+                LuminaUI::tft_instance->fillCircle(centerX, centerY, radiusX, fillColor);
             }
         }
 
         if (renderBorder) {
             if (radiusX != radiusY) {
-                TGUI::tft_instance->drawEllipse(centerX, centerY, radiusX, radiusY, borderColor);
+                LuminaUI::tft_instance->drawEllipse(centerX, centerY, radiusX, radiusY, borderColor);
             } else {
-                TGUI::tft_instance->drawCircle(centerX, centerY, radiusX, borderColor);
+                LuminaUI::tft_instance->drawCircle(centerX, centerY, radiusX, borderColor);
             }
         }
 
-        TGUI::tft_instance->resetViewport();
+        LuminaUI::tft_instance->resetViewport();
         return ellipseViewport;
     }
 };

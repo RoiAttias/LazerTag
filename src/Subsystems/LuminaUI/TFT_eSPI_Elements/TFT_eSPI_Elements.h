@@ -1,10 +1,10 @@
 #ifndef TFT_ESPI_ELEMENTS_HPP
 #define TFT_ESPI_ELEMENTS_HPP
 
-#include "Subsystems/TGUI/TGUI.hpp"
+#include "Subsystems/LuminaUI/LuminaUI.hpp"
 #include <TFT_eSPI.h>
 
-namespace TGUI
+namespace LuminaUI
 {
     TFT_eSPI * tft_instance;
     TFT_eSprite * img_instance;
@@ -68,7 +68,7 @@ namespace TGUI
                                         color);
         }
     }
-}; // namespace TGUI
+}; // namespace LuminaUI
 
 // Fonts
 #include "Free_Fonts.h"

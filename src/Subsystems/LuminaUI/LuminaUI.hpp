@@ -1,5 +1,5 @@
-#ifndef TGUI_HPP
-#define TGUI_HPP
+#ifndef LUMINAUI_HPP
+#define LUMINAUI_HPP
 
 #include <Arduino.h>
 
@@ -11,7 +11,7 @@
 #include "Components/Pushbutton/Pushbutton.hpp"
 
 
-const ivec2 TGUI_AUTO = ivec2(-1,-1); // Auto value for origin and scale
+const ivec2 LuminaUI_AUTO = ivec2(-1,-1); // Auto value for origin and scale
 
 // Element IDs
 int elementIDs = 0; // The amount of elements created
@@ -175,4 +175,4 @@ struct TouchDragData
     #include "TFT_eSPI_Elements/TFT_eSPI_Elements.h"
 #endif
 
-#endif // TGUI_HPP
+#endif // LUMINAUI_HPP

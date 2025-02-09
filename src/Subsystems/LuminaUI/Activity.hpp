@@ -2,7 +2,7 @@
 #define ACTIVITY_HPP
 
 #include "Element.hpp"
-#include "TGUI.hpp"
+#include "LuminaUI.hpp"
 
 /**
  * @brief Activity class serves as a container for managing multiple child elements.
@@ -33,13 +33,13 @@ public:
      * @param OnTouch_handler Pointer to the function to handle the Touch event.
      * @param margin Margin for the activity (left, top, right, bottom)
      */
-    Activity(ivec2 origin = TGUI_AUTO, ivec2 scale = TGUI_AUTO, bool visible = true, bool renderAlways = true,
+    Activity(ivec2 origin = LuminaUI_AUTO, ivec2 scale = LuminaUI_AUTO, bool visible = true, bool renderAlways = true,
         bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr, int margin[4] = nullptr)
         : Element(origin, ivec2(), scale, visible, renderAlways, OnTouch_enable, OnTouch_handler, margin){
-            if (origin == TGUI_AUTO) {
+            if (origin == LuminaUI_AUTO) {
                 origin = ivec2(0, 0);
             }
-            if (scale == TGUI_AUTO) {
+            if (scale == LuminaUI_AUTO) {
                 scale = this->scale;
             }
         }
@@ -62,7 +62,7 @@ public:
             for (int i = 0; i < getElementCount(); i++) {
                 element = getElement(i);
                 if (element != nullptr) {
-                    elementViewport = element->scale != TGUI_AUTO ? element->getViewport() : activityViewport;
+                    elementViewport = element->scale != LuminaUI_AUTO ? element->getViewport() : activityViewport;
                     if (element->visible && element->shouldRender() && activityViewport.inRange(elementViewport)) { 
                         elementViewport = elementViewport.clamp(activityViewport);
                         element->render(elementViewport);
@@ -126,7 +126,7 @@ public:
             }
 
             // Default origin is (0,0) if not set
-            if (element->origin == TGUI_AUTO)
+            if (element->origin == LuminaUI_AUTO)
             {
                 element->origin = this->origin;
             }
@@ -135,7 +135,7 @@ public:
             element->offset = this->getViewport().position;
 
             // Default scale is the Activity's scale if not set
-            if (element->scale == TGUI_AUTO)
+            if (element->scale == LuminaUI_AUTO)
             {
                 element->scale = this->scale;
             }

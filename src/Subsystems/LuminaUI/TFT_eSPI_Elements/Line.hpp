@@ -1,5 +1,5 @@
-#ifndef TGUI_LINE_HPP
-#define TGUI_LINE_HPP
+#ifndef LINE_HPP
+#define LINE_HPP
 
 #include "TFT_eSPI_Elements.h"
 
@@ -29,17 +29,17 @@ public:
     
     Viewport render(const Viewport &viewport) override {
         Viewport lineViewport = Element::render(viewport);
-        TGUI::tft_instance->setViewport(lineViewport.position.x, lineViewport.position.y, lineViewport.scale.x, lineViewport.scale.y);
+        LuminaUI::tft_instance->setViewport(lineViewport.position.x, lineViewport.position.y, lineViewport.scale.x, lineViewport.scale.y);
         ivec2 position = lineViewport.position;
         ivec2 lineLength = lineViewport.scale;
         if (orientation == HORIZONTAL) {
-            TGUI::tft_instance->drawFastHLine(position.x, position.y, lineLength.x, color);
+            LuminaUI::tft_instance->drawFastHLine(position.x, position.y, lineLength.x, color);
         } else if (orientation == VERTICAL) {
-           TGUI::tft_instance->drawFastVLine(position.x, position.y, lineLength.y, color);
+           LuminaUI::tft_instance->drawFastVLine(position.x, position.y, lineLength.y, color);
         }
-        TGUI::tft_instance->resetViewport();
+        LuminaUI::tft_instance->resetViewport();
         return lineViewport;
     }
 };
 
-#endif // TGUI_LINE_HPP
+#endif // LINE_HPP

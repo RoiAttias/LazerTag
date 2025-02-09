@@ -15,11 +15,11 @@ public:
     Viewport render(const Viewport &viewport) override {
         // Call the base class's render function
         Element::render(viewport); // Updating _shouldRender flag, no need to clamp the viewport
-        TGUI::tft_instance->setViewport(viewport.position.x, viewport.position.y, viewport.scale.x, viewport.scale.y);
+        LuminaUI::tft_instance->setViewport(viewport.position.x, viewport.position.y, viewport.scale.x, viewport.scale.y);
         if (fillColor != TFT_TRANSPARENT) {
-            TGUI::tft_instance->fillScreen(fillColor);
+            LuminaUI::tft_instance->fillScreen(fillColor);
         }
-        TGUI::tft_instance->resetViewport();
+        LuminaUI::tft_instance->resetViewport();
         return viewport;
     }
 };

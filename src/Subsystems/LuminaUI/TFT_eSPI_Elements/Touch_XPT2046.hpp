@@ -4,7 +4,7 @@
 #include "TFT_eSPI.h"
 
 #include "TFT_eSPI_Elements.h"
-#include "Subsystems/TGUI/Touch.hpp"
+#include "Subsystems/LuminaUI/Touch.hpp"
 #include "Components/Pushbutton/Pushbutton.hpp"
 
 class Touch_XPT2046 : public Touch {
@@ -30,13 +30,13 @@ public:
         if (samplesCount > 1) {
             int validSamples = 0;
             for (int i = 0; i < samplesCount; i++) {
-                if (TGUI::tft_instance->getTouchRawZ() > pressureThreshold) {
+                if (LuminaUI::tft_instance->getTouchRawZ() > pressureThreshold) {
                     validSamples++;
                 }
             }
             return validSamples >= samplesCount / 2;
         }
-        return TGUI::tft_instance->getTouchRawZ() > pressureThreshold;
+        return LuminaUI::tft_instance->getTouchRawZ() > pressureThreshold;
     }
 
     /**
@@ -58,7 +58,7 @@ public:
         // Collect multiple samples to average touch coordinates
         // Stop when the required number of valid samples is collected or max attempts are reached
         for (int attempt = 0; attempt < maxAttempts && validSampleCount < sampleCount; ++attempt) {
-            TGUI::tft_instance->getTouchRaw(&rawTouch[0],&rawTouch[1]);
+            LuminaUI::tft_instance->getTouchRaw(&rawTouch[0],&rawTouch[1]);
             currentTouch = ivec2(rawTouch[0], rawTouch[1]);
 
             // Initialize first sample as reference
@@ -96,7 +96,7 @@ public:
         mappedTouch.y = constrain(screenSize.y - map(averagedTouch.y, rawMin.y, rawMax.y, 0, screenSize.y), 0, screenSize.y);
 
         // Adjust coordinates based on screen rotation
-        switch (TGUI::tft_instance->getRotation()) {
+        switch (LuminaUI::tft_instance->getRotation()) {
             case 1:
                 result = ivec2(mappedTouch.y, screenSize.x - 1 - mappedTouch.x);
                 break;

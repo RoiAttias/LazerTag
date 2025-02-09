@@ -32,23 +32,23 @@ public:
     }
 
     // Set the viewport to the element's position and size
-    TGUI::tft_instance->setViewport(textViewport.position.x, textViewport.position.y, 
+    LuminaUI::tft_instance->setViewport(textViewport.position.x, textViewport.position.y, 
                                    textViewport.scale.x, textViewport.scale.y);
 
     // Configure text rendering properties
-    TGUI::tft_instance->setTextDatum(textDatum);
-    TGUI::tft_instance->setTextSize(textSize);
-    TGUI::tft_instance->setFreeFont(freeFont);
+    LuminaUI::tft_instance->setTextDatum(textDatum);
+    LuminaUI::tft_instance->setTextSize(textSize);
+    LuminaUI::tft_instance->setFreeFont(freeFont);
     if (renderBackground) {
-            TGUI::tft_instance->setTextColor(textColor, backgroundColor);
+            LuminaUI::tft_instance->setTextColor(textColor, backgroundColor);
     } else {
-            TGUI::tft_instance->setTextColor(textColor);
+            LuminaUI::tft_instance->setTextColor(textColor);
     }
 
     // Enable text wrapping
-    TGUI::tft_instance->setTextWrap(true, true);
+    LuminaUI::tft_instance->setTextWrap(true, true);
 
-    int lineHeight = TGUI::tft_instance->fontHeight() * lineSpacing;
+    int lineHeight = LuminaUI::tft_instance->fontHeight() * lineSpacing;
     int16_t cursorX = min(textDatum % 3,2) * textViewport.scale.x / 2;
     int16_t cursorY = min(textDatum / 3,2) * textViewport.scale.y / 2;
 
@@ -59,30 +59,30 @@ public:
             currentText += c;
         }
 
-        while (TGUI::tft_instance->textWidth(currentText) > textViewport.scale.x) {
+        while (LuminaUI::tft_instance->textWidth(currentText) > textViewport.scale.x) {
             int endline = currentText.lastIndexOf(' ');
             if (endline == -1) {
                 endline = currentText.length() - 1;
             }
             currentText = currentText.substring(0, endline);
-            TGUI::tft_instance->drawString(currentText.substring(0, endline), cursorX, cursorY);
+            LuminaUI::tft_instance->drawString(currentText.substring(0, endline), cursorX, cursorY);
             cursorY += lineHeight;
             currentText = currentText.substring(endline);
         }
 
         if (c == '\n' || i == content.length() - 1) {
-            TGUI::tft_instance->drawString(currentText, cursorX, cursorY);
+            LuminaUI::tft_instance->drawString(currentText, cursorX, cursorY);
             cursorY += lineHeight;
             currentText = "";
         }
     }
 
     if (currentText.length() > 0) {
-        TGUI::tft_instance->drawString(currentText, cursorX, cursorY);
+        LuminaUI::tft_instance->drawString(currentText, cursorX, cursorY);
     }
 
     // Reset the viewport after rendering
-    TGUI::tft_instance->resetViewport();
+    LuminaUI::tft_instance->resetViewport();
 
     // Return the viewport after rendering
     return textViewport;
