@@ -2,7 +2,7 @@
 #define GUI_MANAGER_HPP
 
 #define LUMINAUI_USE_TFT_ESPI
-#include "Subsystems/LuminaUI/LuminaUI.hpp"
+#include "Components/LuminaUI/LuminaUI.hpp"
 
 // Paths to Activities
 #include "Activation.hpp"

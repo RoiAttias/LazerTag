@@ -4,7 +4,7 @@
 #include "TFT_eSPI.h"
 
 #include "TFT_eSPI_Elements.h"
-#include "Subsystems/LuminaUI/Touch.hpp"
+#include "Components/LuminaUI/Touch.hpp"
 #include "Components/Pushbutton/Pushbutton.hpp"
 
 class Touch_XPT2046 : public Touch {

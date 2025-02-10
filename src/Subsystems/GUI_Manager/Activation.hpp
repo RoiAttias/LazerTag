@@ -4,9 +4,6 @@
 #include "GUI_Manager.hpp"
 #include <Arduino.h>
 
-#include "Subsystems/LuminaUI/TFT_eSPI_Elements/Button.hpp"
-
-
 class Activation : public Activity {
 public:
     // Elements

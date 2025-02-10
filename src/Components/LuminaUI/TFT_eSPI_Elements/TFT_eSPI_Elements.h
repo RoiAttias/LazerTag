@@ -1,7 +1,7 @@
 #ifndef TFT_ESPI_ELEMENTS_HPP
 #define TFT_ESPI_ELEMENTS_HPP
 
-#include "Subsystems/LuminaUI/LuminaUI.hpp"
+#include "Components/LuminaUI/LuminaUI.hpp"
 #include <TFT_eSPI.h>
 
 namespace LuminaUI
