@@ -4,6 +4,7 @@
         "iterator": "cpp",
         "cmath": "cpp",
         "*.tcc": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "string_view": "cpp"
     }
 }

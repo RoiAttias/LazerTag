@@ -3,11 +3,13 @@
 #define DEVICE_VEST 3
 
 // Select device here
-#define DEVICE_TYPE 1
+#define DEVICE_TYPE 0
 
 #ifndef DEVICE_TYPE
 #error "DEVICE_TYPE is not defined! Define DEVICE_TYPE in your build flags (e.g., -DDEVICE_MANAGER)."
 #endif
+
+#include "Subsystems/Nexus/Nexus.hpp"
 
 #if DEVICE_TYPE == DEVICE_MANAGER
 #include "manager_main.hpp"
@@ -32,6 +34,10 @@ void setup()
 #elif DEVICE_TYPE == DEVICE_VEST
     vest_setup();
 #endif
+
+delay(4000);
+Serial.begin(115200);
+Serial.println("Hello World");
 }
 
 void loop()

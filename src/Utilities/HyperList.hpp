@@ -30,7 +30,7 @@ struct Node {
  * @tparam T Type of data stored in the list.
  */
 template <typename T>
-class HyperList {
+class HyperList{
 public:
     HyperList();                ///< Constructor to initialize the list.
     ~HyperList();               ///< Destructor to clear the list.
