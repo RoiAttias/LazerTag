@@ -2,41 +2,83 @@
 #define NEXUS_HPP
 
 #include <Arduino.h>
-#include "MacAddress.h"
 #include <vector>
 #include <queue>
 #include <esp_now.h>
 
-#define NEXUS_PACKET_FLAG_SYN 0x01
-#define NEXUS_PACKET_FLAG_ACK 0x02
-#define NEXUS_PACKET_FLAG_FIN 0x04
-#define NEXUS_PACKET_FLAG_RST 0x08
 
-#define NEXUS_PACKET_FLAG_WIN 0x10
-#define NEXUS_PACKET_FLAG_PSH 0x20
-#define NEXUS_PACKET_FLAG_URG 0x40
-#define NEXUS_PACKET_FLAG_CHK 0x80
+#define NEXUS_VERSION 0x01
+
+#define NEXUS_PACKET_FLAG_SYN 0x01 // Synchronize - Establish a connection
+#define NEXUS_PACKET_FLAG_ACK 0x02 // Acknowledge - Acknowledge a received packet
+#define NEXUS_PACKET_FLAG_FIN 0x04 // Finish - Close a connection
+#define NEXUS_PACKET_FLAG_RST 0x08 // Reset - Reset a connection
+
+#define NEXUS_PACKET_FLAG_PSH 0x10 // Push - Send data immediately
+#define NEXUS_PACKET_FLAG_CHK 0x80 // Checksum - Verify the integrity of the packet
 
 struct NexusPacket {
-    uint16_t sequenceNum;
-    uint16_t acknowledgeNum;
-    uint16_t flags;
-    MacAddress endDevice;
-    uint8_t length;
-    uint8_t payload[240];
+    // Header
+    uint8_t version; // 1 byte
+    uint8_t sourceMacAddr[6]; // 6 bytes
+    uint8_t destinationMacAddr[6]; // 6 bytes
+    uint16_t sequenceNum; // 2 bytes
+    uint16_t acknowledgeNum; // 2 bytes
+    uint16_t flags; // 2 bytes = 16 bits
+    uint16_t checksum; // 2 bytes
+    uint8_t length; // 1 byte
 
-    NexusPacket(type, seqNum, endDev, len) : type(type), sequenceNum(seqNum), endDevice(endDev), length(len) {}
+    // Header size =
 
-    bool varifyParrity() {
-        return countParrity() % 2 == 0;
+    uint8_t payload[ESP_NOW_MAX_DATA_LEN -
+    
+    // Total packet size = 250 bytes
+
+    NexusPacket(uint8_t *source, uint8_t *destination, uint16_t seqNum, uint16_t ackNum, uint16_t flags, uint8_t len, uint8_t *payload) {
+        version = NEXUS_VERSION;
+        memcpy(sourceMacAddr, source, 6);
+        memcpy(destinationMacAddr, destination, 6);
+        sequenceNum = seqNum;
+        acknowledgeNum = ackNum;
+        this->flags = flags;
+        length = len;
+        memcpy(this->payload, payload, len);
     }
 
-    uint16_t countParrity() {
-        uint16_t count = 0;
+    /**
+     * @brief Verify the integrity of the packet.
+     * @return True if the packet is valid, false otherwise.
+     */
+    bool verifyChecksum() {
+        return countOnes() == checksum;
+    }
+
+    /**
+     * @brief Count the number of bits set of the payload.  
+     * @return The number of bits set in the payload.
+     */
+    uint16_t countOnes() {
+        uint16_t countTotal = 0;
+        uint8_t countByte = 0, byteMask = 0x01;
         for (size_t i = 0; i < length; i++) {
-            count += __builtin_popcount(payload[i]); // Count the number of set bits
+            countByte = 0;
+            while (byteMask) {
+                countByte += (payload[i] & byteMask) ? 1 : 0;
+                byteMask <<= 1;
+            }
+            countTotal += countSingleByte;
         }
-        return count;
+        return countTotal;
+    }
+};
+
+struct NexusPeer {
+    uint8_t macAddress[6];
+    uint16_t lastSequenceNum = 0;
+    uint16_t lastAcknowledgeNum = 0;
+
+    NexusPeer(uint8_t *mac) {
+        memcpy(macAddress, mac, 6);
     }
 };
 
@@ -87,10 +129,10 @@ struct NexusPeer {
     MacAddress macAddress;
 
     uint16_t lastSequenceNum = 0;
-
+    uint16_t lastAcknowledgeNum = 0;
 
     NexusPeer(const MacAddress &mac) : macAddress(mac) {}
-}
+};
 
 /**
   * @brief Namespace for ESP-NOW communication;
@@ -98,21 +140,18 @@ struct NexusPeer {
   *          using the ESP-NOW protocol.
   * @warning This namespace is not thread-safe and should not be accessed concurrently from multiple threads.
   */
-namespace EspNowComm {
+namespace EspNowCom {
     static const size_t MAX_PEERS = 20;
     static const int channel = 0;
     static std::vector<MacAddress> peers;
     static PacketBuffer packetBuffer<NexusPacket>(32);
 
     void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
-        EspNowPacket packet;
-        memcpy(&packet, data, len);
-        packetBuffer.enqueue(packet);
-        autoPeerAcceptor(MacAddress(mac));
+        
     }
 
     void onSend(const uint8_t *mac_addr, esp_now_send_status_t status) {
-        autoPeerInitiator(MacAddress(mac_addr));
+        
     }
 
     void addPeer(const MacAddress &peer) {
