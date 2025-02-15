@@ -1,9 +1,10 @@
 #define DEVICE_MANAGER 1
 #define DEVICE_GUN 2
 #define DEVICE_VEST 3
+#define DEVICE_TEST 4
 
 // Select device here
-#define DEVICE_TYPE 0
+#define DEVICE_TYPE DEVICE_TEST
 
 #ifndef DEVICE_TYPE
 #error "DEVICE_TYPE is not defined! Define DEVICE_TYPE in your build flags (e.g., -DDEVICE_MANAGER)."
@@ -17,6 +18,8 @@
 #include "gun_main.hpp"
 #elif DEVICE_TYPE == DEVICE_VEST
 #include "vest_main.hpp"
+#elif DEVICE_TYPE == DEVICE_TEST
+#include "test_main.hpp"
 #elif DEVICE_TYPE == 0
 #warning "DEVICE_TYPE is set to 0! Code will be empty."
 #else
@@ -33,11 +36,9 @@ void setup()
     gun_setup();
 #elif DEVICE_TYPE == DEVICE_VEST
     vest_setup();
+#elif DEVICE_TYPE == DEVICE_TEST
+    test_setup();
 #endif
-
-delay(4000);
-Serial.begin(115200);
-Serial.println("Hello World");
 }
 
 void loop()
@@ -48,5 +49,7 @@ void loop()
     gun_loop();
 #elif DEVICE_TYPE == DEVICE_VEST
     vest_loop();
+#elif DEVICE_TYPE == DEVICE_TEST
+    test_loop();
 #endif
 }

@@ -148,6 +148,12 @@ public:
     void remove(int index);
 
     /**
+     * Removes all nodes from the list that contain the given value.
+     * @param value Data to remove from the list.
+     */
+    void removeValue(const T value);
+
+    /**
      * Reserves memory for the specified number of additional nodes.
      * @param additionalNodes Number of additional nodes to reserve memory for.
      * @param defaultValue Default value to initialize the new nodes with.
@@ -411,6 +417,23 @@ void HyperList<T>::remove(const int index) {
 
     delete node;
     listSize--;
+}
+
+template <typename T>
+void HyperList<T>::removeValue(const T value) {
+    Node<T>* current = head;
+    while (current != nullptr) {
+        Node<T>* next = current->next;
+        if (current->data == value) {
+            if (current->prev != nullptr) current->prev->next = current->next;
+            if (current->next != nullptr) current->next->prev = current->prev;
+            if (current == head) head = current->next;
+            if (current == tail) tail = current->prev;
+            delete current;
+            listSize--;
+        }
+        current = next;
+    }
 }
 
 template <typename T>

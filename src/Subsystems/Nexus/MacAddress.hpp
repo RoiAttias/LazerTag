@@ -1,49 +1,97 @@
 #ifndef MACADDRESS_HPP
 #define MACADDRESS_HPP
 
+#include <Arduino.h>
+
 /**
  * @brief A struct representing a MAC address.
  * @details This struct provides methods for converting a MAC address to a string and etc.
  */
 struct MacAddress {
-    uint8_t mac[6]{}; // 6 bytes for the MAC address, initialized to 0
+    uint8_t addr[6]{}; // 6 bytes for the MAC address
 
-    MacAddress(const uint8_t* macArray) {
-        memcpy(mac, macArray, 6);
+    /**
+     * @brief Default constructor for a MAC address.
+     */
+    MacAddress() = default;
+
+    /**
+     * @brief Constructor with a MAC address array input (6 Bytes).
+     * @param macAddr The MAC address array (6 Bytes).
+     */
+    MacAddress(const uint8_t* macAddr) {
+        memcpy(addr, macAddr, 6);
     }
 
+    /**
+     * @brief MAC address to string conversion.
+     * @return The MAC address as a string.
+     */
     String toString() const {
         char buf[18];
-        sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+        sprintf(buf, "%02X:%02X:%02X:%02X:%02X:%02X", addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
         return String(buf);
     }
 
-    void toBytes(uint8_t* buf) const
+    /**
+     * @brief Get the MAC address to an array of bytes.
+     * @param buf The buffer to store the MAC address bytes.
+     */
+    void toBuffer(uint8_t* buf) const
     {
-        memcpy(buf, mac, 6);
+        memcpy(buf, addr, 6);
     }
 
+    /**
+     * @brief Get the value of one byte in the MAC address.
+     * @param index The index of the byte to get.
+     * @return The value of the byte at the specified index, or 0 if the index is out of bounds.
+     */
     uint8_t operator[](int index) const
     {
-        return mac[index];
+        if (index < 0 || index >= 6) {
+            // Handle out-of-bounds access, e.g., return 0 or throw an exception
+            return 0; // or throw std::out_of_range("Index out of bounds");
+        }
+        return addr[index];
     }
 
+    /**
+     * @brief Set one byte of the MAC address.
+     * @param index The index of the byte to set.
+     * @return A reference to the byte at the specified index.
+     */
     uint8_t& operator[](int index)
     {
-        return mac[index];
+        return addr[index];
     }
 
-    MacAddress& operator=(const uint8_t* macArray)
+    /**
+     * @brief Assignment operator for a MAC address array.
+     * @param macAddr The MAC address array to assign.
+     * @return A reference to the MAC address.
+     */
+    MacAddress& operator=(const uint8_t* macAddr)
     {
-        memcpy(mac, macArray, 6);
+        memcpy(addr, macAddr, 6);
         return *this;
     }
 
+    /**
+     * @brief Equality operator for MAC addresses.
+     * @param other The MAC address to compare.
+     * @return True if the MAC addresses are equal, false otherwise.
+     */
     bool operator==(const MacAddress& other) const
     {
-        return memcmp(mac, other.mac, 6) == 0; // memcmp returns 0 if the two arrays are equal
+        return memcmp(addr, other.addr, 6) == 0; // memcmp returns 0 if the two arrays are equal
     }
 
+    /**
+     * @brief Inequality operator for MAC addresses.
+     * @param other The MAC address to compare.
+     * @return True if the MAC addresses are not equal, false otherwise.
+     */
     bool operator!=(const MacAddress& other) const
     {
         return !(*this == other); // Use the == operator to implement the != operator

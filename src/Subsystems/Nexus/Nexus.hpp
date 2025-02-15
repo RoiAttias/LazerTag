@@ -2,9 +2,14 @@
 #define NEXUS_HPP
 
 #include <Arduino.h>
-#include <vector>
+
 #include <queue>
+
 #include <esp_now.h>
+#include <WiFi.h>
+
+#include "Utilities/HyperList.hpp"
+#include "MacAddress.hpp"
 
 
 #define NEXUS_VERSION 0x01
@@ -28,9 +33,9 @@ struct NexusPacket {
     uint16_t checksum; // 2 bytes
     uint8_t length; // 1 byte
 
-    // Header size =
+    // Header size = 1 + 6 + 6 + 2 + 2 + 2 + 2 + 1 = 22 bytes
 
-    uint8_t payload[ESP_NOW_MAX_DATA_LEN -
+    uint8_t payload[ESP_NOW_MAX_DATA_LEN - 22];
     
     // Total packet size = 250 bytes
 
@@ -66,19 +71,9 @@ struct NexusPacket {
                 countByte += (payload[i] & byteMask) ? 1 : 0;
                 byteMask <<= 1;
             }
-            countTotal += countSingleByte;
+            countTotal += countByte;
         }
         return countTotal;
-    }
-};
-
-struct NexusPeer {
-    uint8_t macAddress[6];
-    uint16_t lastSequenceNum = 0;
-    uint16_t lastAcknowledgeNum = 0;
-
-    NexusPeer(uint8_t *mac) {
-        memcpy(macAddress, mac, 6);
     }
 };
 
@@ -125,6 +120,7 @@ public:
     }
 };
 
+/*
 struct NexusPeer {
     MacAddress macAddress;
 
@@ -132,6 +128,22 @@ struct NexusPeer {
     uint16_t lastAcknowledgeNum = 0;
 
     NexusPeer(const MacAddress &mac) : macAddress(mac) {}
+
+    uint8_t *getAddress() {
+        return macAddress.getAddress();
+    }
+};
+*/
+
+enum NexusPeerEventType : uint8_t {
+    NEXUS_PEER_EVENT_SYNCRONIZE,
+    NEXUS_PEER_EVENT_FINISH,
+    NEXUS_PEER_EVENT_RESET
+};
+
+struct NexusPeerEvent {
+    MacAddress addr;
+    NexusPeerEventType eventType;
 };
 
 /**
@@ -140,48 +152,85 @@ struct NexusPeer {
   *          using the ESP-NOW protocol.
   * @warning This namespace is not thread-safe and should not be accessed concurrently from multiple threads.
   */
-namespace EspNowCom {
-    static const size_t MAX_PEERS = 20;
-    static const int channel = 0;
-    static std::vector<MacAddress> peers;
-    static PacketBuffer packetBuffer<NexusPacket>(32);
+namespace Nexus {
+    // Constants
+    const size_t MAX_PEERS = 20;
+    int CHANNEL = 0;
 
+    // Addresses
+    const uint8_t BROADCAST_ADDRESS_ARRAY[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    const MacAddress BROADCAST_ADDRESS(BROADCAST_ADDRESS_ARRAY);
+    MacAddress THIS_ADDRESS;
+
+    // Lists
+    HyperList<MacAddress> peers;
+    PacketBuffer<NexusPacket> packetBuffer(32);
+    std::queue<NexusPeerEvent> pendingPeersEvents;
+
+    // ESP-NOW Callbacks
     void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
+        NexusPacket packet = *(NexusPacket *)data;
+        if (!packet.verifyChecksum()) return;
+
+        MacAddress sourceMac(packet.sourceMacAddr);
+        MacAddress destinationMac(packet.destinationMacAddr);
         
+        // Check if the packet is for this device
+        if (destinationMac == THIS_ADDRESS) {
+            packetBuffer.enqueue(packet);
+        }
     }
 
     void onSend(const uint8_t *mac_addr, esp_now_send_status_t status) {
-        
+        if (status == ESP_NOW_SEND_SUCCESS) {
+            // Packet sent successfully
+        } else {
+            // Packet failed to send
+            // Reset the peer
+            pendingPeersEvents.push({MacAddress(mac_addr), NEXUS_PEER_EVENT_RESET});
+        }
     }
 
     void addPeer(const MacAddress &peer) {
-        for (const auto& p : peers) {
-            if (p == peer) return;
-        }
+        if (peers.contains(peer)) return;
         if (peers.size() < MAX_PEERS) {
-            peers.push_back(peer);
+            peers.addend(peer);
             esp_now_peer_info_t peerInfo = {};
-            memcpy(peerInfo.peer_addr, peer.getAddress(), 6);
-            peerInfo.channel = channel;
+            peer.toBuffer(peerInfo.peer_addr);
+            peerInfo.channel = CHANNEL;
             peerInfo.encrypt = false;
             esp_now_add_peer(&peerInfo);
         }
     }
 
-    void begin(int channel = 0) {
-        if (esp_now_init() != ESP_OK) {
-            Serial.println("Error initializing ESP-NOW");
-            return;
-        }
+    void removePeer(const MacAddress &peer) {
+        peers.removeValue(peer);
+        esp_now_del_peer(peer.addr);
+    }
+
+    bool begin(int channel = 0) {
+        // Set the channel
+        CHANNEL = channel;
+        
+        // Get the MAC address of the ESP32
+        if(esp_base_mac_addr_get(THIS_ADDRESS.addr) != ESP_OK) return false;
+        
+        // Set the ESP-NOW mode to station
+        WiFi.mode(WIFI_STA);
+
+        // Initialize ESP-NOW
+        if (esp_now_init() != ESP_OK) return false;
+        
+        // Register the callbacks
         esp_now_register_recv_cb(onReceive);
         esp_now_register_send_cb(onSend);
     }
 
-    bool sendPacket(const EspNowPacket &packet) {
-        return esp_now_send(packet.receiver.getAddress(), (uint8_t *)&packet, sizeof(packet)) == ESP_OK;
+    bool sendPacket(const NexusPacket &packet) {
+        return esp_now_send(packet.destinationMacAddr, (uint8_t *)&packet, sizeof(packet)) == ESP_OK;
     }
 
-    bool receivePacket(EspNowPacket &packet) {
+    bool receivePacket(NexusPacket &packet) {
         return packetBuffer.dequeue(packet);
     }
 
