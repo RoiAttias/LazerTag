@@ -8,12 +8,15 @@
  * @details This struct provides methods for converting a MAC address to a string and etc.
  */
 struct MacAddress {
-    uint8_t addr[6]{}; // 6 bytes for the MAC address
+    uint8_t addr[6]; // 6 bytes for the MAC address
 
     /**
      * @brief Default constructor for a MAC address.
      */
-    MacAddress() = default;
+    MacAddress()
+    {
+        memset(addr, 0, 6);
+    }
 
     /**
      * @brief Constructor with a MAC address array input (6 Bytes).

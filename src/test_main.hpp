@@ -10,7 +10,14 @@ void onDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 
 void onDataRecv(const uint8_t *mac, const uint8_t *incomingData, int len) {
     Serial.print("Received from MAC: ");
-    for (int i = 0; i < 6; i++) Serial.printf("%02X:", mac[i]);
+    for (int i = 0; i < 6; i++)
+    {
+        Serial.printf("%02X", mac[i]);
+        if (i < 5)
+        {
+            Serial.print(":");
+        }
+    }
     Serial.println();
     
     Serial.print("Message: ");
