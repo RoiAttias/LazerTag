@@ -3,77 +3,73 @@
 
 #include "IRremoteESP32.hpp"
 #include "Components/Pushbutton/PushButton.hpp"
+#include "Utilities/PacketBuffer.hpp" // Include the PacketBuffer header
 
 class IRreceiver
 {
 private:
-  int recvPin;
-  Pushbutton isr;
+  int recvPin; // Pin for receiving IR signals
+  Pushbutton isr; // Pushbutton instance for handling interrupts
 
-  NEC_DATA data;
+  NEC_DATA data; // NEC data structure
 
-  uint32_t dataRead;
-  uint32_t lastTime;
-  uint32_t currentTime;
-  uint32_t duration;
-  int bitCount;
-  NEC_STAGE nec_stage;
+  uint32_t dataRead; // Variable to store the read data
+  uint32_t lastTime; // Variable to store the last time a signal was received
+  uint32_t currentTime; // Variable to store the current time
+  uint32_t duration; // Variable to store the duration between signals
+  int bitCount; // Variable to count the number of bits received
+  NEC_STAGE nec_stage; // Variable to store the current stage of NEC decoding
 
-  bool validateData;  // Flag to enable/disable validation
+  bool validateData; // Flag to enable/disable validation
 
-  NEC_DATA buffer[IR_RECEIVER_BUFFER_SIZE]; // Buffer to store received data
-  int bufferIndex;
+  PacketBuffer<NEC_DATA> buffer; // PacketBuffer to store received data
 
 public:
+  // Constructor to initialize the IR receiver
   IRreceiver(int pin, ISRpointer isrPointer, bool validate = false)
   : recvPin(pin), isr(pin, NEC_BOUNCE_STOP_FILTER, true, isrPointer),
     data(0UL), dataRead(0UL), lastTime(0), currentTime(0), duration(0),
     bitCount(0), nec_stage(headerMark), validateData(validate),
-    bufferIndex(0)
-  {
-    memset(buffer, 0, sizeof(buffer));
-  }
+    buffer(IR_RECEIVER_BUFFER_SIZE)
+  {}
 
+  // Destructor
   ~IRreceiver() {}
 
+  // Method to initialize the IR receiver
   void init()
   {
-    lastTime = micros();
-    nec_stage = headerMark;
+    lastTime = micros(); // Initialize lastTime with the current time
+    nec_stage = headerMark; // Set the initial stage to headerMark
 
-    pinMode(recvPin, INPUT);
+    pinMode(recvPin, INPUT); // Set the receive pin as input
 
-    isr.enablePressEvent(true);
-    isr.enableReleaseEvent(true);
-    isr.init();
+    isr.enablePressEvent(true); // Enable press event for the ISR
+    isr.enableReleaseEvent(true); // Enable release event for the ISR
+    isr.init(); // Initialize the ISR
   }
 
+  // Method to check if data is available in the buffer
   int available()
   {
-    return bufferIndex;
+    return buffer.size();
   }
 
+  // Method to read data from the buffer
   NEC_DATA read()
   {
     NEC_DATA value;
-    if (bufferIndex > 0)
-    {
-      value = buffer[0];
-      // Shift the buffer contents
-      for (int i = 1; i < bufferIndex; i++)
-      {
-        buffer[i - 1] = buffer[i];
-      }
-      bufferIndex--;
-    }
+    buffer.dequeue(value); // Dequeue data from the buffer
     return value;
   }
 
+  // Method to read the full data
   uint32_t readFull()
   {
     return read().data;
   }
 
+  // Method to read and validate the data
   uint16_t readValid()
   {
     NEC_DATA input = read();
@@ -82,9 +78,10 @@ public:
     return result;
   }
 
+  // Method to decode NEC signals
   void decodeNEC()
   {
-    if (bufferIndex >= IR_RECEIVER_BUFFER_SIZE)
+    if (buffer.size() >= IR_RECEIVER_BUFFER_SIZE)
       return;
 
     if (!isr.hasPressed() && !isr.hasReleased())
@@ -166,9 +163,11 @@ public:
 
         if (valid)
         {
-          if (bufferIndex < IR_RECEIVER_BUFFER_SIZE)
+          if (buffer.size() < IR_RECEIVER_BUFFER_SIZE)
           {
-            buffer[bufferIndex++].data = dataRead;
+            NEC_DATA newData;
+            newData.data = dataRead;
+            buffer.enqueue(newData); // Enqueue the valid data to the buffer
           }
         }
         

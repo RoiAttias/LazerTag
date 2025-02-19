@@ -2,7 +2,11 @@
 #define GUN_HPP
 
 #include <Arduino.h>
+#include <stdint.h> // Include the standard integer types
 
+/**
+ * @brief An enum representing the status of a Gun
+ */
 enum GunStatus
 {
     NOT_READY,
@@ -11,22 +15,39 @@ enum GunStatus
     RELOADING
 };
 
+/**
+ * @brief A struct representing the data of a Gun
+ * This struct is used to store the data of a Gun in a packed format to send over the comms.
+ */
+struct __attribute__((packed)) GunData
+{
+    uint32_t damage; // 4 bytes
+    uint32_t magazine; // 4 bytes
+    uint32_t roundsPerMinute; // 4 bytes
+    uint32_t reloadTime; // 4 bytes
+    bool fullAuto; // 1 byte
+};
+
+/**
+ * @brief A base class representing a Gun
+ * This class initializes a gun with specific attributes and provides methods to shoot and reload the gun.
+ */
 class Gun
 {
 public:
     // Constants
     const String name;
-    const int damage;
-    const int magazine;
-    const int roundsPerMinute;
-    const unsigned long reloadTime;
+    const uint32_t damage;
+    const uint32_t magazine;
+    const uint32_t roundsPerMinute;
+    const uint32_t reloadTime;
     const bool fullAuto;
 
-    // Volatile variables
-    volatile int ammo;
-    volatile unsigned long lastShot;
-    volatile unsigned long lastReload;
-    volatile GunStatus status;
+    // Variables
+    uint32_t ammo;
+    uint32_t lastShot;
+    uint32_t lastReload;
+    GunStatus status;
 
     // Multipliers
     float damageMultiplier = 1.0f;
@@ -43,7 +64,7 @@ public:
      * @param reloadTime The reload time of the gun in milliseconds
      * @param fullAuto Whether the gun is full auto or not, default is false
     */
-    Gun(String name, int damage, int magazine, int roundsPerMinute, unsigned long reloadTime, bool fullAuto = false) :
+    Gun(String name, uint32_t damage, uint32_t magazine, uint32_t roundsPerMinute, uint32_t reloadTime, bool fullAuto = false) :
         name(name),
         damage(damage),
         magazine(magazine),
@@ -53,7 +74,7 @@ public:
         ammo(magazine),
         lastShot(0),
         lastReload(0),
-        status(NOT_READY) 
+        status(NOT_READY)
     {}
 
     // Loop
@@ -63,14 +84,14 @@ public:
      * based on the time passed since the last shot or reload
      */
     void loop() {
-        unsigned long currentMillis = millis();
+        uint32_t currentMillis = millis();
         if (status == SHOOTING) {
-            unsigned long timeBetweenShots = 60000 / unsigned long(roundsPerMinute * fireRateMultiplier);
+            uint32_t timeBetweenShots = 60000 / uint32_t(roundsPerMinute * fireRateMultiplier);
             if (currentMillis - lastShot >= timeBetweenShots) {
                 status = READY;
             }
         } else if (status == RELOADING) {
-            if (currentMillis - lastReload >= unsigned long(reloadTime * reloadTimeMultiplier)) {
+            if (currentMillis - lastReload >= uint32_t(reloadTime * reloadTimeMultiplier)) {
                 ammo = magazine;
                 status = READY;
             }
@@ -78,7 +99,18 @@ public:
     }
 
     // Getters
-    int getAmmo() {
+    GunData getData() {
+        GunData data = {
+            damage,
+            magazine,
+            roundsPerMinute,
+            reloadTime,
+            fullAuto
+        };
+        return data;
+    }
+
+    uint32_t getAmmo() {
         return ammo;
     }
 
@@ -86,8 +118,8 @@ public:
         return status;
     }
 
-    int getDamage() {
-        return int(damage * damageMultiplier);
+    uint32_t getDamage() {
+        return uint32_t(damage * damageMultiplier);
     }
 
     // Setters
@@ -107,8 +139,8 @@ public:
      */
     bool shoot() {
         if (status == READY && ammo > 0) {
-            unsigned long currentMillis = millis();
-            unsigned long timeBetweenShots = 60000 / (roundsPerMinute * fireRateMultiplier);
+            uint32_t currentMillis = millis();
+            uint32_t timeBetweenShots = 60000 / (roundsPerMinute * fireRateMultiplier);
             if (currentMillis - lastShot >= timeBetweenShots) {
                 status = SHOOTING;
                 ammo--;
@@ -124,6 +156,7 @@ public:
      * @return Whether the gun was able to reload or not
      */
     bool reload() {
+        uint32_t currentMillis = millis();
         if (status == READY && ammo < magazine) {
             status = RELOADING;
             lastReload = currentMillis;
@@ -133,22 +166,38 @@ public:
     }
 };
 
-class AssaultRifle : public Gun
-{
-public:
-    AssaultRifle() : Gun("Assault Rifle", 20, 30, 600, 3000, true) {}
-};
-
+/**
+ * @brief A derived class representing a Sidearm
+ * This class inherits from Gun and initializes a sidearm with specific attributes.
+ * The attributes are as follows:
+ * Name: Sidearm
+ * Damage: 23
+ * Magazine: 10
+ * Rounds per minute: 100
+ * Reload time: 1800ms
+ * Full auto: true
+ */
 class Sidearm : public Gun
 {
 public:
-    Sidearm() : Gun("Sidearm", 28, 10, 100, 2000, false) {}
+    Sidearm() : Gun("Sidearm", 23, 10, 100, 1800, true) {}
 };
 
+/**
+ * @brief A derived class representing a Hand Cannon
+ * This class inherits from Gun and initializes a Hand Cannon with specific attributes.
+ * The attributes are as follows:
+ * Name: Hand Cannon
+ * Damage: 42
+ * Magazine: 6
+ * Rounds per minute: 70
+ * Reload time: 3000ms
+ * Full auto: false
+ */
 class HandCannon : public Gun
 {
 public:
-    HandCannon() : Gun("Hand Cannon", 35, 6, 70, 3000, false) {}
+    HandCannon() : Gun("Hand Cannon", 42, 6, 70, 3000, false) {}
 };
 
 #endif // GUN_HPP

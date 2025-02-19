@@ -8,8 +8,9 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
+#include "Utilities/MacAddress.hpp"
+#include "Utilities/PacketBuffer.hpp"
 #include "Utilities/HyperList.hpp"
-#include "MacAddress.hpp"
 
 
 #define NEXUS_VERSION 0x01
@@ -17,123 +18,41 @@
 #define NEXUS_PACKET_FLAG_SYN 0x01 // Synchronize - Establish a connection
 #define NEXUS_PACKET_FLAG_ACK 0x02 // Acknowledge - Acknowledge a received packet
 #define NEXUS_PACKET_FLAG_FIN 0x04 // Finish - Close a connection
-#define NEXUS_PACKET_FLAG_RST 0x08 // Reset - Reset a connection
 
-#define NEXUS_PACKET_FLAG_PSH 0x10 // Push - Send data immediately
-#define NEXUS_PACKET_FLAG_CHK 0x80 // Checksum - Verify the integrity of the packet
-
-struct NexusPacket {
+struct __attribute__((packed)) NexusPacket {
     // Header
     uint8_t version; // 1 byte
     uint16_t sequenceNum; // 2 bytes
-    uint16_t acknowledgeNum; // 2 bytes
-    uint16_t flags; // 2 bytes = 16 bits
-    uint16_t checksum; // 2 bytes
+    uint8_t flags; // 1 byte = 8 bits
     uint8_t length; // 1 byte
 
-    // Header size = 1 + 2 + 2 + 2 + 2 + 1 = 10 bytes
+    // Header size = 1 + 2 + 1 + 1 = 5 bytes
 
-    uint8_t payload[ESP_NOW_MAX_DATA_LEN - 10];
+    uint8_t payload[ESP_NOW_MAX_DATA_LEN - 5];
     
     // Total packet size = 250 bytes
 
-    NexusPacket(uint16_t seqNum, uint16_t ackNum, uint16_t flags, uint8_t len, uint8_t *payload) {
-        version = NEXUS_VERSION;
-        sequenceNum = seqNum;
-        acknowledgeNum = ackNum;
-        this->flags = flags;
-        length = len;
-        memcpy(this->payload, payload, len);
-    }
-
-    NexusPacket() {
-        version = NEXUS_VERSION;
-        sequenceNum = 0;
-        acknowledgeNum = 0;
-        flags = 0;
-        length = 0;
+    NexusPacket(uint8_t version, uint16_t sequenceNum, uint8_t flags, uint8_t length, uint8_t *payload)
+        : version(version), sequenceNum(sequenceNum), flags(flags), length(length) {
+        if (payload != nullptr) {
+            memcpy(this->payload, payload, length);
+        }
     }
 
     size_t size() const {
-        return length + 10;
-    }
-
-    /**
-     * @brief Verify the integrity of the packet.
-     * @return True if the packet is valid, false otherwise.
-     */
-    bool verifyChecksum() {
-        return countOnes() == checksum;
-    }
-
-    /**
-     * @brief Count the number of bits set of the payload.  
-     * @return The number of bits set in the payload.
-     */
-    uint16_t countOnes() {
-        uint16_t countTotal = 0;
-        uint8_t countByte = 0, byteMask = 0x01;
-        for (size_t i = 0; i < length; i++) {
-            countByte = 0;
-            while (byteMask) {
-                countByte += (payload[i] & byteMask) ? 1 : 0;
-                byteMask <<= 1;
-            }
-            countTotal += countByte;
-        }
-        return countTotal;
+        return length + 5;
     }
 };
 
-/**
- * Class template for a packet buffer.
- * @tparam T Type of packet to be stored in the buffer.
- * @tparam maxSize Maximum number of packets that can be stored in the buffer.
- * @warning The buffer is not thread-safe and should not be accessed concurrently from multiple threads.
- */
-template <typename T>
-class PacketBuffer {
-private:
-    std::queue<T> packetQueue;
-    size_t maxSize;
-
-public:
-    PacketBuffer(size_t size) : maxSize(size) {}
-
-    bool enqueue(const T& packet) {
-        if (packetQueue.size() >= maxSize) return false;
-        packetQueue.push(packet);
-        return true;
-    }
-
-    bool dequeue(T& packet) {
-        if (packetQueue.empty()) return false;
-        packet = packetQueue.front();
-        packetQueue.pop();
-        return true;
-    }
-
-    bool isEmpty() const {
-        return packetQueue.empty();
-    }
-
-    size_t size() const {
-        return packetQueue.size();
-    }
-
-    void clear() {
-        while (!packetQueue.empty()) {
-            packetQueue.pop();
-        }
-    }
+enum NexusPeerStatus : uint8_t {
+    NEXUS_PEER_STATUS_ESTABLISHED,
+    NEXUS_PEER_STATUS_ACKNOWLEDGING,
 };
 
-/*
 struct NexusPeer {
     MacAddress macAddress;
-
+    NexusPeerStatus status;
     uint16_t lastSequenceNum = 0;
-    uint16_t lastAcknowledgeNum = 0;
 
     NexusPeer(const MacAddress &mac) : macAddress(mac) {}
 
@@ -141,22 +60,21 @@ struct NexusPeer {
         return macAddress.getAddress();
     }
 };
-*/
 
 enum NexusPeerEventType : uint8_t {
+    NEXUS_PEER_EVENT_ACK,
     NEXUS_PEER_EVENT_SYNCRONIZE_INIT,
     NEXUS_PEER_EVENT_SYNCRONIZE_ACK,
     NEXUS_PEER_EVENT_SYNCRONIZE_INIT_ACK,
     NEXUS_PEER_EVENT_FINISH_INIT,
-    NEXUS_PEER_EVENT_FINISH_ACK,
-    NEXUS_PEER_EVENT_RESET_INIT,
-    NEXUS_PEER_EVENT_RESET_ACK,
+    NEXUS_PEER_EVENT_FINISH_ACK
 };
 
 struct NexusPeerEvent {
     MacAddress addr;
     NexusPeerEventType eventType;
     uint16_t sequenceNum;
+    uint32_t time;
 };
 
 /**
@@ -192,8 +110,9 @@ namespace Nexus {
         
         switch (packet.flags)
         {
+            // Synchronize
         case NEXUS_PACKET_FLAG_SYN:
-            SynchronizeAcceptor(mac_addr, packet);
+            
             break;
         
         case NEXUS_PACKET_FLAG_SYN | NEXUS_PACKET_FLAG_ACK:
@@ -203,6 +122,7 @@ namespace Nexus {
             }
             break;
 
+            // Finish
         case NEXUS_PACKET_FLAG_FIN:
             if (FinishAcceptor(mac_addr, packet))
             {
@@ -217,7 +137,7 @@ namespace Nexus {
             }
             break;
             
-        
+            // Reset
         case NEXUS_PACKET_FLAG_RST:
             ResetAcceptor(mac_addr, packet);
             break;

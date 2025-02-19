@@ -4,13 +4,11 @@
 #define DEVICE_TEST 4
 
 // Select device here
-#define DEVICE_TYPE DEVICE_TEST
+#define DEVICE_TYPE 2
 
 #ifndef DEVICE_TYPE
 #error "DEVICE_TYPE is not defined! Define DEVICE_TYPE in your build flags (e.g., -DDEVICE_MANAGER)."
 #endif
-
-#include "Subsystems/Nexus/Nexus.hpp"
 
 #if DEVICE_TYPE == DEVICE_MANAGER
 #include "manager_main.hpp"

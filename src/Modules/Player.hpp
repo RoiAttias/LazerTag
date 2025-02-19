@@ -1,8 +1,7 @@
 #ifndef PLAYER_HPP
 #define PLAYER_HPP
 
-#include <Arduino.h>
-
+#include <
 uint16_t playerIDs = 0;
 int newPlayerID()
 {
@@ -14,22 +13,15 @@ void resetPlayerIDcounter() {
 
 class Player {
 public:
+
     const uint16_t ID = newPlayerID();
     String name;
 
-    // 2 mac adresses
-    // gun pointer
     int HP;
 
-    uint16_t teamID;
+    uint8_t teamID;
 
-    int score;
-    int kills;
-
-    int TotalDamageInput;
-    int TotalDamageOutput;
-
-    Player(uint16_t teamID, String playerName = "null") : teamID(teamID), name(playerName) {
+    Player(uint8_t teamID, String playerName = "null") : teamID(teamID), name(playerName) {
         if (name == "null")
         {
             name = "Player";

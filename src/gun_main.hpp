@@ -43,7 +43,7 @@ void handleButtonEvent(Pushbutton::EventType eventType, uint32_t timeSincePress)
     }
 }
 */
-//U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
+U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
 
 String str1, str2;
 int ammo, maxAmmo = 20;
@@ -73,11 +73,11 @@ void gun_setup()
     trigger.init(handleButtonEvent, true); // Enable all events
     trigger.enablePressEvent(true);
     trigger.enableReleaseEvent(true);
-
+*/
     u8g2.begin();
     str2 = String(maxAmmo);
     ammo = maxAmmo;
-*/
+
     delay(4000);
 
     // Additional setup logic if needed
@@ -87,14 +87,13 @@ void gun_setup()
 void gun_loop()
 {
     //irSender.sendNEC(fireSignal); // Send fire signal when the trigger is pressed
-    irSender.mark(3e6);
+    irSender.mark(1E6);
+
     ///irSender.space(3e6);
     //digitalWrite(irPin, HIGH);
-    /*
+    shotNow = true; // Flag to indicate the shot should be fired
     if (shotNow)
     {
-        trigger.enableAllEvents(false);
-        Serial.println(counter++);
         // irSender.sendNEC(fireSignal); // Send fire signal when the trigger is pressed
         shotNow = false; // Reset the shot flag
 
@@ -127,12 +126,8 @@ void gun_loop()
         u8g2.println(str2.c_str());
 
         u8g2.sendBuffer();
-
-        delay(100);
-        digitalWrite(irPin, LOW);
-        trigger.enableAllEvents(true);
     }
-    */
+    
 
     // The rest of the program primarily relies on interrupts, so no logic is needed here
     // delay(10); // Optional: Small delay to stabilize processing
