@@ -13,13 +13,21 @@ void resetTeamIDcounter() {
 }
 
 class Team {
-const uint16_t ID = newTeamID();
-String name;
+public:
+    const uint16_t ID = newTeamID();
+    String name;
 
-int HP;
+    uint8_t color[3] = {0, 0, 0};
 
-int score;
-int kills;
+    int score = 0;
+
+    Team(uint8_t teamID, String teamName = "null") : ID(teamID), name(teamName) {
+        if (name == "null")
+        {
+            name = "Player";
+            name += ID;
+        }
+    }
 };
 
 #endif // TEAM_HPP

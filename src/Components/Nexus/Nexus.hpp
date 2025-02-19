@@ -1,282 +1,347 @@
 #ifndef NEXUS_HPP
 #define NEXUS_HPP
 
-#include <Arduino.h>
+#include <Arduino.h> // Include the Arduino library
+#include <queue> // Include the queue library
+#include <esp_now.h> // Include the ESP-NOW library
 
-#include <queue>
+#include "Utilities/MacAddress.hpp" // Include the MacAddress utility
+#include "Utilities/PacketBuffer.hpp" // Include the PacketBuffer utility
+#include "Utilities/HyperList.hpp" // Include the HyperList utility
 
-#include <esp_now.h>
-#include <WiFi.h>
+// Define constants for Nexus
+#define NEXUS_TIMEOUT 1000 // Timeout for Nexus operations
+#define NEXUS_SCAN_INTERVAL 5000 // Interval for scanning devices
+#define NEXUS_BUFFER_SIZE 32 // Buffer size for packets
+#define NEXUS_HEADER_SIZE 7 // Header size for packets
+#define NEXUS_MAX_PAYLOAD_SIZE (ESP_NOW_MAX_DATA_LEN - NEXUS_HEADER_SIZE) // Maximum payload size
 
-#include "Utilities/MacAddress.hpp"
-#include "Utilities/PacketBuffer.hpp"
-#include "Utilities/HyperList.hpp"
+#define NEXUS_VERSION 0x01 // Version of Nexus
 
+// Define flags for Nexus packets
+#define NEXUS_FLAG_NONE 0x00 // No flags - Data packet
+#define NEXUS_FLAG_SYN 0x01 // Synchronize - Establish a connection
+#define NEXUS_FLAG_ACK 0x02 // Acknowledge - Acknowledge a received packet
+#define NEXUS_FLAG_FIN 0x04 // Finish - Close a connection
+#define NEXUS_FLAG_RST 0x08 // Reset - Reset a connection
+#define NEXUS_FLAG_SCN 0x10 // Scan - Scan for nearby devices
 
-#define NEXUS_VERSION 0x01
+// Define error codes for Nexus
+enum NexusErrors : uint8_t {
+    NEXUS_ERROR_OK, // No error
+    NEXUS_ERROR_UNKNOWN, // Unknown error
+    NEXUS_ERROR_TIMEOUT, // Timeout error
+    NEXUS_ERROR_BUFFER_FULL, // Buffer full error
+    NEXUS_ERROR_PEER_REFUSED, // Peer refused error
+    NEXUS_ERROR_PEER_FULL, // Peer full error
+    NEXUS_ERROR_PEER_NOT_FOUND, // Peer not found error
+    NEXUS_ERROR_PEER_ALREADY_EXISTS, // Peer already exists error
+    NEXUS_ERROR_INVALID_VERSION, // Invalid version error
+    NEXUS_ERROR_INVALID_FLAG, // Invalid flag error
+    NEXUS_ERROR_INVALID_LENGTH // Invalid length error
+};
 
-#define NEXUS_PACKET_FLAG_SYN 0x01 // Synchronize - Establish a connection
-#define NEXUS_PACKET_FLAG_ACK 0x02 // Acknowledge - Acknowledge a received packet
-#define NEXUS_PACKET_FLAG_FIN 0x04 // Finish - Close a connection
-
+// Define the NexusPacket structure
 struct __attribute__((packed)) NexusPacket {
-    // Header
-    uint8_t version; // 1 byte
-    uint16_t sequenceNum; // 2 bytes
-    uint8_t flags; // 1 byte = 8 bits
-    uint8_t length; // 1 byte
+    uint8_t version; // Version of the packet
+    uint16_t sequenceNum; // Sequence number of the packet
+    uint16_t flags; // Flags for the packet
+    uint8_t error; // Error code for the packet
+    uint8_t length; // Length of the payload
+    uint8_t payload[NEXUS_MAX_PAYLOAD_SIZE]; // Payload of the packet
 
-    // Header size = 1 + 2 + 1 + 1 = 5 bytes
-
-    uint8_t payload[ESP_NOW_MAX_DATA_LEN - 5];
-    
-    // Total packet size = 250 bytes
-
-    NexusPacket(uint8_t version, uint16_t sequenceNum, uint8_t flags, uint8_t length, uint8_t *payload)
-        : version(version), sequenceNum(sequenceNum), flags(flags), length(length) {
+    // Constructor for NexusPacket
+    NexusPacket(uint16_t sequenceNum, uint16_t flags, uint8_t error, uint8_t length, const uint8_t *payload)
+        : version(NEXUS_VERSION), sequenceNum(sequenceNum), flags(flags), error(error), length(length) {
         if (payload != nullptr) {
-            memcpy(this->payload, payload, length);
+            memcpy(this->payload, payload, length); // Copy the payload
         }
     }
 
+    // Function to get the size of the packet
     size_t size() const {
-        return length + 5;
+        return length + NEXUS_HEADER_SIZE; // Return the total size of the packet
     }
 };
 
-enum NexusPeerStatus : uint8_t {
-    NEXUS_PEER_STATUS_ESTABLISHED,
-    NEXUS_PEER_STATUS_ACKNOWLEDGING,
+// Define the NexusPeerPendingEvent structure
+struct NexusPeerPendingEvent {
+    MacAddress addr; // MAC address of the peer
+    uint16_t seqNum; // Sequence number of the event
+    uint16_t flags; // Flags for the event
+    uint8_t error; // Error code for the event
+    uint32_t time; // Time of the event
 };
 
-struct NexusPeer {
-    MacAddress macAddress;
-    NexusPeerStatus status;
-    uint16_t lastSequenceNum = 0;
-
-    NexusPeer(const MacAddress &mac) : macAddress(mac) {}
-
-    uint8_t *getAddress() {
-        return macAddress.getAddress();
-    }
+// Define the NexusBlacklistEntry structure
+struct NexusBlacklistEntry {
+    MacAddress addr; // MAC address of the peer
+    uint8_t reason; // Reason for blacklisting the peer
 };
 
-enum NexusPeerEventType : uint8_t {
-    NEXUS_PEER_EVENT_ACK,
-    NEXUS_PEER_EVENT_SYNCRONIZE_INIT,
-    NEXUS_PEER_EVENT_SYNCRONIZE_ACK,
-    NEXUS_PEER_EVENT_SYNCRONIZE_INIT_ACK,
-    NEXUS_PEER_EVENT_FINISH_INIT,
-    NEXUS_PEER_EVENT_FINISH_ACK
-};
-
-struct NexusPeerEvent {
-    MacAddress addr;
-    NexusPeerEventType eventType;
-    uint16_t sequenceNum;
-    uint32_t time;
-};
-
-/**
-  * @brief Namespace for ESP-NOW communication;
-  * @details This namespace provides functions for sending and receiving packets
-  *          using the ESP-NOW protocol.
-  * @warning This namespace is not thread-safe and should not be accessed concurrently from multiple threads.
-  */
+// Define the Nexus namespace
 namespace Nexus {
-    // Constants and Variables
-    const size_t MAX_PEERS = 20;
-    
-    int CHANNEL = 0;
+    const size_t MAX_PEERS = 20; // Maximum number of peers
 
-    // Addresses
-    const uint8_t BROADCAST_ADDRESS_ARRAY[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    const MacAddress BROADCAST_ADDRESS(BROADCAST_ADDRESS_ARRAY);
-    MacAddress THIS_ADDRESS;
+    int CHANNEL = 0; // Channel for communication
 
-    // Lists
-    HyperList<MacAddress> peers;
-    PacketBuffer<NexusPacket> packetBuffer(32);
-    std::queue<NexusPeerEvent> pendingPeersEvents;
+    const uint8_t BROADCAST_ADDRESS_ARRAY[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}; // Broadcast address array
+    const MacAddress BROADCAST_ADDRESS(BROADCAST_ADDRESS_ARRAY); // Broadcast address
+    MacAddress THIS_ADDRESS; // MAC address of this device
 
-    // ESP-NOW Callbacks
+    HyperList<MacAddress> peers; // List of peers
+    HyperList<MacAddress> scanResults; // List of scan results
+    HyperList<MacAddress> blacklist; // List of blacklisted peers
+    HyperList<NexusBlacklistEntry> blacklistReasons; // List of blacklist reasons
+    PacketBuffer<NexusPacket> packetBuffer(NEXUS_BUFFER_SIZE); // Packet buffer
+    HyperList<NexusPeerEvent> pendingPeersEvents_incoming; // List of incoming pending peer events
+    HyperList<NexusPeerEvent> pendingPeersEvents_outgoing; // List of outgoing pending peer events
+
+    // Callback function for receiving packets
     void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
-        MacAddress mac_addr(mac);
-        NexusPacket packet;
-        memcpy(&packet, data, len);
+        MacAddress mac_addr(mac); // Convert MAC address
+        NexusPacket packet(0, 0, 0, 0, nullptr); // Create a new packet
+        memcpy(&packet, data, len); // Copy the data to the packet
+        uint32_t now = millis(); // Get the current time
+        uint8_t error = NEXUS_ERROR_OK; // Initialize error code
 
-        // Check the version
-        if (packet.version != NEXUS_VERSION) return;
-        
-        switch (packet.flags)
-        {
-            // Synchronize
-        case NEXUS_PACKET_FLAG_SYN:
-            
-            break;
-        
-        case NEXUS_PACKET_FLAG_SYN | NEXUS_PACKET_FLAG_ACK:
-            if (SynchronizeInitiatorAck(mac_addr, packet))
-            {
-                addPeer(mac_addr);
-            }
-            break;
+        // Check if the peer is in the blacklist
+        if (blacklist.contains(mac_addr)) return;
 
-            // Finish
-        case NEXUS_PACKET_FLAG_FIN:
-            if (FinishAcceptor(mac_addr, packet))
-            {
-                removePeer(mac_addr);
-            }
-            break;
-
-        case NEXUS_PACKET_FLAG_FIN | NEXUS_PACKET_FLAG_ACK:
-            if (FinishAcceptor(mac_addr, packet))
-            {
-                removePeer(mac_addr);
-            }
-            break;
-            
-            // Reset
-        case NEXUS_PACKET_FLAG_RST:
-            ResetAcceptor(mac_addr, packet);
-            break;
-        }
-
-        // Check the checksum
-        if ((packet.flags & NEXUS_PACKET_FLAG_CHK) && (!packet.verifyChecksum()))
-        {
-            // Checksum failed
-            pendingPeersEvents.push({macAddr, NEXUS_PEER_EVENT_RESET_INIT});
+        // Check the version of the packet
+        if (packet.version != NEXUS_VERSION) {
+            pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1, NEXUS_FLAG_NONE, NEXUS_ERROR_INVALID_VERSION, now});
+            addToBlacklist(mac_addr, NEXUS_ERROR_INVALID_VERSION); // Add to blacklist if version is invalid
             return;
         }
 
-
-        
-        packetBuffer.enqueue(packet);
+        int index = 0;
+        switch (packet.flags) {
+        case NEXUS_FLAG_NONE:
+            if(packet.error != NEXUS_ERROR_OK) {
+                pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 , NEXUS_FLAG_ACK, packet.error, now});
+            }
+            if(packet.length > 0 && packet.length <= NEXUS_MAX_PAYLOAD_SIZE) {
+                if (packetBuffer.isFull()) {
+                    pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 , NEXUS_FLAG_ACK, NEXUS_ERROR_BUFFER_FULL, now});
+                    break;
+                } else {
+                    packetBuffer.enqueue(packet); // Enqueue the packet
+                    pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 ,NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
+                }
+            } else {
+                pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 ,NEXUS_FLAG_ACK, NEXUS_ERROR_INVALID_LENGTH, now});
+            }
+            break;
+        case NEXUS_FLAG_SYN:
+            addPeer(mac_addr); // Add the peer
+            pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 ,NEXUS_FLAG_SYN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
+            break;
+        case NEXUS_FLAG_FIN:
+            removePeer(mac_addr); // Remove the peer
+            pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 ,NEXUS_FLAG_FIN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
+            break;
+        case NEXUS_FLAG_RST:
+            removePeer(mac_addr); // Remove the peer
+            addPeer(mac_addr); // Add the peer again
+            pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 ,NEXUS_FLAG_RST | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
+            break;
+        case NEXUS_FLAG_SCN:
+            pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 ,NEXUS_FLAG_SCN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
+            break;
+        case NEXUS_FLAG_SCN | NEXUS_FLAG_ACK:
+            if (scanResults.contains(mac_addr)) break;
+            scanResults.addend(mac_addr); // Add to scan results
+            break;
+        default:
+            for (auto pendingEvent : pendingPeersEvents_incoming) {
+                if (pendingEvent.addr == mac_addr && pendingEvent.seqNum == packet.sequenceNum && pendingEvent.flags == packet.flags) {
+                    switch (pendingEvent.flags) {
+                    case NEXUS_FLAG_SYN | NEXUS_FLAG_ACK:
+                        addPeer(mac_addr); // Add the peer
+                        break;
+                    case NEXUS_FLAG_FIN | NEXUS_FLAG_ACK:
+                        removePeer(mac_addr); // Remove the peer
+                        break;
+                    case NEXUS_FLAG_RST | NEXUS_FLAG_ACK:
+                        removePeer(mac_addr); // Remove the peer
+                        addPeer(mac_addr); // Add the peer again
+                        break;
+                    case NEXUS_FLAG_SCN | NEXUS_FLAG_ACK:
+                        // Do nothing
+                        break;
+                    default:
+                        pendingPeersEvents_outgoing.addend({mac_addr, packet.sequenceNum+1 ,NEXUS_FLAG_NONE, NEXUS_ERROR_INVALID_FLAG, now});
+                        addToBlacklist(mac_addr, NEXUS_ERROR_INVALID_FLAG); // Add to blacklist if flag is invalid
+                        break;
+                    }
+                    pendingPeersEvents_incoming.remove(index); // Remove the pending event
+                }
+                index++;
+            }
+            break;
+        }
     }
 
+    // Callback function for sending packets
     void onSend(const uint8_t *mac_addr, esp_now_send_status_t status) {
         if (status == ESP_NOW_SEND_SUCCESS) {
             // Packet sent successfully
         } else {
             // Packet failed to send
-            // Reset the peer
-            pendingPeersEvents.push({MacAddress(mac_addr), NEXUS_PEER_EVENT_RESET});
+            reset(MacAddress(mac_addr)); // Reset the peer
         }
     }
 
-    void addPeer(const MacAddress &peer) {
-        if (peers.contains(peer)) return;
-        if (peers.size() < MAX_PEERS) {
-            peers.addend(peer);
-            esp_now_peer_info_t peerInfo = {};
-            peer.toBuffer(peerInfo.peer_addr);
-            peerInfo.channel = CHANNEL;
-            peerInfo.encrypt = false;
-            esp_now_add_peer(&peerInfo);
+    // Add a peer to the list of peers
+    uint8_t addPeer(const MacAddress &peer) {
+        if (peers.contains(peer)) return NEXUS_ERROR_PEER_ALREADY_EXISTS; // Check if peer already exists
+        peers.addend(peer); // Add the peer
+        esp_now_peer_info_t peerInfo = {}; // Create a peer info structure
+        peer.toBuffer(peerInfo.peer_addr); // Copy the peer address
+        peerInfo.channel = CHANNEL; // Set the channel
+        peerInfo.encrypt = false; // Disable encryption
+        switch(esp_now_add_peer(&peerInfo)){
+            case ESP_OK:
+                return NEXUS_ERROR_OK; // Peer added successfully
+            case ESP_ERR_ESPNOW_FULL:
+                return NEXUS_ERROR_PEER_FULL; // Peer list is full
+            case ESP_ERR_ESPNOW_EXIST:
+                return NEXUS_ERROR_PEER_ALREADY_EXISTS; // Peer already exists
+             default:
+                return NEXUS_ERROR_PEER_REFUSED; // Peer refused
         }
     }
 
-    void removePeer(const MacAddress &peer) {
-        peers.removeValue(peer);
-        esp_now_del_peer(peer.addr);
+    // Remove a peer from the list of peers
+    uint8_t removePeer(const MacAddress &peer) {
+        peers.removeValue(peer); // Remove the peer
+        switch(esp_now_del_peer(peer.addr)){
+            case ESP_OK:
+                return NEXUS_ERROR_OK; // Peer removed successfully
+            case ESP_ERR_ESPNOW_NOT_FOUND:
+                return NEXUS_ERROR_PEER_NOT_FOUND; // Peer not found
+            default:
+                return NEXUS_ERROR_PEER_NOT_FOUND; // Peer not found
+        }
     }
 
+    // Add a peer to the blacklist
+    void addToBlacklist(const MacAddress &peer, uint8_t reason) {
+        if (blacklist.contains(peer)) return; // Check if peer is already blacklisted
+        blacklist.addend(peer); // Add the peer to the blacklist
+        if (blacklistReasons.contains(peer, reason)) return; // Check if reason already exists
+        blacklistReasons.addend({peer, reason}); // Add the reason to the blacklist
+    }
+
+    // Generate a random sequence number
+    uint16_t randomSequenceNum() {
+        return random(0, 65535); // Return a random sequence number
+    }
+
+    // Initialize the Nexus module
     bool begin(int channel = 0) {
-        // Set the channel
-        CHANNEL = channel;
-        
+        CHANNEL = channel; // Set the channel
+
         // Get the MAC address of the ESP32
         if(esp_base_mac_addr_get(THIS_ADDRESS.addr) != ESP_OK) return false;
-        
-        // Set the ESP-NOW mode to station
-        WiFi.mode(WIFI_STA);
+
+        WiFi.mode(WIFI_STA); // Set the WiFi mode to station
 
         // Initialize ESP-NOW
         if (esp_now_init() != ESP_OK) return false;
-        
+
         // Register the callbacks
-        esp_now_register_recv_cb(onReceive);
-        esp_now_register_send_cb(onSend);
+        if (esp_now_register_recv_cb(onReceive) != ESP_OK) return false;
+        if (esp_now_register_send_cb(onSend) != ESP_OK) return false;
+
+        return true; // Initialization successful
     }
 
+    // Deinitialize the Nexus module
+    void end() {
+        esp_now_deinit(); // Deinitialize ESP-NOW
+    }
+
+    // Check if a peer exists
+    bool isPeer(const MacAddress &peer) {
+        return peers.contains(peer); // Check if the peer exists
+    }
+
+    // Send a NexusPacket to a specific destination
     bool sendPacket(const NexusPacket &packet, const MacAddress &destination = BROADCAST_ADDRESS) {
-        return esp_now_send(destination, (uint8_t *)&packet, packet.size) == ESP_OK;
+        return esp_now_send(destination, (uint8_t *)&packet, packet.size) == ESP_OK; // Send the packet
     }
 
-    bool receivePacket(NexusPacket &packet) {
-        return packetBuffer.dequeue(packet);
+    // Read a NexusPacket
+    bool readPacket(NexusPacket &packet) {
+        return packetBuffer.dequeue(packet); // Dequeue the packet
     }
 
-    void autoPeerInitiator(const MacAddress &target) {
-        addPeer(target);
+    // Send data to a specific destination
+    bool sendData(const uint8_t *data, size_t length, const MacAddress &destination = BROADCAST_ADDRESS) {
+        if (length > NEXUS_MAX_PAYLOAD_SIZE) return false; // Check if length is valid
+        NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_NONE, NEXUS_ERROR_OK, length, data); // Create a new packet
+        pendingPeersEvents_incoming.addend({destination, packet.sequenceNum+1, NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
+        return sendPacket(packet, destination); // Send the packet
     }
 
-    void autoPeerAcceptor(const MacAddress &peer) {
-        addPeer(peer);
+    // Synchronize with a specific peer
+    void syncronize(const MacAddress &destination) {
+        NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_SYN, NEXUS_ERROR_OK, 0, nullptr); // Create a new packet
+        pendingPeersEvents_incoming.addend({destination, packet.sequenceNum+1, NEXUS_FLAG_SYN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
+        sendPacket(packet, destination); // Send the packet
     }
 
-
-    // Peer Events
-    bool SynchronizeInitiator(const MacAddress &target) {
-        NexusPacket packet(random(1,256) & 0xFF, 0, NEXUS_PACKET_FLAG_SYN, 0, nullptr);
-        if (sendPacket(packet, target) == false) return false;
-
-        pendingPeersEvents.push({target, NEXUS_PEER_EVENT_SYNCRONIZE_ACK});
-        return true;
+    // Finish the connection with a specific peer
+    void finish(const MacAddress &destination) {
+        NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_FIN, NEXUS_ERROR_OK, 0, nullptr); // Create a new packet
+        pendingPeersEvents_incoming.addend({destination, packet.sequenceNum+1, NEXUS_FLAG_FIN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
+        sendPacket(packet, destination); // Send the packet
     }
 
-    bool SynchronizeAcceptor(const MacAddress &target, NexusPacket packet) {
-        packet.acknowledgeNum = packet.sequenceNum + 1;
-        packet.sequenceNum = acknowledgeNum + (random(100,200) & 0xFF);
-        packet.flags = NEXUS_PACKET_FLAG_SYN | NEXUS_PACKET_FLAG_ACK;
-        if (sendPacket(packet, target) == false) return false;
-
-        pendingPeersEvents.push({peer, NEXUS_PEER_EVENT_SYNCRONIZE_INIT_ACK});
-        return true;
+    // Reset the connection with a specific peer
+    void reset(const MacAddress &destination) {
+        NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_RST, NEXUS_ERROR_OK, 0, nullptr); // Create a new packet
+        pendingPeersEvents_incoming.addend({destination, packet.sequenceNum+1, NEXUS_FLAG_RST | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
+        sendPacket(packet, destination); // Send the packet
     }
 
-    bool SynchronizeInitiatorAck(const MacAddress &target, NexusPacket packet) {
-        packet.acknowledgeNum = packet.sequenceNum + 1;
-        packet.sequenceNum = 0;
-        packet.flags = NEXUS_PACKET_FLAG_ACK;
-        if (sendPacket(packet) == false) return false;
-
-        addPeer(target);
-        return true;
+    // Scan for nearby devices
+    void scan() {
+        NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_SCN, NEXUS_ERROR_OK, 0, nullptr); // Create a new packet
+        scanResults.clear(); // Clear the scan results
+        for (auto peer : peers) {
+            pendingPeersEvents_incoming.addend({peer, packet.sequenceNum+1, NEXUS_FLAG_SCN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
+        }
+        sendPacket(packet, BROADCAST_ADDRESS); // Send the packet
     }
 
-    bool FinishInitiator(const MacAddress &target) {
-        NexusPacket packet(random(1,256) & 0xFF, 0, NEXUS_PACKET_FLAG_FIN, 0, nullptr);
-        if (sendPacket(packet) == false) return false;
+    // Loop function for the Nexus module
+    void loop() {
+        uint32_t now = millis(); // Get the current time
+        int index = 0;
+        // Check for timeouts in pending incoming events
+        for (auto pendingEvent : pendingPeersEvents_incoming) {
+            if (now - pendingEvent.time > NEXUS_TIMEOUT) {
+                pendingPeersEvents_outgoing.addend({pendingEvent.addr, pendingEvent.seqNum, pendingEvent.flags, NEXUS_ERROR_TIMEOUT, now});
+                addToBlacklist(pendingEvent.addr, NEXUS_ERROR_TIMEOUT); // Add to blacklist if timeout
+                pendingPeersEvents_incoming.remove(index); // Remove the pending event
+            }
+            index++;
+        }
 
-        pendingPeersEvents.push({target, NEXUS_PEER_EVENT_FINISH_ACK});
-    }
+        for (auto pendingEvent : pendingPeersEvents_outgoing) {
+            if (now - pendingEvent.time > NEXUS_TIMEOUT) {
+                sendPacket(NexusPacket(pendingEvent.seqNum, pendingEvent.flags, pendingEvent.error, 0, nullptr), pendingEvent.addr); // Resend the packet
+                pendingPeersEvents_outgoing.remove(); // Remove the pending event
+            }
+        }
 
-    bool FinishAcceptor(const MacAddress &target, NexusPacket packet) {
-        packet.acknowledgeNum = packet.sequenceNum + 1;
-        packet.sequenceNum = 0;
-        packet.flags = NEXUS_PACKET_FLAG_FIN | NEXUS_PACKET_FLAG_ACK;
-        if (sendPacket(packet) == false) return false;
-
-        return true;
-    }
-
-    bool ResetInitiator(const MacAddress &target) {
-        NexusPacket packet(random(1,256) & 0xFF, 0, NEXUS_PACKET_FLAG_RST, 0, nullptr);
-        if (sendPacket(packet) == false) return false;
-
-        pendingPeersEvents.push({target, NEXUS_PEER_EVENT_RESET_ACK});
-    }
-
-    bool ResetAcceptor(const MacAddress &target, NexusPacket packet) {
-        packet.acknowledgeNum = packet.sequenceNum + 1;
-        packet.sequenceNum = 0;
-        packet.flags = NEXUS_PACKET_FLAG_RST | NEXUS_PACKET_FLAG_ACK;
-        if (sendPacket(packet) == false) return false;
-
-        return true;
+        // Check for scan interval
+        if (now - scanResults.lastTime() > NEXUS_SCAN_INTERVAL) {
+            scan(); // Perform a scan
+        }
     }
 }
 
