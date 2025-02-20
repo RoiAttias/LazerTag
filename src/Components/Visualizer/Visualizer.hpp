@@ -16,13 +16,14 @@ struct Animation {
     unsigned long durationMS = 0; // Duration of the animation in milliseconds
     bool repeat = false; // Whether the animation repeats
 
-    unsigned long startTimeMS = 0; // Start time of the animation in milliseconds
+    unsigned long startTimeMS = -1; // Start time of the animation in milliseconds
     bool paused = false; // Whether the animation is paused
     float currentFactor = 0.0f; // Current factor for animation progress
     unsigned long pauseTimeMS = 0; // Time when the animation was paused
 
     // Constructor
-    Animation(void (*animationFunc)(Adafruit_NeoPixel*, uint16_t, uint16_t, float), byte layer, uint16_t startIndex, uint16_t length, unsigned long durationMS, bool repeat = false)
+    Animation(void (*animationFunc)(Adafruit_NeoPixel*, uint16_t, uint16_t, float) = nullptr,
+    byte layer = 0, uint16_t startIndex = 0, uint16_t length = 0, unsigned long durationMS = 0, bool repeat = false)
     : animationFunc(animationFunc) // Initialize the animation function
         , startIndex(startIndex) // Initialize the starting index
         , length(length) // Initialize the length
@@ -42,7 +43,7 @@ struct Animation {
 
     // Method to check if the animation should run
     bool shouldRun(unsigned long currentTime) const {
-        return startTimeMS != 0 && (currentTime - startTimeMS < durationMS || repeat); // Check if the animation should run
+        return startTimeMS != -1 && ((currentTime - startTimeMS < durationMS) || repeat); // Check if the animation should run
     }
 
     // Method to start the animation
@@ -68,16 +69,16 @@ struct Animation {
         }
     }
 
-    // Method to reset the animation
-    void reset() {
-        startTimeMS = 0; // Reset the start time
+    // Method to stop the animation
+    void stop() {
+        startTimeMS = -1; // Reset the start time
         paused = false; // Unpause the animation
         currentFactor = 0.0f; // Reset the current factor
     }
 };
 
 // An example for animation function
-void rainbowAnimation(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
+void rainbowAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
     const uint16_t factorOffset = uint16_t(0xFFFF * factor); // Calculate the factor offset
     const uint16_t offsetPerFactor = 0xFFFF / length; // Calculate the offset per factor
     uint16_t hue; // Variable to store the hue
@@ -87,11 +88,19 @@ void rainbowAnimation(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t le
     }
 }
 
+// func: rainbowAnimationFunc, layer: 0, startIndex: 0, length: 10, durationMS: 1000, repeat: true
+Animation rainbowAnimation(rainbowAnimationFunc, 0, 0, 10, 1000, true); // Create a rainbow animation
+
 // Visualizer class to manage the strip and animations
 class Visualizer {
 private:
+    const neoPixelType type = NEO_GRB + NEO_KHZ800; // Type of the NeoPixel strip
+    const uint8_t gOffset = 0; // Green offset
+    const uint8_t rOffset = 1; // Red offset
+    const uint8_t bOffset = 2; // Blue offset
+
+
     Adafruit_NeoPixel strip; // NeoPixel strip instance
-    neoPixelType stripType; // Type of the NeoPixel strip
     unsigned long lastUpdateTime = 0; // Last update time in milliseconds
     unsigned long frameIntervalMS; // Frame interval in milliseconds
 
@@ -100,9 +109,8 @@ public:
     const byte MAX_LAYERS = 8; // Maximum number of layers
 
     // Constructor
-    Visualizer(uint16_t numPixels, uint8_t pin, unsigned long frameIntervalMS, neoPixelType type = NEO_GRB + NEO_KHZ800)
+    Visualizer(uint8_t pin, uint16_t numPixels, unsigned long frameIntervalMS)
         : strip(numPixels, pin, type) // Initialize the NeoPixel strip
-        , stripType(type) // Initialize the strip type
         , frameIntervalMS(frameIntervalMS) { // Initialize the frame interval
     }
 
@@ -119,10 +127,16 @@ public:
     }
 
     // Add a new animation
-    void addAnimation(void (*animationFunc)(Adafruit_NeoPixel*, uint16_t, uint16_t, float), uint16_t startIndex, uint16_t length, unsigned long currentTime, unsigned long durationMS, bool repeat = false) {
-        Animation anim = {animationFunc, startIndex, length, currentTime, durationMS, repeat}; // Create a new animation
+    void addAnimation(Animation anim) {
+        anim.start(millis()); // Start the animation
         animations.addend(anim); // Add the animation to the list
-        animations.last().start(currentTime); // Start the animation
+    }
+
+    // Construct and add a new animation
+    void addAnimation(void (*animationFunc)(Adafruit_NeoPixel*, uint16_t, uint16_t, float),
+        uint8_t layer, uint16_t startIndex, uint16_t length, unsigned long durationMS, bool repeat = false) {
+        Animation anim(animationFunc, layer, startIndex, length, durationMS, repeat); // Create a new animation
+        addAnimation(anim); // Add the animation
     }
 
     // Remove an animation (by index in the HyperList)
@@ -138,15 +152,17 @@ public:
 
         strip.clear(); // Clear the strip
 
-        for (uint16_t i = 0; i < animations.size(); i++) { // Loop through each animation
-            Animation& anim = animations[i]; // Get the current animation
-            if (anim.shouldRun(currentTime)) { // Check if the animation should run
-                float factor = anim.run(currentTime); // Run the animation and get the current factor
-                anim.animationFunc(&strip, anim.startIndex, anim.length, factor); // Call the animation function
-            } else {
-                anim.stop(); // Stop the animation if it should not run
-                removeAnimation(i); // Remove the animation from the list
-                i--; // Decrement the index to account for the removed animation
+        for (uint8_t currentLayer = 0; currentLayer < MAX_LAYERS; currentLayer++) { // Loop through each layer
+            for (uint16_t i = 0; i < animations.size(); i++) { // Loop through each animation
+                if (animations[i].layer == currentLayer) { // Check if the animation is on the current layer
+                    if (animations[i].shouldRun(currentTime)) { // Check if the animation should run
+                        float factor = animations[i].run(currentTime); // Run the animation and get the current factor
+                        animations[i].animationFunc(&strip, animations[i].startIndex, animations[i].length, factor); // Call the animation function
+                    } else {
+                        removeAnimation(i); // Remove the animation from the list
+                        i--; // Decrement the index to account for the removed animation
+                    }
+                }
             }
         }
 

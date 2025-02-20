@@ -71,11 +71,17 @@ public:
         roundsPerMinute(roundsPerMinute),
         reloadTime(reloadTime),
         fullAuto(fullAuto),
-        ammo(magazine),
+        ammo(0),
         lastShot(0),
         lastReload(0),
         status(NOT_READY)
     {}
+
+    /**
+     * @brief Construct a new Gun object
+     * @param data The GunData object containing the data of the gun
+    */
+    Gun(GunData data) : Gun("Gun", data.damage, data.magazine, data.roundsPerMinute, data.reloadTime, data.fullAuto){}
 
     // Loop
     /**
@@ -114,6 +120,10 @@ public:
         return ammo;
     }
 
+    uint32_t getMagazine() {
+        return magazine;
+    }
+
     GunStatus getStatus() {
         return status;
     }
@@ -133,6 +143,20 @@ public:
     }
 
     // Methods
+    /**
+     * @brief Start the gun by setting the status to READY
+     */
+    void start() {
+        status = READY;
+    }
+
+    /**
+     * @brief End the gun by setting the status to NOT_READY
+     */
+    void end() {
+        status = NOT_READY;
+    }
+
     /**
      * @brief Shoot the gun
      * @return Whether the gun was able to shoot or not
@@ -172,15 +196,15 @@ public:
  * The attributes are as follows:
  * Name: Sidearm
  * Damage: 23
- * Magazine: 10
- * Rounds per minute: 100
+ * Magazine: 16
+ * Rounds per minute: 300
  * Reload time: 1800ms
  * Full auto: true
  */
 class Sidearm : public Gun
 {
 public:
-    Sidearm() : Gun("Sidearm", 23, 10, 100, 1800, true) {}
+    Sidearm() : Gun("Sidearm", 23, 16, 300, 1800, true) {}
 };
 
 /**
@@ -189,15 +213,15 @@ public:
  * The attributes are as follows:
  * Name: Hand Cannon
  * Damage: 42
- * Magazine: 6
- * Rounds per minute: 70
+ * Magazine: 8
+ * Rounds per minute: 150
  * Reload time: 3000ms
  * Full auto: false
  */
 class HandCannon : public Gun
 {
 public:
-    HandCannon() : Gun("Hand Cannon", 42, 6, 70, 3000, false) {}
+    HandCannon() : Gun("Hand Cannon", 42, 8, 150, 3000, false) {}
 };
 
 #endif // GUN_HPP

@@ -1,7 +1,7 @@
 #ifndef LINE_HPP
 #define LINE_HPP
 
-#include "TFT_eSPI_Elements.h"
+#include "TFT_eSPI_Elements.hpp"
 
 class Line : public Element {
 public:

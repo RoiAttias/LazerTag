@@ -1,7 +1,7 @@
 #ifndef RECTANGLE_HPP
 #define RECTANGLE_HPP
 
-#include "TFT_eSPI_Elements.h"
+#include "TFT_eSPI_Elements.hpp"
 #include <TFT_eSPI.h>
 
 class Rectangle : public Element

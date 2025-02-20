@@ -58,6 +58,12 @@ public:
     int addFromArray(T array[], int size);
 
     /**
+     * @brief Retrieves the data from the last node in the list.
+     * @return Data stored in the last node.
+     */
+    T back();
+
+    /**
      * Checks if the list contains a node with the given value.
      * @param value Data to check for in the list.
      * @return True if the value is found, false otherwise.
@@ -75,6 +81,12 @@ public:
      * Clears all nodes from the list.
      */
     void clear();
+
+    /**
+     * @brief Retrieves the data from the first node in the list.
+     * @return Data stored in the first node.
+     */
+    T front();
 
     /**
      * Retrieves the data from the node at the specified index.
@@ -250,6 +262,11 @@ int HyperList<T>::addFromArray(T array[], int size) {
 }
 
 template <typename T>
+T HyperList<T>::back() {
+    return get(listSize - 1); // Return the data from the last node
+}
+
+template <typename T>
 void HyperList<T>::clear() {
     while (head != nullptr) {
         Node<T>* temp = head;
@@ -285,6 +302,11 @@ int HyperList<T>::count(const T value) const {
         current = current->next;
     }
     return count;
+}
+
+template <typename T>
+T HyperList<T>::front() {
+    return get(0); // Return the data from the first node
 }
 
 template <typename T>

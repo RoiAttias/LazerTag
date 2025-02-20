@@ -46,6 +46,23 @@ inline float clamp(float value, float minVal, float maxVal)
 
 /**
  * @brief Maps a value from one range to another range.
+ * @param val The value to map.
+ * @param fromMin The lower bound of the input range.
+ * @param fromMax The upper bound of the input range.
+ * @param toMin The lower bound of the output range.
+ * @param toMax The upper bound of the output range.
+ * @return The mapped value in the output range.
+ */
+inline int map(int val, int fromMin, int fromMax, int toMin, int toMax)
+{
+    int distance = fromMax - fromMin;
+    val -= fromMin;
+    float factor = (float)val / distance;
+    return mix(factor, toMin, toMax);
+}
+
+/**
+ * @brief Maps a value from one range to another range.
  * 
  * @param value The input value to map.
  * @param inMin The lower bound of the input range.
@@ -73,16 +90,27 @@ inline float lerp(float start, float end, float t)
 }
 
 /**
- * @brief Performs linear interpolation between two values (GLSL-style mix function).
- * 
- * @param x The first value.
- * @param y The second value.
- * @param a The interpolation factor, typically between 0 and 1.
- * @return The interpolated value.
+ * @brief Mixes two values based on a factor. 
+ * @param factor The mixing factor.
+ * @param v1 The first value.
+ * @param v2 The second value.
+ * @return The mixed value.
  */
-inline float mix(float x, float y, float a)
+inline float mix(float factor, float v1, float v2)
 {
-    return x * (1.0f - a) + y * a;
+    return (v1 * (1.0f - factor)) + (v2 * factor);
+}
+
+/**
+ * @brief Mixes two integer values based on a factor. 
+ * @param factor The mixing factor.
+ * @param v1 The first value.
+ * @param v2 The second value.
+ * @return The mixed value.
+ */
+inline int mix(float factor, int v1, int v2)
+{
+    return (int)(mix(factor, (float)v1, (float)v2));
 }
 
 /**

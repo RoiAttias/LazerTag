@@ -3,7 +3,7 @@
 
 #include "TFT_eSPI.h"
 
-#include "TFT_eSPI_Elements.h"
+#include "TFT_eSPI_Elements.hpp"
 #include "Components/LuminaUI/Touch.hpp"
 #include "Components/Pushbutton/Pushbutton.hpp"
 

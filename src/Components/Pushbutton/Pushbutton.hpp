@@ -61,13 +61,17 @@ public:
     }
 
     /**
-     * Initialize the pushbutton by configuring the pin and setting up the ISR.
+     * @brief Initialize the pushbutton by configuring the pin and setting up the ISR.
+     * @param enablePress Enable press event handling.
+     * @param enableRelease Enable release event handling.
      */
-    void init() {
+    void init(bool enablePress = false, bool enableRelease = false) {
         pinMode(pin,INPUT_PULLUP);
         if (isrPointer) {
             attachInterrupt(digitalPinToInterrupt(pin), isrPointer, CHANGE);
         }
+        enablePressEvent(enablePress);
+        enableReleaseEvent(enableRelease);
     }
 
     /**

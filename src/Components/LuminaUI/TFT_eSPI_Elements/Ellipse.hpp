@@ -1,7 +1,7 @@
 #ifndef ELLIPSE_HPP
 #define ELLIPSE_HPP
 
-#include "TFT_eSPI_Elements.h"
+#include "TFT_eSPI_Elements.hpp"
 #include <TFT_eSPI.h>
 
 class Ellipse : public Element
