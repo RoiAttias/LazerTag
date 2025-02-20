@@ -15,8 +15,8 @@ void fireAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t l
     for (uint16_t i = 0; i < length; i++) { // Loop through each LED
         uint16_t hue = random(26, 36)<<8; // Generate a random hue value in the range [26, 36]
         uint8_t saturation = random(192, 255); // Generate a random saturation value in the range [192, 255]
-        uint8_t value = mix(factor, startIndex, length-startIndex-1); // Interpolate the value based on the factor
-        strip->setPixelColor(startIndex + i, Adafruit_NeoPixel::ColorHSV(hue, saturation, value)); // Set the color of the current LED
+        uint8_t value = mix(factor<0.5?factor*2:1-(factor*2), 0, 255);
+        strip->fill(Adafruit_NeoPixel::ColorHSV(hue, saturation, value), startIndex, length); // Set the LED color
     }
 }
 
@@ -35,9 +35,9 @@ private:
 public:
     Shooter()
         : irSender(irPin, irChannel, irFrequency),
-          visualizer(stripLength, stripPin, stripFrameIntervalMS),
+          visualizer(stripPin, stripLength, stripFrameIntervalMS),
           gun(nullptr),
-          fireSignal(0x00FFA25D),
+          fireSignal(0xFF00FF00),
           callRender(false)
     {
     }
@@ -121,6 +121,16 @@ public:
             return true;
         }
         return false;
+    }
+
+    /**
+     * @brief Checks if the gun is in full-auto mode.
+     * 
+     * @return true if the gun is in full-auto mode, false otherwise.
+     */
+    bool isFullAuto()
+    {
+        return gun->fullAuto;
     }
 
     /**

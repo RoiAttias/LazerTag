@@ -46,7 +46,7 @@ void gun_loop()
         shooter.reload();
     }
 
-    if (trigger.hasPressed())
+    if (trigger.hasPressed() || (shooter.isFullAuto() && trigger.isPressed()))
     {
         shooter.shoot();
     }
