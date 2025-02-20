@@ -2,42 +2,38 @@
 #define PLAYER_HPP
 
 #include "Gun.hpp"
+#include "Utilities/MacAddress.hpp"
 
-uint16_t playerIDs = 0;
+static uint16_t playerIDs = 0;
+
 int newPlayerID()
 {
     return ++playerIDs;
 }
+
 void resetPlayerIDcounter() {
     playerIDs = 0;
 }
 
 class Player {
 public:
-
-    const uint16_t ID = newPlayerID();
-
+    uint16_t ID;
     uint8_t teamID;
     String name;
-
     MacAddress gunAddress;
     MacAddress vestAddress;
-    
     int hp;
     Gun gun;
 
-
-    Player(uint8_t teamID, String playerName = "null", MacAddress gunAddr = nullptr, MacAddress vestAddr = nullptr)
-        : teamID(teamID), name(playerName), gunAddress(gunAddr), vestAddress(vestAddr)
+    Player(uint8_t teamID = 0, String playerName = "null", MacAddress gunAddr = MacAddress(), MacAddress vestAddr = MacAddress())
+        : teamID(teamID), name(playerName), gunAddress(gunAddr), vestAddress(vestAddr), hp(100), gun(Sidearm)
     {
+        ID = newPlayerID();
         if (name == "null")
         {
             name = "Player";
             name += ID;
         }
-
-        hp = 0;
-        gun = Sidearm();
     }
 
     // HP methods
@@ -55,7 +51,6 @@ public:
     {
         hp -= damage;
     }
-
 
     // Gun methods
     uint32_t getGunDamage()

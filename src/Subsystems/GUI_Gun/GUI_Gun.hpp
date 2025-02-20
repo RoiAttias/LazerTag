@@ -9,29 +9,51 @@
 #include <Wire.h>
 #endif
 
+#define LUMINAUI_USE_U8G2
 #include "Components/LuminaUI/LuminaUI.hpp"
 
 U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
 
-ivec2 screenDiamentions;
-Screen screen(true);
-
 // Paths to Activities
-
+#include "OnGame.hpp"
 
 enum GUI_Gun_Activity : uint8_t {
-    
+    ONGAME,
     GUI_Gun_Activity_size
 };
-
+// Activities
 Activity * GUI_Gun_Activities[] = {
+    onGame
 };
 
-namespace GUI_Gun {
-    void init() {
-        LuminaUI::tft_instance = &u8g2;
-        screenDiamentions = ivec2(LuminaUI::tft_instance->getDisplayWidth(), LuminaUI::tft_instance->getDisplayHeight());
+ivec2 screenDiamentions(128, 64);
+Screen screen(false);
+
+namespace GUI {
+    void init(Player *playerPtr) {
+        // OLED initialization
+        u8g2.begin();
+
+        // LuminaUI initialization
         screen.init(screenDiamentions, GUI_Gun_Activities, GUI_Gun_Activity_size, true);
+        screen.selectActivity(GUI_Gun_Activity::ONGAME);
+
+        // Player initialization
+        onGame->setPlayer(playerPtr);
+
+        u8g2.clearBuffer();
+    }
+    
+    void loop() {
+        if (screen.shouldRender()) {
+            u8g2.clearBuffer();
+            screen.render();
+            u8g2.sendBuffer();
+        }
+    }
+
+    void callRender() {
+        screen.callRender();
     }
 }
 

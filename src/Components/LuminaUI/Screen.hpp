@@ -35,8 +35,8 @@ public:
      */
     Screen(bool renderAfterOnTouch = false)
         : resolution(LuminaUI_AUTO), renderAfterOnTouch(renderAfterOnTouch), _shouldRender(false),
-        currentActivity(-1), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) {}
-    
+        currentActivity(-1), touchEnabled(false), pushEnabled(false), pushHandler(nullptr) {}    
+
     /**
      * @brief Destructor to clean up resources.
      */

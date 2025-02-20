@@ -45,38 +45,6 @@ inline float clamp(float value, float minVal, float maxVal)
 }
 
 /**
- * @brief Maps a value from one range to another range.
- * @param val The value to map.
- * @param fromMin The lower bound of the input range.
- * @param fromMax The upper bound of the input range.
- * @param toMin The lower bound of the output range.
- * @param toMax The upper bound of the output range.
- * @return The mapped value in the output range.
- */
-inline int map(int val, int fromMin, int fromMax, int toMin, int toMax)
-{
-    int distance = fromMax - fromMin;
-    val -= fromMin;
-    float factor = (float)val / distance;
-    return mix(factor, toMin, toMax);
-}
-
-/**
- * @brief Maps a value from one range to another range.
- * 
- * @param value The input value to map.
- * @param inMin The lower bound of the input range.
- * @param inMax The upper bound of the input range.
- * @param outMin The lower bound of the output range.
- * @param outMax The upper bound of the output range.
- * @return The mapped value in the output range.
- */
-inline float mapFloat(float value, float inMin, float inMax, float outMin, float outMax)
-{
-    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-}
-
-/**
  * @brief Performs linear interpolation between two values.
  * 
  * @param start The starting value.
@@ -111,6 +79,38 @@ inline float mix(float factor, float v1, float v2)
 inline int mix(float factor, int v1, int v2)
 {
     return (int)(mix(factor, (float)v1, (float)v2));
+}
+
+/**
+ * @brief Maps a value from one range to another range.
+ * @param val The value to map.
+ * @param fromMin The lower bound of the input range.
+ * @param fromMax The upper bound of the input range.
+ * @param toMin The lower bound of the output range.
+ * @param toMax The upper bound of the output range.
+ * @return The mapped value in the output range.
+ */
+inline int map(int val, int fromMin, int fromMax, int toMin, int toMax)
+{
+    int distance = fromMax - fromMin;
+    val -= fromMin;
+    float factor = (float)val / distance;
+    return mix(factor, toMin, toMax);
+}
+
+/**
+ * @brief Maps a value from one range to another range.
+ * 
+ * @param value The input value to map.
+ * @param inMin The lower bound of the input range.
+ * @param inMax The upper bound of the input range.
+ * @param outMin The lower bound of the output range.
+ * @param outMax The upper bound of the output range.
+ * @return The mapped value in the output range.
+ */
+inline float mapFloat(float value, float inMin, float inMax, float outMin, float outMax)
+{
+    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
 }
 
 /**

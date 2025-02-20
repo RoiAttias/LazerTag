@@ -36,12 +36,12 @@ class Gun
 {
 public:
     // Constants
-    const String name;
-    const uint32_t damage;
-    const uint32_t magazine;
-    const uint32_t roundsPerMinute;
-    const uint32_t reloadTime;
-    const bool fullAuto;
+    String name;
+    uint32_t damage;
+    uint32_t magazine;
+    uint32_t roundsPerMinute;
+    uint32_t reloadTime;
+    bool fullAuto;
 
     // Variables
     uint32_t ammo;
@@ -191,9 +191,6 @@ public:
 };
 
 /**
- * @brief A derived class representing a Sidearm
- * This class inherits from Gun and initializes a sidearm with specific attributes.
- * The attributes are as follows:
  * Name: Sidearm
  * Damage: 23
  * Magazine: 16
@@ -201,16 +198,9 @@ public:
  * Reload time: 1800ms
  * Full auto: true
  */
-class Sidearm : public Gun
-{
-public:
-    Sidearm() : Gun("Sidearm", 23, 16, 300, 1800, true) {}
-};
+Gun Sidearm("Sidearm", 23, 16, 300, 1800, true);
 
 /**
- * @brief A derived class representing a Hand Cannon
- * This class inherits from Gun and initializes a Hand Cannon with specific attributes.
- * The attributes are as follows:
  * Name: Hand Cannon
  * Damage: 42
  * Magazine: 8
@@ -218,10 +208,6 @@ public:
  * Reload time: 3000ms
  * Full auto: false
  */
-class HandCannon : public Gun
-{
-public:
-    HandCannon() : Gun("Hand Cannon", 42, 8, 150, 3000, false) {}
-};
+Gun HandCannon("Hand Cannon", 42, 8, 150, 3000, false);
 
 #endif // GUN_HPP
