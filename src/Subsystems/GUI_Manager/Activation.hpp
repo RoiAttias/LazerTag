@@ -2,7 +2,6 @@
 #define ACTIVATION_HPP
 
 #include "GUI_Manager.hpp"
-#include <Arduino.h>
 
 class Activation : public Activity {
 public:
@@ -63,7 +62,7 @@ void down(ivec2 point, TouchStatus touchStatus) {
 
 void story(ivec2 point, TouchStatus touchStatus) {
     if (touchStatus == TouchStatus_PRESS) {
-        switchActivity(3);
+        GUI::selectActivity(GUI_Manager_Activity::STORY);
     }
 }
 

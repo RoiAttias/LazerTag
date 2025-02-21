@@ -2,7 +2,6 @@
 #define STORY_HPP
 
 #include "GUI_Manager.hpp"
-#include <Arduino.h>
 
 class Story : public Activity {
 public:
@@ -49,7 +48,7 @@ public:
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override {
         if (touchStatus == TouchStatus_PRESS) {
-            switchActivity(0);
+            GUI::selectActivity(GUI_Manager_Activity::ACTIVATION);
         }
     }
 };
