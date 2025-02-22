@@ -44,9 +44,7 @@ public:
 
     pinMode(recvPin, INPUT); // Set the receive pin as input
 
-    isr.enablePressEvent(true); // Enable press event for the ISR
-    isr.enableReleaseEvent(true); // Enable release event for the ISR
-    isr.init(); // Initialize the ISR
+    isr.init(true, true); // Initialize the ISR
   }
 
   // Method to check if data is available in the buffer
@@ -78,13 +76,15 @@ public:
     return result;
   }
 
+  void handleInterrupt()
+  {
+    isr.handleInterrupt();
+  }
+
   // Method to decode NEC signals
   void decodeNEC()
   {
     if (buffer.size() >= IR_RECEIVER_BUFFER_SIZE)
-      return;
-
-    if (!isr.hasPressed() && !isr.hasReleased())
       return;
 
     currentTime = micros();

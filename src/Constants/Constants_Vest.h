@@ -2,7 +2,7 @@
 #define CONSTANTS_VEST_H
 
 // Receiver
-const uint8_t[] recvPins = {27,26,25};
+const uint8_t recvPins[] = {27,26,25};
 const bool recvValid = true;
 
 // NeoPixel

@@ -37,7 +37,7 @@ public:
         : irSender(irPin, irChannel, irFrequency),
           visualizer(stripPin, stripLength, stripFrameIntervalMS),
           gun(nullptr),
-          fireSignal(0xFF00FF00),
+          fireSignal(0x69966996),
           callRender(false)
     {
     }
