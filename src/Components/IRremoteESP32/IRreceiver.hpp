@@ -13,12 +13,12 @@ private:
 
   NEC_DATA data; // NEC data structure
 
-  uint32_t dataRead; // Variable to store the read data
-  uint32_t lastTime; // Variable to store the last time a signal was received
-  uint32_t currentTime; // Variable to store the current time
-  uint32_t duration; // Variable to store the duration between signals
-  int bitCount; // Variable to count the number of bits received
-  NEC_STAGE nec_stage; // Variable to store the current stage of NEC decoding
+  volatile uint32_t dataRead; // Variable to store the read data
+  volatile uint32_t lastTime; // Variable to store the last time a signal was received
+  volatile uint32_t currentTime; // Variable to store the current time
+  volatile uint32_t duration; // Variable to store the duration between signals
+  volatile int bitCount; // Variable to count the number of bits received
+  volatile NEC_STAGE nec_stage; // Variable to store the current stage of NEC decoding
 
   bool validateData; // Flag to enable/disable validation
 
