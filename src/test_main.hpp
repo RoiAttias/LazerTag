@@ -1,12 +1,12 @@
 #include "Components/Nexus/Nexus.hpp"
 
 bool onThisScanned(const MacAddress &who) {
-    Serial.println("Scanned by: " + who.toString());
+    Serial.println("Scanned by: " + who.toString() + "!");
     return true;
 }
 
 void onScanComplete() {
-    Serial.println("Scan complete!");
+    Serial.print("123");
     Serial.print("Devices found: ");
     Serial.println(Nexus::scanResults.size());
 
@@ -23,6 +23,8 @@ void test_setup() {
 
     Nexus::onThisScanned = onThisScanned;
     Nexus::onScanComplete = onScanComplete;
+
+    Nexus::shouldScan = false;
 
     if(Nexus::begin(0)) {
         Serial.println("Nexus module initialized successfully!");

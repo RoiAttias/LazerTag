@@ -1,23 +1,48 @@
 #ifndef COMMS_HPP
 #define COMMS_HPP
 
-#include "Components/Nexus/Nexus.hpp"
+#include "Utilities/HyperMap.hpp"
+#include "LazerTagPacket.hpp"
 
-enum CommsCommand {
-    COMMS_TYPE
-    COMMS_GUN_PARAMS,
-    COMMS_GUN_FIRECODE,
-    
-};
+namespace Comms {
+    const uint8_t version[3] = {SYSTEM_VERSION_MAJOR, SYSTEM_VERSION_MINOR, SYSTEM_VERSION_PATCH};
+    uint8_t deviceType;
 
-struct LazerTagPacket {
-    // Header
-    uint8_t version[3]; // 3 bytes
-    uint32_t command; // 4 bytes
+    HyperList<MacAddress> peers;
+    HyperMap<MacAddress, uint8_t> peerTypes;
 
-    // Header size = 7 bytes
+    bool init(uint8_t setDeviceType) {
+        CHANNEL = channel; // Set the channel
 
-    uint8_t payload[NEXUS_MAX_PAYLOAD_SIZE - 7]; // 236 bytes
+        // Initialize ESP-NOW
+        WiFi.mode(WIFI_STA); // Set the WiFi mode to station
+        if (esp_now_init() != ESP_OK) return false; // Initialize ESP-NOW
+
+        // Register the callbacks
+        if (esp_now_register_recv_cb(onReceive) != ESP_OK) return false;
+
+        if (addPeer(BROADCAST_ADDRESS) != NEXUS_ERROR_OK) return false; // Add the broadcast peer
+
+        return true; // Initialization successful
+    }
+
+    void addPeer(const MacAddress &peer) {
+        peers.addend(peer);
+    }
+
+    void loop() {
+        Nexus::loop();
+    }
+
+    uint8_t available() {
+        return Nexus::available();
+    }
+
+    void sendPacket(LazerTagPacket &packet, const MacAddress &destination) {
+        uint8_t data[packet.size()]; // Create a buffer for the packet
+        memcpy(data, &packet, packet.size()); // Copy the packet to the buffer
+        esp_now_send(destination.addr, data, packet.size());
+    }
 }
 
 #endif // COMMS_HPP

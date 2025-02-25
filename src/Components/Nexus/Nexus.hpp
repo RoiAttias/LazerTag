@@ -103,12 +103,15 @@ namespace Nexus {
     const MacAddress BROADCAST_ADDRESS(BROADCAST_ADDRESS_ARRAY); // Broadcast address
     MacAddress THIS_ADDRESS; // MAC address of this device
 
-    bool (* onPeerConnect)(const MacAddress &peer); // Callback function for peer connection
+    void (* OnPeerConnect)(const MacAddress &peer); // Callback function for peer connection
+    bool (* OnPeerSync)(const MacAddress &peer); // Callback function for peer synchronization
     void (* onPeerDisconnect)(const MacAddress &peer, uint8_t error); // Callback function for peer disconnection
     void (* onScanComplete)(); // Callback function for scan completion
     bool (* onThisScanned)(const MacAddress &who); // Callback function for when this device is scanned
 
     uint32_t lastScan = 0; // Last scan time
+    bool isScanComplete = false; // Scan completion flag
+    bool shouldScan = true; // Scan flag
 
     HyperList<MacAddress> peers; // List of peers
     HyperList<MacAddress> scanResults; // List of scan results
@@ -197,6 +200,13 @@ namespace Nexus {
     bool readPacket(NexusPacket &packet);
     
     /**
+     * @brief Check if a packet is available.
+     * 
+     * @return int The number of packets available.
+     */
+    int available();
+
+    /**
      * @brief Send data to a specific destination.
      * 
      * @param data The data to send.
@@ -282,8 +292,8 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         }
         break;
     case NEXUS_FLAG_SYN:
-        if (!Nexus::whitelist.contains(mac_addr) && Nexus::onPeerConnect != nullptr) {
-            if (!Nexus::onPeerConnect(mac_addr)) {
+        if (!Nexus::whitelist.contains(mac_addr) && Nexus::OnPeerSync != nullptr) {
+            if (!Nexus::OnPeerSync(mac_addr)) {
                 Nexus::pendingPeersEvents_outgoing.addend({mac_addr, ++packet.sequenceNum ,NEXUS_FLAG_SYN | NEXUS_FLAG_ACK, NEXUS_ERROR_PEER_REFUSED, now});
                 break;
             }
@@ -313,6 +323,9 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         Serial.println("Flag - " + String(packet.flags));
         for (size_t index = 0; index < Nexus::pendingPeersEvents_incoming.size(); index++) {
             auto pendingEvent = Nexus::pendingPeersEvents_incoming[index];
+            Serial.println("Pending - " + pendingEvent.addr.toString());
+            Serial.println("Packet - " + pendingEvent.seqNum);
+            Serial.println("Flags - " + pendingEvent.flags);
             if (pendingEvent.addr == mac_addr && pendingEvent.seqNum == packet.sequenceNum && pendingEvent.flags == packet.flags) {
                 switch (pendingEvent.flags) {
                 case NEXUS_FLAG_SYN | NEXUS_FLAG_ACK:
@@ -459,6 +472,11 @@ namespace Nexus {
         return packetBuffer.dequeue(packet); // Dequeue the packet
     }
 
+    // Return the number of bytes available
+    int available() {
+        return packetBuffer.size();
+    }
+
     // Send data to a specific destination
     bool sendData(const uint8_t *data, size_t length, const MacAddress destination) {
         if (length > NEXUS_MAX_PAYLOAD_SIZE) return false; // Check if length is valid
@@ -527,7 +545,8 @@ namespace Nexus {
         }
 
         // Check for scan interval
-        if (now - lastScan > NEXUS_SCAN_INTERVAL) {
+        if (now - lastScan > NEXUS_SCAN_INTERVAL && shouldScan) {
+            isScanComplete = true; // Set the scan completion flag
             if (onScanComplete != nullptr) {
                 onScanComplete(); // Call the scan complete callback
             }
