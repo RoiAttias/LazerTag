@@ -280,7 +280,7 @@ void HyperList<T>::clear() {
 }
 
 template <typename T>
-bool HyperList<T>::contains(const T value) const {
+bool HyperList<T>::contains(T value) const {
     Node<T>* current = head;
     while (current != nullptr) {
         if (current->data == value) {

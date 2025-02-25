@@ -4,6 +4,8 @@
 #include <Arduino.h>
 #include "Constants/Constants_Vest.h"
 #include "Components/IRremoteESP32/IRremoteESP32.hpp"
+#include "Utilities/HyperList.hpp"
+#include "Utilities/HyperMap.hpp"
 
 void IRAM_ATTR recvISR_0();
 void IRAM_ATTR recvISR_1();
@@ -22,6 +24,8 @@ namespace Target
     };
     size_t irReceiversCount = 3;
 
+    HyperList<NEC_DATA> hits;
+
     void init() {
         for (int i = 0; i < irReceiversCount; i++) {
             irReceivers[i].init();
@@ -32,13 +36,26 @@ namespace Target
         for (int i = 0; i < irReceiversCount; i++) {
             if (irReceivers[i].available()) {
                 NEC_DATA receivedData = irReceivers[i].read();
-                Serial.print(i);
-                Serial.print(" - Received NEC Data: 0x");
-                Serial.println(receivedData.data, HEX);
+                if (!hits.contains(receivedData)) {
+                    hits.addend(receivedData);
+                }
             }
         }
     }
 
+    int hasHit() {
+        return hits.size();
+    }
+
+    NEC_DATA readHit() {
+        auto value = hits[0];
+        hits.remove(0);
+        return value;
+    }
+
+    void clear() {
+        hits.clear();
+    }
 }
 
 void IRAM_ATTR recvISR_0() {

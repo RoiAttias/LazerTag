@@ -40,6 +40,16 @@ union NEC_DATA
 
   NEC_DATA(uint32_t value = 0) : data(value) {}
   NEC_DATA(uint8_t addr, uint8_t cmd) : address(addr), address_inv(~addr), command(cmd), command_inv(~cmd) {}
+
+  bool operator==(const NEC_DATA &other) const
+  {
+    return data == other.data;
+  }
+
+  bool operator!=(const NEC_DATA &other) const
+  {
+    return data != other.data;
+  }
 };
 
 bool compare (uint32_t value, uint32_t valToCompare, uint32_t epsilon)

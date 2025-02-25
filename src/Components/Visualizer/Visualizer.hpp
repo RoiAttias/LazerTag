@@ -144,6 +144,11 @@ public:
         animations.remove(index); // Remove the animation from the list
     }
 
+    // Remove all animations
+    void clearAnimations() {
+        animations.clear(); // Clear the list of animations
+    }
+
     // Update all animations
     void loop() {
         unsigned long currentTime = millis(); // Get the current time
