@@ -4,7 +4,7 @@
 #define DEVICE_TEST 4
 
 // Select device here
-#define DEVICE_TYPE DEVICE_VEST
+#define DEVICE_TYPE 4
 
 #ifndef DEVICE_TYPE
 #error "DEVICE_TYPE is not defined! Define DEVICE_TYPE in your build flags (e.g., -DDEVICE_MANAGER)."

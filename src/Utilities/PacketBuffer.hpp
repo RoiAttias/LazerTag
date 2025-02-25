@@ -44,6 +44,11 @@ public:
         return packetQueue.empty();
     }
 
+    // Method to check if the queue is full
+    bool isFull() const {
+        return packetQueue.size() >= maxSize;
+    }
+
     // Method to get the current size of the queue
     size_t size() const {
         return packetQueue.size();

@@ -5,6 +5,8 @@
         "cmath": "cpp",
         "*.tcc": "cpp",
         "random": "cpp",
-        "string_view": "cpp"
+        "string_view": "cpp",
+        "memory": "cpp",
+        "optional": "cpp"
     }
 }
