@@ -110,6 +110,7 @@ namespace Nexus {
     bool (* onThisScanned)(const MacAddress &who); // Callback function for when this device is scanned
 
     uint32_t lastScan = 0; // Last scan time
+    uint16_t scanSeq = 0; // Sequence number
     bool isScanComplete = false; // Scan completion flag
     bool shouldScan = true; // Scan flag
 
@@ -321,6 +322,7 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         break;
     default:
         Serial.println("Flag - " + String(packet.flags));
+        bool wasValid = false;
         for (size_t index = 0; index < Nexus::pendingPeersEvents_incoming.size(); index++) {
             auto pendingEvent = Nexus::pendingPeersEvents_incoming[index];
             Serial.println("Pending - " + pendingEvent.addr.toString());
@@ -328,6 +330,9 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
             Serial.println("Flags - " + pendingEvent.flags);
             if (pendingEvent.addr == mac_addr && pendingEvent.seqNum == packet.sequenceNum && pendingEvent.flags == packet.flags) {
                 switch (pendingEvent.flags) {
+                case NEXUS_FLAG_ACK:
+                    // Do nothing
+                    break;
                 case NEXUS_FLAG_SYN | NEXUS_FLAG_ACK:
                     Nexus::addPeer(mac_addr); // Add the peer
                     break;
@@ -339,19 +344,26 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
                     Nexus::addPeer(mac_addr); // Add the peer again
                     break;
                 case NEXUS_FLAG_SCN | NEXUS_FLAG_ACK:
-                    if (Nexus::scanResults.contains(mac_addr)) break;
-                    Serial.println("Adding to scan results");
-                    Nexus::scanResults.addend(mac_addr); // Add to scan results
-                    break;
-                default:
-                    Nexus::pendingPeersEvents_outgoing.addend({mac_addr, ++packet.sequenceNum ,NEXUS_FLAG_NONE, NEXUS_ERROR_INVALID_FLAG, now});
-                    Nexus::addToBlacklist(mac_addr, NEXUS_ERROR_INVALID_FLAG); // Add to blacklist if flag is invalid
+                    // Do later
                     break;
                 }
                 Nexus::pendingPeersEvents_incoming.remove(index); // Remove the pending event
+                wasValid = true;
             }
             index++;
         }
+        if (packet.flags == NEXUS_FLAG_SCN | NEXUS_FLAG_ACK && packet.sequenceNum == Nexus::scanSeq) {
+            if (Nexus::scanResults.contains(mac_addr)) break;
+            Serial.println("Adding to scan results");
+            Nexus::scanResults.addend(mac_addr); // Add to scan results
+            wasValid = true;
+        }
+
+        if(!wasValid){
+            Nexus::pendingPeersEvents_outgoing.addend({mac_addr, ++packet.sequenceNum ,NEXUS_FLAG_NONE, NEXUS_ERROR_INVALID_FLAG, now});
+            Nexus::addToBlacklist(mac_addr, NEXUS_ERROR_INVALID_FLAG); // Add to blacklist if flag is invalid      
+        }
+
         break;
     }
 }
@@ -516,6 +528,7 @@ namespace Nexus {
         for (size_t i = 0; i < peers.size(); i++) {
             pendingPeersEvents_incoming.addend({peers[i], ++packet.sequenceNum, NEXUS_FLAG_SCN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
         }
+        scanSeq = packet.sequenceNum; // Update the scan sequence number
         packet.sequenceNum--;
         sendPacket(packet, BROADCAST_ADDRESS); // Send the packet
     }
