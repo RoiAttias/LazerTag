@@ -26,14 +26,14 @@
 #define NEXUS_FLAG_SYN 0x01 // Synchronize - Establish a connection
 #define NEXUS_FLAG_ACK 0x02 // Acknowledge - Acknowledge a received packet
 #define NEXUS_FLAG_FIN 0x04 // Finish - Close a connection
-#define NEXUS_FLAG_RST 0x08 // Reset - Reset a connection
-#define NEXUS_FLAG_SCN 0x10 // Scan - Scan for nearby devices
+#define NEXUS_FLAG_SCN 0x08 // Scan - Scan for nearby devices
 
 // Define error codes for Nexus
 enum NexusErrors : uint8_t {
     NEXUS_ERROR_OK, // No error
     NEXUS_ERROR_UNKNOWN, // Unknown error
     NEXUS_ERROR_TIMEOUT, // Timeout error
+    NEXUS_ERROR_SEND_UNSUCCESSFUL, // Send unsuccessful error
     NEXUS_ERROR_BUFFER_FULL, // Buffer full error
     NEXUS_ERROR_PEER_REFUSED, // Peer refused error
     NEXUS_ERROR_PEER_FULL, // Peer full error
@@ -94,7 +94,6 @@ struct NexusPeerEvent {
 
 // Declare the Nexus namespace
 namespace Nexus {
-    const size_t MAX_PEERS = 20; // Maximum number of peers
 
     int CHANNEL = 0; // Channel for communication
 
@@ -215,7 +214,7 @@ namespace Nexus {
      * @param destination The MAC address of the destination.
      * @return bool True if the data was sent successfully, false otherwise.
      */
-    bool sendData(const uint8_t *data, size_t length, const MacAddress &destination = BROADCAST_ADDRESS);
+    bool sendData(const uint8_t data[], uint8_t length, const MacAddress destination = BROADCAST_ADDRESS);
     
     /**
      * @brief Synchronize with a specific peer.
@@ -228,15 +227,9 @@ namespace Nexus {
      * @brief Finish the connection with a specific peer.
      * 
      * @param destination The MAC address of the peer to finish the connection with.
+     * @param error The error code for finishing the connection.
      */
-    void finish(const MacAddress &destination);
-    
-    /**
-     * @brief Reset the connection with a specific peer.
-     * 
-     * @param destination The MAC address of the peer to reset the connection with.
-     */
-    void reset(const MacAddress &destination);
+    void finish(const MacAddress &destination, uint8_t error = NEXUS_ERROR_OK);
     
     /**
      * @brief Scan for nearby devices.
@@ -261,8 +254,7 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
     NexusPacket packet(0, 0, 0, 0, nullptr); // Create a new packet
     memcpy(&packet, data, len); // Copy the data to the packet
 
-    Serial.println("Received From - " + mac_addr.toString());
-    Serial.println("Received - " + packet.toString());
+    Serial.println(packet.toString());
 
     uint32_t now = millis(); // Get the current time
     uint8_t error = NEXUS_ERROR_OK; // Initialize error code
@@ -293,23 +285,20 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         }
         break;
     case NEXUS_FLAG_SYN:
+        Nexus::addPeer(mac_addr); // Add the peer
         if (!Nexus::whitelist.contains(mac_addr) && Nexus::OnPeerSync != nullptr) {
             if (!Nexus::OnPeerSync(mac_addr)) {
                 Nexus::pendingPeersEvents_outgoing.addend({mac_addr, ++packet.sequenceNum ,NEXUS_FLAG_SYN | NEXUS_FLAG_ACK, NEXUS_ERROR_PEER_REFUSED, now});
                 break;
             }
         }
-        Nexus::addPeer(mac_addr); // Add the peer
         Nexus::pendingPeersEvents_outgoing.addend({mac_addr, ++packet.sequenceNum ,NEXUS_FLAG_SYN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
+        if (Nexus::OnPeerConnect != nullptr) {
+            Nexus::OnPeerConnect(mac_addr); // Call the connect callback
+        }
         break;
     case NEXUS_FLAG_FIN:
         Nexus::removePeer(mac_addr); // Remove the peer
-        Nexus::pendingPeersEvents_outgoing.addend({mac_addr, ++packet.sequenceNum ,NEXUS_FLAG_FIN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
-        break;
-    case NEXUS_FLAG_RST:
-        Nexus::removePeer(mac_addr); // Remove the peer
-        Nexus::addPeer(mac_addr); // Add the peer again
-        Nexus::pendingPeersEvents_outgoing.addend({mac_addr, ++packet.sequenceNum ,NEXUS_FLAG_RST | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
         break;
     case NEXUS_FLAG_SCN:
         if (!Nexus::whitelist.contains(mac_addr) && Nexus::onThisScanned != nullptr) {
@@ -318,16 +307,12 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
                 break;
             }
         }
-        Nexus::pendingPeersEvents_outgoing.addend({mac_addr, ++packet.sequenceNum ,NEXUS_FLAG_SCN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
+        Nexus::pendingPeersEvents_outgoing.addend({Nexus::BROADCAST_ADDRESS, ++packet.sequenceNum ,NEXUS_FLAG_SCN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, now});
         break;
     default:
-        Serial.println("Flag - " + String(packet.flags));
         bool wasValid = false;
         for (size_t index = 0; index < Nexus::pendingPeersEvents_incoming.size(); index++) {
             auto pendingEvent = Nexus::pendingPeersEvents_incoming[index];
-            Serial.println("Pending - " + pendingEvent.addr.toString());
-            Serial.println("Packet - " + pendingEvent.seqNum);
-            Serial.println("Flags - " + pendingEvent.flags);
             if (pendingEvent.addr == mac_addr && pendingEvent.seqNum == packet.sequenceNum && pendingEvent.flags == packet.flags) {
                 switch (pendingEvent.flags) {
                 case NEXUS_FLAG_ACK:
@@ -335,13 +320,9 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
                     break;
                 case NEXUS_FLAG_SYN | NEXUS_FLAG_ACK:
                     Nexus::addPeer(mac_addr); // Add the peer
-                    break;
-                case NEXUS_FLAG_FIN | NEXUS_FLAG_ACK:
-                    Nexus::removePeer(mac_addr); // Remove the peer
-                    break;
-                case NEXUS_FLAG_RST | NEXUS_FLAG_ACK:
-                    Nexus::removePeer(mac_addr); // Remove the peer
-                    Nexus::addPeer(mac_addr); // Add the peer again
+                    if (Nexus::OnPeerConnect != nullptr) {
+                        Nexus::OnPeerConnect(mac_addr); // Call the connect callback
+                    }
                     break;
                 case NEXUS_FLAG_SCN | NEXUS_FLAG_ACK:
                     // Do later
@@ -354,7 +335,6 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         }
         if (packet.flags == NEXUS_FLAG_SCN | NEXUS_FLAG_ACK && packet.sequenceNum == Nexus::scanSeq) {
             if (Nexus::scanResults.contains(mac_addr)) break;
-            Serial.println("Adding to scan results");
             Nexus::scanResults.addend(mac_addr); // Add to scan results
             wasValid = true;
         }
@@ -379,7 +359,8 @@ void onSend(const uint8_t *mac_addr, esp_now_send_status_t status) {
     if (status == ESP_NOW_SEND_SUCCESS) {
         // Packet sent successfully
     } else {
-        Nexus::reset(MacAddress(mac_addr)); // Reset the peer
+         // Finish the connection with send error
+        Nexus::finish(MacAddress(mac_addr), NEXUS_ERROR_SEND_UNSUCCESSFUL);
     }
 }
 
@@ -472,10 +453,9 @@ namespace Nexus {
 
     // Send a NexusPacket to a specific destination
     bool sendPacket(const NexusPacket &packet, const MacAddress destination) {
-        //Serial.println("Sending To - " + destination.toString());
-        //Serial.println("Sending - " + packet.toString());
         uint8_t data[packet.size()]; // Create a buffer for the packet
         memcpy(data, &packet, packet.size()); // Copy the packet to the buffer
+        Serial.println(packet.toString());
         return esp_now_send(destination.addr, data, packet.size()) == ESP_OK; // Send the packet
     }
 
@@ -490,8 +470,15 @@ namespace Nexus {
     }
 
     // Send data to a specific destination
-    bool sendData(const uint8_t *data, size_t length, const MacAddress destination) {
+    bool sendData(const uint8_t data[], uint8_t length, const MacAddress destination) {
         if (length > NEXUS_MAX_PAYLOAD_SIZE) return false; // Check if length is valid
+        for (size_t i = 0; i < pendingPeersEvents_incoming.size(); i++) {
+            auto pendingEvent = pendingPeersEvents_incoming[i];
+            if (pendingEvent.addr == destination) {
+                return false; // Check if the peer is in the pending incoming events
+                break;
+            }
+        }
         NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_NONE, NEXUS_ERROR_OK, length, data); // Create a new packet
         pendingPeersEvents_incoming.addend({destination, ++packet.sequenceNum, NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
         return sendPacket(packet, destination); // Send the packet
@@ -501,24 +488,15 @@ namespace Nexus {
     void syncronize(const MacAddress &destination) {
         NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_SYN, NEXUS_ERROR_OK, 0, nullptr); // Create a new packet
         pendingPeersEvents_incoming.addend({destination, ++packet.sequenceNum, NEXUS_FLAG_SYN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
+        addPeer(destination); // Add the peer
         sendPacket(packet, destination); // Send the packet
     }
 
     // Finish the connection with a specific peer
-    void finish(const MacAddress &destination) {
-        NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_FIN, NEXUS_ERROR_OK, 0, nullptr); // Create a new packet
-        pendingPeersEvents_incoming.addend({destination, ++packet.sequenceNum, NEXUS_FLAG_FIN | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
+    void finish(const MacAddress &destination, uint8_t error) {
+        NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_FIN, error, 0, nullptr); // Create a new packet
         sendPacket(packet, destination); // Send the packet
-    }
-
-    // Reset the connection with a specific peer
-    void reset(const MacAddress &destination) {
-        if (isPeer(destination))
-        {
-            NexusPacket packet(randomSequenceNum(), NEXUS_FLAG_RST, NEXUS_ERROR_OK, 0, nullptr); // Create a new packet
-            pendingPeersEvents_incoming.addend({destination, ++packet.sequenceNum, NEXUS_FLAG_RST | NEXUS_FLAG_ACK, NEXUS_ERROR_OK, millis()});
-            sendPacket(packet, destination); // Send the packet
-        }
+        removePeer(destination); // Remove the peer
     }
 
     // Scan for nearby devices
@@ -540,9 +518,14 @@ namespace Nexus {
         for (size_t i = 0; i < pendingPeersEvents_incoming.size(); i++) {
             auto pendingEvent = pendingPeersEvents_incoming[i];
             if (now - pendingEvent.time > NEXUS_TIMEOUT) {
-                pendingPeersEvents_outgoing.addend({pendingEvent.addr, pendingEvent.seqNum, NEXUS_FLAG_NONE, NEXUS_ERROR_TIMEOUT, now});
-                reset(pendingEvent.addr); // Reset the peer if timeout
+                if (pendingEvent.flags & (NEXUS_FLAG_SYN | NEXUS_FLAG_ACK)) {
+                    removePeer(pendingEvent.addr); // Remove the peer
+                } else {
+                    pendingPeersEvents_outgoing.addend({pendingEvent.addr, pendingEvent.seqNum, NEXUS_FLAG_NONE, NEXUS_ERROR_TIMEOUT, now});
+                    finish(pendingEvent.addr, NEXUS_ERROR_TIMEOUT); // Finish the connection with TIMEOUT error
+                }
                 pendingPeersEvents_incoming.remove(i); // Remove the pending event
+                i--; // Decrement the index because the list size has changed
             }
         }
 
@@ -550,9 +533,9 @@ namespace Nexus {
         while (pendingPeersEvents_outgoing.size() > 0) {
             auto pendingEvent = pendingPeersEvents_outgoing[0];
             sendPacket(NexusPacket(pendingEvent.seqNum, pendingEvent.flags, pendingEvent.error, 0, nullptr), pendingEvent.addr); // Send the packet
-            Serial.println("Sending Flag - " + pendingEvent.flags);
-            if (pendingEvent.flags & (NEXUS_FLAG_FIN | NEXUS_FLAG_RST) && onPeerDisconnect != nullptr) {
+            if (pendingEvent.flags & (NEXUS_FLAG_FIN) && onPeerDisconnect != nullptr) {
                 onPeerDisconnect(pendingEvent.addr, pendingEvent.error); // Call the disconnect callback
+                removePeer(pendingEvent.addr); // Remove the peer
             }
             pendingPeersEvents_outgoing.remove(0); // Remove the pending event
         }
