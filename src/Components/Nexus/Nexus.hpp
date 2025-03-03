@@ -13,6 +13,7 @@
 #define NEXUS_BUFFER_SIZE 32 // Buffer size for packets
 #define NEXUS_HEADER_SIZE 12 // Header size for packets
 #define NEXUS_MAX_PAYLOAD_SIZE (ESP_NOW_MAX_DATA_LEN - NEXUS_HEADER_SIZE) // Maximum payload size
+const uint16_t NEXUS_COMMAND_SCAN = -1; // Command for scanning devices
 
 #define NEXUS_VERSION 0x01 // Version of Nexus
 
@@ -150,7 +151,7 @@ namespace Nexus {
      * @param destination The address of the destination.
      * @return bool True if the data was sent successfully, false otherwise.
      */
-    bool sendData(uint16_t command, uint8_t length, const uint8_t data[], const NexusAddress destination);
+    bool sendData(uint16_t command, uint8_t length, uint8_t data[], const NexusAddress destination);
 
     /**
      * @brief Send data to a specific device.
@@ -161,7 +162,7 @@ namespace Nexus {
      * @param deviceID The ID of the device.
      * @return bool True if the data was sent successfully, false otherwise.
      */
-    bool sendToDevice(uint16_t command, uint8_t length, const uint8_t data[], const uint8_t deviceID);
+    bool sendToDevice(uint16_t command, uint8_t length, uint8_t data[], const uint8_t deviceID);
 
     /**
      * @brief Send data to a specific group.
@@ -172,7 +173,7 @@ namespace Nexus {
      * @param groupID The ID of the group.
      * @return bool True if the data was sent successfully, false otherwise.
      */
-    bool sendToGroup(uint16_t command, uint8_t length, const uint8_t data[], const uint8_t groupID);
+    bool sendToGroup(uint16_t command, uint8_t length, uint8_t data[], const uint8_t groupID);
 
     /**
      * @brief Read a NexusPacket.
@@ -256,22 +257,32 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         (packet.destination.groups & Nexus::THIS_ADDRESS.groups) &&
         (packet.destination.deviceID == Nexus::THIS_ADDRESS.deviceID || packet.destination.deviceID == 255)) {
         // Check if the packet is a scan request
-        if (packet.command == 0 && packet.length == 0) {
-            // Check if the scan request initiated by this device
-            if (Nexus::scanSeq == --packet.sequenceNum){
-                if (Nexus::isScanComplete && Nexus::scanResults.contains(packet.source)) {
-                    Nexus::scanResults.addend(packet.source); // Add the device to the scan results if not already contained
+        if (packet.command == NEXUS_COMMAND_SCAN)
+        {
+            // Check if it is a scan response
+            if (packet.length == 1)
+            {
+                // Check if the scan request initiated by this device
+                if (Nexus::scanSeq == --packet.sequenceNum)
+                {
+                    if (!Nexus::isScanComplete && !Nexus::scanResults.contains(packet.source))
+                    {
+                        Nexus::scanResults.addend(packet.source); // Add the device to the scan results if not already contained
+                    }
                 }
-            } else {
-                // Check if the packet is a scan request
-                if (Nexus::onThisScanned != nullptr) {
-                    if(!Nexus::onThisScanned(packet.source)) {
+            // Check if the packet is a scan request
+            } else if (packet.length == 0) {
+                if (Nexus::onThisScanned != nullptr)
+                {
+                    if (!Nexus::onThisScanned(packet.source))
+                    {
                         return;
                     }
                 }
                 // Send a scan response
-                Nexus::outgoingPackets.addend(NexusPacket(Nexus::THIS_ADDRESS, packet.source, ++packet.sequenceNum, 0, 0, nullptr));
+                Nexus::outgoingPackets.addend(NexusPacket(Nexus::THIS_ADDRESS, packet.source, ++packet.sequenceNum, NEXUS_COMMAND_SCAN, 1, nullptr));
             }
+        // if the packet is not a scan request
         } else {
             // If callback is set, call it, instead of enqueuing the packet in the buffer
             if (Nexus::onPacketReceived != nullptr) {
@@ -322,16 +333,16 @@ namespace Nexus {
         return result == ESP_OK; // Return the result
     }
 
-    bool sendData(const NexusAddress &destination, uint16_t command, uint8_t length, const uint8_t data[]) {
+    bool sendData(const NexusAddress &destination, uint16_t command, uint8_t length, uint8_t data[]) {
         NexusPacket packet(THIS_ADDRESS, destination, randomSequenceNum(), command, length, data); // Create a new packet
         return sendPacket(packet, destination); // Send the packet
     }
 
-    bool sendToDevice(uint16_t command, uint8_t length, const uint8_t data[], const uint8_t deviceID) {
+    bool sendToDevice(uint16_t command, uint8_t length, uint8_t data[], const uint8_t deviceID) {
         return sendData(command, length, data, NexusAddress(getProjectID(), 255, deviceID));
     }
 
-    bool sendToGroup(uint16_t command, uint8_t length, const uint8_t data[], const uint8_t groupID) {
+    bool sendToGroup(uint16_t command, uint8_t length, uint8_t data[], const uint8_t groupID) {
         return sendData(command, length, data, NexusAddress(getProjectID(), calcGroupMask(groupID), 255));
     }
 
@@ -418,7 +429,7 @@ namespace Nexus {
                 scanSeq = randomSequenceNum(); // Generate a random sequence number
                 scanResults.clear(); // Clear the scan results
                 // Send a scan request
-                sendPacket(NexusPacket(THIS_ADDRESS, NexusAddress(getProjectID(), 255, 255), scanSeq, 0, 0, nullptr));
+                sendPacket(NexusPacket(THIS_ADDRESS, NexusAddress(getProjectID(), 255, 255), scanSeq, NEXUS_COMMAND_SCAN, 0, nullptr));
             }
         }
     }

@@ -36,7 +36,7 @@ void onPacketReceived(const NexusPacket &packet) {
 }
 
 
-
+uint8_t data[5] = {'H', 'e', 'l', 'l', 'o'};
 
 
 void test_setup() {
@@ -48,7 +48,7 @@ void test_setup() {
     Nexus::onThisScanned = onThisScanned;
     Nexus::onPacketReceived = onPacketReceived;
 
-    if(Nexus::begin(NexusAddress(1, 1, 1))) {
+    if(Nexus::begin(NexusAddress(1, 1, 2))) {
         Serial.println("Nexus module initialized successfully!");
     } else {
         Serial.println("Failed to initialize Nexus module!");
@@ -60,5 +60,6 @@ void test_loop() {
     Nexus::loop();
 
     Nexus::scan();
-    delay(1000);
+
+    Nexus::sendData(0, 5, data, NexusAddress(1, 1, 1));
 }
