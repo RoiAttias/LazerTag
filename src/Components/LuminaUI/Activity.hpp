@@ -31,11 +31,10 @@ public:
      * @param renderAlways Flag to render the activity without calls.
      * @param OnTouch_enable Enable or disable the Touch event for the activity.
      * @param OnTouch_handler Pointer to the function to handle the Touch event.
-     * @param margin Margin for the activity (left, top, right, bottom)
      */
     Activity(ivec2 origin = LuminaUI_AUTO, ivec2 scale = LuminaUI_AUTO, bool visible = true, bool renderAlways = true,
-        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr, int margin[4] = nullptr)
-        : Element(origin, ivec2(), scale, visible, renderAlways, OnTouch_enable, OnTouch_handler, margin){
+        bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
+        : Element(origin, ivec2(), scale, visible, renderAlways, OnTouch_enable, OnTouch_handler){
             if (origin == LuminaUI_AUTO) {
                 origin = ivec2(0, 0);
             }

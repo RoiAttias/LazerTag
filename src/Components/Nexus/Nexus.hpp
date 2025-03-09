@@ -151,7 +151,7 @@ namespace Nexus {
      * @param destination The address of the destination.
      * @return bool True if the data was sent successfully, false otherwise.
      */
-    bool sendData(uint16_t command, uint8_t length, uint8_t data[], const NexusAddress destination);
+    bool sendData(uint16_t command, uint8_t length, uint8_t data[], const NexusAddress &destination);
 
     /**
      * @brief Send data to a specific device.
@@ -333,7 +333,7 @@ namespace Nexus {
         return result == ESP_OK; // Return the result
     }
 
-    bool sendData(const NexusAddress &destination, uint16_t command, uint8_t length, uint8_t data[]) {
+    bool sendData(uint16_t command, uint8_t length, uint8_t data[], const NexusAddress &destination) {
         NexusPacket packet(THIS_ADDRESS, destination, randomSequenceNum(), command, length, data); // Create a new packet
         return sendPacket(packet, destination); // Send the packet
     }

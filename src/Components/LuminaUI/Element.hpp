@@ -45,10 +45,6 @@ public:
     bool OnTouch_enable;        // Flag to enable touch events
     TouchEvent OnTouch_handler; // Press event handler
 
-    // Additional properties
-    int margin[4]; // Margin for the element (left, top, right, bottom)
-    bool marginAffectViewport; // Flag to include padding in the element's scale
-
     // Constructors
     /**
      * @brief Constructor of Element
@@ -60,29 +56,13 @@ public:
      * @param renderAlways Flag to render the element without calls.
      * @param OnTouch_enable Enable or disable the touch event for the element.
      * @param OnTouch_handler Pointer to the function to handle the touch event.
-     * @param margin Margin for the element (left, top, right, bottom)
-     * @param marginAffectViewport Flag to add margin in the element's final size.
      */
     Element(ivec2 origin = LuminaUI_AUTO, ivec2 offset = LuminaUI_AUTO, ivec2 scale = LuminaUI_AUTO, bool visible = true, bool renderAlways = true,
-            bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr,
-            int *margin = nullptr, bool marginAffectViewport = false)
+            bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
         : origin(origin), offset(offset), scale(scale), visible(visible), renderAlways(renderAlways),
-          OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler),
-          marginAffectViewport(marginAffectViewport), _shouldRender(true) {
-            if (margin != nullptr) {
-                for (int i = 0; i < 4; i++) {
-                    this->margin[i] = margin[i];
-                }
-            } else {
-                for (int i = 0; i < 4; i++) {
-                    this->margin[i] = 0;
-                }
-            }
+          OnTouch_enable(OnTouch_enable), OnTouch_handler(OnTouch_handler), _shouldRender(true) {
             if (origin == LuminaUI_AUTO) {
                 origin = ivec2(0, 0);
-            }
-            if (scale == LuminaUI_AUTO) {
-                marginAffectViewport = true;
             }
           }
 
@@ -99,14 +79,11 @@ public:
      * @param renderAlways Flag to render the element without calls.
      * @param OnTouch_enable Enable or disable the touch event for the element.
      * @param OnTouch_handler Pointer to the function to handle the touch event.
-     * @param margin Margin for the element (left, top, right, bottom)
-     * @param marginAffectViewport Flag to add margin in the element's final size.
      */
     Element(int xOrigin, int yOrigin, int xOffset, int yOffset, int width, int height, bool visible = true,
-            bool renderAlways = false, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr,
-            int margin[4] = nullptr, bool marginAffectViewport = false)
+            bool renderAlways = false, bool OnTouch_enable = false, TouchEvent OnTouch_handler = nullptr)
         : Element(ivec2(xOrigin, yOrigin), ivec2(xOffset, yOffset), ivec2(width, height), visible, renderAlways,
-            OnTouch_enable, OnTouch_handler, margin, marginAffectViewport) {}
+            OnTouch_enable, OnTouch_handler) {}
 
     // Getters
     /**
@@ -120,32 +97,23 @@ public:
     }
 
     /**
-     * @brief Get the final size of the element - for containers.
+     * @brief Get the final size of the element.
      *
-     * @return Scale after Margin.
+     * @return Scale.
      */
     virtual ivec2 getSize() const
     {
-        if (marginAffectViewport)
-        {
-            return scale - ivec2(margin[0], margin[1]) - ivec2(margin[2], margin[3]);
-        }
-        else
-        {
-            return scale + ivec2(margin[0], margin[1]) + ivec2(margin[2], margin[3]);
-        }
+        return scale;
     }
     
     /**
-     * @brief Get the final viewport of the element - for rendering.
+     * @brief Get the final viewport of the element.
      *
      * @return Viewport of the element
      */
     virtual Viewport getViewport() const
     {
-        ivec2 add = ivec2(margin[0], margin[1]);
-        ivec2 sub = marginAffectViewport ? ivec2(margin[0] + margin[2], margin[1] + margin[3]) : ivec2(0, 0);
-        return scale != LuminaUI_AUTO ? Viewport(getPosition() + add, scale - sub) : Viewport(getPosition(), ivec2(0,0));
+        return Viewport(getPosition(), scale);
     }
 
     bool shouldRender() {
