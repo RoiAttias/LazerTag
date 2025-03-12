@@ -52,7 +52,7 @@ public:
     virtual Viewport render(const Viewport &viewport) override {
         // Call the base class's render function
         Viewport activityViewport = Element::render(viewport); // Get the clamped viewport of the activity
-        updatePositions();
+        updateViewports();
         if (visible) {
             // Render all child elements in the activity
             Element* element; // Pointer to an element
@@ -81,7 +81,7 @@ public:
     {
         // Call the base class's Touch event handler
         Element::OnTouch_execute(point,touchStatus);
-        updatePositions();
+        updateViewports();
         Element *element; bool continueLoop = true;
         // Executes Touch events in reversed order, opposite of rendering order
         // the last elements inside the list are seen in front.
@@ -109,9 +109,9 @@ public:
 
     // Calculations
     /**
-     * @brief Updates the positions of all child elements relative to the Activity's location.
+     * @brief Updates the positions and scales of all child elements relative to the Activity's location.
      */
-    virtual void updatePositions()
+    virtual void updateViewports()
     {
         Element *element;
         for (size_t i = 0; i < getElementCount(); i++)

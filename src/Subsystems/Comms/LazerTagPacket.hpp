@@ -16,6 +16,9 @@ enum CommsCommand : uint32_t {
     COMMS_COLOR,
 };
 
+
+/// פחות פקודות - להסביר פחות אחר כך
+
 uint8_t payloadSizePerCommand[] = {
     1, // COMMS_TYPE
     sizeof(GunData), // COMMS_GUNPARAMS

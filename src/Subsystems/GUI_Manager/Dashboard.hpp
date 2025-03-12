@@ -13,23 +13,41 @@ public:
     Ellipse statusIndicator;   // A circle indicating system status
     Rectangle buttonRect;     // A button rectangle
 
+    Grid grid;                // A grid layout
+
     // Constructor
     Dashboard() : Activity(),
         background(TFT_BROWN),
         header(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(240, 40)), TFT_BLUE, TFT_BLACK),
         titleText(Element(ivec2(120, 20), LuminaUI_AUTO, LuminaUI_AUTO), String("Dashboard"), TFT_WHITE, 1, 1, 2.5f, &FreeMono24pt7b),
         statusIndicator(Element(ivec2(50, 100), LuminaUI_AUTO,ivec2(50, 30)), TFT_GREEN, TFT_BLACK, true, true),
-        buttonRect(Element(ivec2(70, 260), LuminaUI_AUTO, ivec2(100, 40)), TFT_RED, TFT_BLACK, true, true, 10)
+        buttonRect(Element(ivec2(70, 260), LuminaUI_AUTO, ivec2(100, 40)), TFT_RED, TFT_BLACK, true, true, 10),
+        grid(Element(ivec2(0, 40), LuminaUI_AUTO, ivec2(300, 200)))
     {
+        // Add columns and rows to the grid
+        grid.addColumn(100);
+        grid.addColumn(120);
+        grid.addColumn(80);
+        grid.addRow(80);
+        grid.addRow(120);
+
+        // Add cells to the grid
+        grid.addCell(new Rectangle(Element(), TFT_ORANGE, TFT_SILVER, true, true, 10), ivec2(0, 0));
+        grid.addCell(new Rectangle(Element(), TFT_SKYBLUE, TFT_SILVER, true, true, 10), ivec2(1, 0));
+        grid.addCell(new Rectangle(Element(), TFT_YELLOW, TFT_SILVER, true, true, 10), ivec2(2, 0));
+        grid.addCell(new Rectangle(Element(), TFT_DARKGREEN, TFT_SILVER, true, true, 10), ivec2(0, 1));
+        grid.addCell(new Rectangle(Element(), TFT_PINK, TFT_SILVER, true, true, 10), ivec2(1, 1));
+        grid.addCell(new Rectangle(Element(), TFT_BLUE, TFT_SILVER, true, true, 10), ivec2(2, 1));
+
         // Add all elements to the `elements` HyperList
-        Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect};
-        elements.addFromArray(elems, 5);
+        Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect, &grid};
+        elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
     }
 
     Viewport render(const Viewport &viewport) override {
         Viewport vp =  Activity::render(viewport);
 
-
+        /*
         // Define vertices for the gun shape
         ivec2 gunVertices[] = {
             {10, 20}, {30, 20}, {35, 25}, {50, 25}, {50, 35}, {30, 35}, {25, 40}, {10, 40}, // Main body
@@ -51,7 +69,7 @@ public:
         LuminaUI::drawTriangles(&tft, gunVertices, sizeof(gunVertices) / sizeof(ivec2),
                     gunTriangles, sizeof(gunTriangles) / sizeof(uint), TFT_BLACK);
 
-        
+        */
         return vp;
     }
 

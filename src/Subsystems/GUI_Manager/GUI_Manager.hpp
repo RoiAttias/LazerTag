@@ -56,7 +56,6 @@ namespace GUI {
         screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
         touch.init(ENABLE_ALL);
 
-        //callRender();
         selectActivity(GUI_Manager_Activity::DASHBOARD);
     }
 
