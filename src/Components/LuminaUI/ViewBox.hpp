@@ -9,7 +9,7 @@
 class ViewBox : public Element {
 public:
     Element* child;  ///< The child element contained in the view box
-    ivec2 addOffset; ///< Additional offset to apply to the child element
+    vec2 addOffset; ///< Additional offset to apply to the child element
 
     /**
      * @brief Construct a view box.
@@ -17,7 +17,7 @@ public:
      * @param child The child element to contain in the view box.
      * @param addOffset The additional offset to apply to the child element.
      */
-    ViewBox(const Element& element, Element* child, ivec2 addOffset = ivec2(0.0f, 0.0f))
+    ViewBox(const Element& element, Element* child, vec2 addOffset = vec2(0.0f, 0.0f))
         : Element(element), child(child), addOffset(addOffset) {}
     
     /**
@@ -39,13 +39,11 @@ public:
         return child->render(vbViewport);
     }
 
-    virtual void On
-
     /**
      * @brief Update the position of the child element.
      */
     virtual void updatePosition() {
-        child->offset = viewport.position + addOffset;
+        child->offset = origin + offset + addOffset;
     }
     
 
