@@ -37,7 +37,7 @@ public:
         return lastPoint;
     }
     
-        virtual void next(ivec2 point, bool isEdge, bool isTouched) {
+    virtual void next(ivec2 point, bool isEdge, bool isTouched) {
         if (enable) {
             bool execute = false;
             unsigned long currentTime = millis();

@@ -94,14 +94,38 @@ public:
                  * Conditions for executing the Touch event:
                  * - The element is visible.
                  * - The element is in range of the activity.
-                 * - The Touch event occurred within the element's bounds.
                  * - The element has Touch event enabled.
                  * - The element has a Touch event handler.
+                 * 
+                 * Case 1: The Touch event occurred within the element's bounds:
+                 * - Execute the Touch event handler.
+                 * - Stop the loop.
+                 * 
+                 * Case 2: The Touch event is a RELEASE event:
+                 * - Execute the READY Touch event handler for all elements
+                 *   that DO NOT get the RELEASE Touch event at the end of the touch event.
+                 * - Continue the loop to execute the READY Touch event for all elements.
                  */
-                if (element->visible && inRange(element) && element->inRange(point) && element->OnTouch_enable && element->OnTouch_handler != nullptr)
+                if (element->visible && inRange(element) && element->OnTouch_enable && element->OnTouch_handler != nullptr)
                 {
-                    element->OnTouch_execute(point, touchStatus);
-                    continueLoop = false;
+                    // Check if the Touch event occurred within the element's bounds
+                    if (element->inRange(point)){
+                        // Execute the Touch event handler
+                        element->OnTouch_execute(point, touchStatus);
+                        // Mark that the Touch event was handled and stop the loop
+                        // in order to prevent other elements from receiving the Touch event.
+                        continueLoop = false;
+                    }
+                    // Check if the Touch event is a RELEASE event
+                    if (touchStatus == TouchStatus_RELEASE){
+                        // Execute the READY Touch event handler for all elements
+                        // that DO NOT get the RELEASE Touch event at the end of the touch event.
+                        if (continueLoop == true){
+                            element->OnTouch_execute(point, TouchStatus_READY);
+                        }
+                        // Continue the loop to execute the READY Touch event for all elements.
+                        continueLoop = true;
+                    }
                 }
             }
         }

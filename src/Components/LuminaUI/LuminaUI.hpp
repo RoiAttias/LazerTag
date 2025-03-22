@@ -170,6 +170,7 @@ struct TouchDragData
 #include "Touch.hpp"
 
 #include "Grid.hpp"
+#include "ViewBox.hpp"
 
 #ifdef LUMINAUI_USE_TFT_ESPI
     #include "TFT_eSPI_Elements/TFT_eSPI_Elements.hpp"
