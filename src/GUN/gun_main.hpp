@@ -80,6 +80,7 @@ void gun_setup() {
     
     // Initialize the GUI using the player object.
     GUI::init(&player, &gun);
+    GUI::message("Waiting...");
     
     // Enable pushbutton press events.
     trigger.enablePressEvent(true);
@@ -101,20 +102,22 @@ void gun_loop() {
     // Update the GUI.
     GUI::loop();
     
-    // Auto-reload the gun if out of ammo.
-    if (gun.getAmmo() == 0) {
-        if (gun.reload()) {
-            callRender = true;
+    if (gameStatus == GAME_RUNNING) {
+        // Auto-reload the gun if out of ammo.
+        if (gun.getAmmo() == 0) {
+            if (gun.reload()) {
+                callRender = true;
+            }
         }
-    }
-    
-    // Check the trigger and shoot if pressed.
-    if (trigger.hasPressed()) {
-        if (gun.shoot()) {
-            // On a successful shot, send the IR fire signal and add the fire animation.
-            irSender.sendNEC(fireSignal);
-            visualizer.addAnimation(fireAnimation);
-            callRender = true;
+        
+        // Check the trigger and shoot if pressed.
+        if (trigger.hasPressed()) {
+            if (gun.shoot()) {
+                // On a successful shot, send the IR fire signal and add the fire animation.
+                irSender.sendNEC(fireSignal);
+                visualizer.addAnimation(fireAnimation);
+                callRender = true;
+            }
         }
     }
     

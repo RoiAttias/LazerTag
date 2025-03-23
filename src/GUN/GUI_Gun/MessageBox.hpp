@@ -27,7 +27,7 @@ public:
         u8g2.drawFrame(rectX, rectY, rectWidth, rectHeight);
 
         // Set a large font for the text.
-        u8g2.setFont(u8g2_font_fub25_tf);
+        u8g2.setFont(u8g2_font_fub11_tf);
         u8g2.setFontPosCenter();
         
         // Calculate position to center the text.
