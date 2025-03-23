@@ -21,10 +21,10 @@ public:
     NexusAddress gunAddress;
     NexusAddress vestAddress;
     int hp;
-    GunData gun;
+    GunData gunData;
 
-    Player(uint8_t playerID, NexusAddress gunAddr = NexusAddress(), NexusAddress vestAddr = NexusAddress())
-        : ID(playerID), teamID(teamID), name(playerName), gunAddress(gunAddr), vestAddress(vestAddr), hp(100), GunData(Sidearm){}
+    Player(uint8_t playerID = 0, NexusAddress gunAddr = NexusAddress(), NexusAddress vestAddr = NexusAddress())
+        : ID(playerID), gunAddress(gunAddr), vestAddress(vestAddr), hp(100), gunData(Sidearm){}
 
     // ID methods
     uint8_t getID()
@@ -66,12 +66,12 @@ public:
     // Gun methods
     uint32_t getGunDamage()
     {
-        return gun.damage;
+        return gunData.damage;
     }
 
     GunData getGunData()
     {
-        return gun;
+        return gunData;
     }
 
     // NexusAddress methods

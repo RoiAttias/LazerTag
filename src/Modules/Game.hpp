@@ -4,15 +4,14 @@
 #include "Utilities/HyperList.hpp"
 
 #include "Player.hpp"
-#include "Team.hpp"
 
 enum GameStatus {
     GAME_WAITING,
     GAME_STARTING,
     GAME_RUNNING,
     GAME_OVER,
-    GAME_WIN,
-    GAME_LOSE,
+    GAME_WON,
+    GAME_LOST,
 };
 
 
@@ -23,12 +22,25 @@ public:
 
     Game() : players(), status(GAME_WAITING) {}
 
-    void getStatus() {
+    GameStatus getStatus() {
         return status;
     }
 
     bool canStart() {
-        return players.size() >= 2;
+        bool gunReady = false;
+        bool vestReady = false;
+        if (players.size() >= 2) {
+            for (size_t i = 0; i < players.size(); i++) {
+                if (players[i].hasGun()) {
+                    gunReady = true;
+                }
+                if (players[i].hasVest()) {
+                    vestReady = true;
+                }
+            }
+            return gunReady && vestReady;
+        }
+        return false;
     }
 
     void addPlayer(Player player) {
@@ -59,7 +71,7 @@ public:
 
     void end() {
         if (status != GAME_RUNNING) return;
-        status = GAME_ENDED;
+        status = GAME_OVER;
     }
 
     

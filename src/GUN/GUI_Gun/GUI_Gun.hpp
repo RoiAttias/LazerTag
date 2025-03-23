@@ -16,21 +16,24 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* reset=*/U8X8_PIN_NONE);
 
 // Paths to Activities
 #include "OnGame.hpp"
+#include "MessageBox.hpp"
 
 enum GUI_Gun_Activity : uint8_t {
     ONGAME,
+    MESSAGEBOX,
     GUI_Gun_Activity_size
 };
 // Activities
 Activity * GUI_Gun_Activities[] = {
-    onGame
+    onGame,
+    messageBox
 };
 
 ivec2 screenDiamentions(128, 64);
 Screen screen(false);
 
 namespace GUI {
-    void init(Player *playerPtr) {
+    void init(Player *playerPtr, Gun *gunPtr) {
         // OLED initialization
         u8g2.begin();
 
@@ -39,7 +42,7 @@ namespace GUI {
         screen.selectActivity(GUI_Gun_Activity::ONGAME);
 
         // Player initialization
-        onGame->setPlayer(playerPtr);
+        onGame->setPointers(playerPtr, gunPtr);
 
         u8g2.clearBuffer();
     }
@@ -54,6 +57,15 @@ namespace GUI {
 
     void callRender() {
         screen.callRender();
+    }
+
+    void onGame() {
+        screen.selectActivity(GUI_Gun_Activity::ONGAME);
+    }
+
+    void message(String message) {
+        messageBox->setMessage(message);
+        screen.selectActivity(GUI_Gun_Activity::MESSAGEBOX);
     }
 }
 

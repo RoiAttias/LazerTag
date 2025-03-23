@@ -203,7 +203,7 @@ public:
  * Reload time: 1800ms
  * Full auto: true
  */
-GunData Sidearm(23, 16, 300, 1800, true);
+GunData Sidearm = {23, 16, 300, 1800, true};
 
 /**
  * Name: Hand Cannon
@@ -213,6 +213,6 @@ GunData Sidearm(23, 16, 300, 1800, true);
  * Reload time: 3000ms
  * Full auto: false
  */
-GunData HandCannon(42, 8, 150, 3000, false);
+GunData HandCannon = {42, 8, 150, 3000, false};
 
 #endif // GUN_HPP

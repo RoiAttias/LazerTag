@@ -9,6 +9,7 @@ class OnGameActivity : public Activity {
 public:
     // Variables
     Player *player; // Pointer to the player object
+    Gun *gun; // Pointer to the gun object
     int ammo; // Current ammo count
     int maxAmmo; // Maximum ammo capacity
     int health; // Player's health
@@ -51,17 +52,17 @@ public:
     }
 
     void update() {
-        auto &gun = player->gun;
-        ammo = gun.getAmmo();
-        maxAmmo = gun.getMagazine();
+        ammo = gun->getAmmo();
+        maxAmmo = gun->getMagazine();
         health = player->getHP();
         str1 = String(ammo);
         str2 = String(maxAmmo);
-        isReloading = gun.getStatus() == RELOADING;
+        isReloading = gun->getStatus() == RELOADING;
     }
 
-    void setPlayer(Player *playerPtr) {
+    void setPointers(Player *playerPtr, Gun *gunPtr) {
         player = playerPtr;
+        gun = gunPtr;
     }
 };
 

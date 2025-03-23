@@ -3,17 +3,18 @@
 #include "Components/IRremoteESP32/IRremoteESP32.hpp"
 #include "Components/Visualizer/Visualizer.hpp"
 #include "Components/Pushbutton/Pushbutton.hpp"
+#include "Components/Nexus/Nexus.hpp"
 
 #include "Utilities/MoreMath.hpp"
 
+#include "Constants/Constants_Gun.h"
+#include "Common/LazerTagPacket.hpp"
+
+#include "Modules/Game.hpp"
 #include "Modules/Gun.hpp"
 #include "Modules/Player.hpp"
 
 #include "GUI_Gun/GUI_Gun.hpp"
-#include "Constants/Constants_Gun.h"
-
-#include "Components/Nexus/Nexus.hpp"
-#include "LazerTagPacket.hpp"  // This file remains unchanged
 
 // Forward declaration for the trigger interrupt function.
 void gun_trigger_interrupt();
@@ -43,14 +44,18 @@ Pushbutton trigger(triggerPin, 0, false, gun_trigger_interrupt);
 IRsender irSender(irPin, irChannel, irFrequency);
 Visualizer visualizer(stripPin, stripLength, stripFrameIntervalMS);
 
-// A pointer to the Gun inside the player object.
-Gun* gun = nullptr;
+// Gun object for the player's gun.
+Gun gun(Sidearm);
 
+// --- Global Variables ---
 // IR fire signal.
 uint32_t fireSignal = 0XFF00FF00;
 
 // Flag to indicate that the GUI should render.
 bool callRender = false;
+
+// Variable to store the current game status.
+GameStatus gameStatus = GameStatus::GAME_WAITING;
 
 // --- Interrupt Handler ---
 // Called when the trigger pushbutton interrupt occurs.
@@ -70,20 +75,14 @@ void setup() {
     // Initialize Nexus networking with the device address.
     Nexus::begin(NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUPS, NEXUS_DEVICE_ID));
     
-    // Link gun pointer to the player's gun.
-    gun = &player.gun;
-    
     // Initialize the GUI using the player object.
-    GUI::init(&player);
-    
-    // Configure player health.
-    player.setHP(60);
+    GUI::init(&player, &gun);
     
     // Enable pushbutton press events.
     trigger.enablePressEvent(true);
     
     // Start the gun.
-    gun->start();
+    gun.start();
     callRender = true;
 }
 
@@ -93,22 +92,22 @@ void loop() {
     Nexus::loop();
 
     // Update the gun and LED visualizer.
-    gun->loop();
+    gun.loop();
     visualizer.loop();
     
     // Update the GUI.
     GUI::loop();
     
     // Auto-reload the gun if out of ammo.
-    if (gun->getAmmo() == 0) {
-        if (gun->reload()) {
+    if (gun.getAmmo() == 0) {
+        if (gun.reload()) {
             callRender = true;
         }
     }
     
     // Check the trigger and shoot if pressed.
     if (trigger.hasPressed()) {
-        if (gun->shoot()) {
+        if (gun.shoot()) {
             // On a successful shot, send the IR fire signal and add the fire animation.
             irSender.sendNEC(fireSignal);
             visualizer.addAnimation(fireAnimation);
@@ -125,24 +124,47 @@ void loop() {
             case COMMS_PLAYERHP:
                 // Update the player's health.
                 int newHP;
-                memcpy(&newHP, nexusPacket.payload, sizeof(int));
+                memcpy(&newHP, nexusPacket.payload, payloadSizePerCommand[COMMS_PLAYERHP]);
                 player.setHP(newHP);
                 break;
             case COMMS_GUNPARAMS:
                 // Update the gun's parameters.
                 GunData gunData;
-                memcpy(&gunData, nexusPacket.payload, sizeof(GunData));
-                gun->setData(gunData);
+                memcpy(&gunData, nexusPacket.payload, payloadSizePerCommand[COMMS_GUNPARAMS]);
+                gun.setData(gunData);
                 break;
             case COMMS_FIRECODE:
                 // Update the fire signal.
-                fireSignal = memcpy(&fireSignal, nexusPacket.payload, sizeof(uint32_t));
+                memcpy(&fireSignal, nexusPacket.payload, payloadSizePerCommand[COMMS_FIRECODE]);
                 break;
             case COMMS_GAMESTATUS:
                 // Update the game status.
-                
+                GameStatus prevStatus = gameStatus;
+                memcpy(&gameStatus, nexusPacket.payload, payloadSizePerCommand[COMMS_GAMESTATUS]);
+                if (prevStatus != gameStatus) {
+                    switch (gameStatus)
+                    {
+                        case GAME_WAITING:
+                            GUI::message("Waiting...");
+                            break;
+                        case GAME_STARTING:
+                            GUI::message("Starting...");
+                            break;
+                        case GAME_RUNNING:
+                            GUI::onGame();
+                            break;
+                        case GAME_OVER:
+                            GUI::message("Game Over!");
+                            break;
+                        case GAME_WON:
+                            GUI::message("You Won!");
+                            break;
+                        case GAME_LOST:
+                            GUI::message("You Lost!");
+                            break;
+                    }
+                }
                 break;
-            
         }
         callRender = true;
     }

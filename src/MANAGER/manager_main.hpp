@@ -8,6 +8,8 @@
 #include "Modules/Game.hpp"
 #include "GUI_Manager/GUI_Manager.hpp"
 
+Game game;
+
 void manager_setup()
 {
     Nexus::begin(NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUPS, NEXUS_DEVICE_ID));
@@ -17,7 +19,6 @@ void manager_setup()
 void manager_loop()
 {   
     Nexus::loop();
-
     GUI::loop();
 }
 

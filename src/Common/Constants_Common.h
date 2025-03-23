@@ -8,7 +8,7 @@
 
 // Select device here
 #define DEVICE_TYPE DEVICE_MANAGER
-#define DEVICE_ID 1
+#define DEVICE_ID 2
 
 // Define the version of the system
 #define SYSTEM_VERSION_MAJOR 1
@@ -22,11 +22,9 @@
 #define NEXUS_GROUPS 1 << (DEVICE_TYPE - 1)
 #define NEXUS_DEVICE_ID DEVICE_ID
 
-
-
-
-
-// Temp
-#define MAC_MANAGER {0x24, 0x0A, 0xC4, 0x00, 0x00, 0x00}
+// Communication
+#define NEXUS_GROUP_MANAGER 0x01
+#define NEXUS_GROUP_GUN 0x02
+#define NEXUS_GROUP_VEST 0x04
 
 #endif // CONSTANTS_COMMON_H
