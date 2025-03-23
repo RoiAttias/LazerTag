@@ -7,7 +7,7 @@
 #define DEVICE_VEST 3
 
 // Select device here
-#define DEVICE_TYPE DEVICE_MANAGER
+#define DEVICE_TYPE 2
 #define DEVICE_ID 2
 
 // Define the version of the system

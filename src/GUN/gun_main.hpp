@@ -1,3 +1,6 @@
+#ifndef GUN_MAIN
+#define GUN_MAIN
+
 #include <Arduino.h>
 
 #include "Components/IRremoteESP32/IRremoteESP32.hpp"
@@ -64,7 +67,7 @@ void gun_trigger_interrupt() {
 }
 
 // --- Setup Function ---
-void setup() {
+void gun_setup() {
     Serial.begin(115200);
 
     // Initialize hardware components.
@@ -87,7 +90,7 @@ void setup() {
 }
 
 // --- Main Loop ---
-void loop() {
+void gun_loop() {
     // Update Nexus networking.
     Nexus::loop();
 
@@ -175,3 +178,5 @@ void loop() {
         callRender = false;
     }
 }
+
+#endif // GUN_MAIN
