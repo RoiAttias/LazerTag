@@ -1,21 +1,17 @@
-#define DEVICE_MANAGER 1
-#define DEVICE_GUN 2
-#define DEVICE_VEST 3
-#define DEVICE_TEST 4
+#include "Common/Constants_Common.h"
 
-// Select device here
-#define DEVICE_TYPE 1
+#define DEVICE_TEST 4
 
 #ifndef DEVICE_TYPE
 #error "DEVICE_TYPE is not defined! Define DEVICE_TYPE in your build flags (e.g., -DDEVICE_MANAGER)."
 #endif
 
 #if DEVICE_TYPE == DEVICE_MANAGER
-#include "manager_main.hpp"
+#include "MANAGER/manager_main.hpp"
 #elif DEVICE_TYPE == DEVICE_GUN
-#include "gun_main.hpp"
+#include "GUN/gun_main.hpp"
 #elif DEVICE_TYPE == DEVICE_VEST
-#include "vest_main.hpp"
+#include "VEST/vest_main.hpp"
 #elif DEVICE_TYPE == DEVICE_TEST
 #include "test_main.hpp"
 #elif DEVICE_TYPE == 0

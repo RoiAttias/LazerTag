@@ -17,7 +17,7 @@ public:
      * @param child The child element to contain in the view box.
      * @param addOffset The additional offset to apply to the child element.
      */
-    ViewBox(const Element& element, Element* child, ivec2 addOffset = vec2(0, 0))
+    ViewBox(const Element& element, Element* child, ivec2 addOffset = ivec2(0, 0))
         : Element(element), child(child), addOffset(addOffset) {}
     
     /**
@@ -59,7 +59,7 @@ public:
      * @brief Add an offset to the child element.
      * @param add The offset to add.
      */
-    virtual void addOffset(ivec2 add) {
+    virtual void addToOffset(ivec2 add) {
         addOffset += add;
         callRender();
     }

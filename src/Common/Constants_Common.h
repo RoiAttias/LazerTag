@@ -1,0 +1,32 @@
+#ifndef CONSTANTS_COMMON_H
+#define CONSTANTS_COMMON_H
+
+// Device Types
+#define DEVICE_MANAGER 1
+#define DEVICE_GUN 2
+#define DEVICE_VEST 3
+
+// Select device here
+#define DEVICE_TYPE DEVICE_MANAGER
+#define DEVICE_ID 1
+
+// Define the version of the system
+#define SYSTEM_VERSION_MAJOR 1
+#define SYSTEM_VERSION_MINOR 0
+#define SYSTEM_VERSION_PATCH 0
+
+#define SYSTEM_VERSION {SYSTEM_VERSION_MAJOR, SYSTEM_VERSION_MINOR, SYSTEM_VERSION_PATCH}
+
+// Nexus
+#define NEXUS_PROJECT_ID 0
+#define NEXUS_GROUPS 1 << (DEVICE_TYPE - 1)
+#define NEXUS_DEVICE_ID DEVICE_ID
+
+
+
+
+
+// Temp
+#define MAC_MANAGER {0x24, 0x0A, 0xC4, 0x00, 0x00, 0x00}
+
+#endif // CONSTANTS_COMMON_H

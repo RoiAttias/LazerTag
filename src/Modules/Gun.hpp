@@ -36,7 +36,6 @@ class Gun
 {
 public:
     // Constants
-    String name;
     uint32_t damage;
     uint32_t magazine;
     uint32_t roundsPerMinute;
@@ -57,15 +56,13 @@ public:
     // Constructor
     /**
      * @brief Construct a new Gun object
-     * @param name The name of the gun
      * @param damage The damage of the gun
      * @param magazine The magazine size of the gun
      * @param roundsPerMinute The rounds per minute of the gun
      * @param reloadTime The reload time of the gun in milliseconds
      * @param fullAuto Whether the gun is full auto or not, default is false
     */
-    Gun(String name, uint32_t damage, uint32_t magazine, uint32_t roundsPerMinute, uint32_t reloadTime, bool fullAuto = false) :
-        name(name),
+    Gun(uint32_t damage, uint32_t magazine, uint32_t roundsPerMinute, uint32_t reloadTime, bool fullAuto = false) :
         damage(damage),
         magazine(magazine),
         roundsPerMinute(roundsPerMinute),
@@ -81,7 +78,7 @@ public:
      * @brief Construct a new Gun object
      * @param data The GunData object containing the data of the gun
     */
-    Gun(GunData data) : Gun("Gun", data.damage, data.magazine, data.roundsPerMinute, data.reloadTime, data.fullAuto){}
+    Gun(GunData data) : Gun(data.damage, data.magazine, data.roundsPerMinute, data.reloadTime, data.fullAuto){}
 
     // Loop
     /**
@@ -114,6 +111,14 @@ public:
             fullAuto
         };
         return data;
+    }
+
+    void setData(GunData data) {
+        damage = data.damage;
+        magazine = data.magazine;
+        roundsPerMinute = data.roundsPerMinute;
+        reloadTime = data.reloadTime;
+        fullAuto = data.fullAuto;
     }
 
     uint32_t getAmmo() {
@@ -198,7 +203,7 @@ public:
  * Reload time: 1800ms
  * Full auto: true
  */
-Gun Sidearm("Sidearm", 23, 16, 300, 1800, true);
+GunData Sidearm(23, 16, 300, 1800, true);
 
 /**
  * Name: Hand Cannon
@@ -208,6 +213,6 @@ Gun Sidearm("Sidearm", 23, 16, 300, 1800, true);
  * Reload time: 3000ms
  * Full auto: false
  */
-Gun HandCannon("Hand Cannon", 42, 8, 150, 3000, false);
+GunData HandCannon(42, 8, 150, 3000, false);
 
 #endif // GUN_HPP

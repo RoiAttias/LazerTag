@@ -2,6 +2,7 @@
 #define GUI_MANAGER_HPP
 
 #include <Arduino.h>
+#include "MANAGER/Manager_TFT_eSPI_user_setup.h"
 #include <TFT_eSPI.h>
 
 #define LUMINAUI_USE_TFT_ESPI

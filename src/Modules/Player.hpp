@@ -2,7 +2,7 @@
 #define PLAYER_HPP
 
 #include "Gun.hpp"
-#include "Utilities/MacAddress.hpp"
+#include "Components/Nexus/Nexus.hpp"
 
 static uint16_t playerIDs = 0;
 
@@ -18,23 +18,13 @@ void resetPlayerIDcounter() {
 class Player {
 public:
     uint8_t ID;
-    uint8_t teamID;
-    String name;
-    MacAddress gunAddress;
-    MacAddress vestAddress;
+    NexusAddress gunAddress;
+    NexusAddress vestAddress;
     int hp;
-    Gun gun;
+    GunData gun;
 
-    Player(uint8_t playerID ,uint8_t teamID = 0, String playerName = "null", MacAddress gunAddr = MacAddress(), MacAddress vestAddr = MacAddress())
-        : ID(playerID), teamID(teamID), name(playerName), gunAddress(gunAddr), vestAddress(vestAddr), hp(100), gun(Sidearm)
-    {
-        ID = newPlayerID();
-        if (name == "null")
-        {
-            name = "Player";
-            name += ID;
-        }
-    }
+    Player(uint8_t playerID, NexusAddress gunAddr = NexusAddress(), NexusAddress vestAddr = NexusAddress())
+        : ID(playerID), teamID(teamID), name(playerName), gunAddress(gunAddr), vestAddress(vestAddr), hp(100), GunData(Sidearm){}
 
     // ID methods
     uint8_t getID()
@@ -42,19 +32,9 @@ public:
         return ID;
     }
 
-    uint8_t getTeamID()
+    void setID(uint8_t playerID)
     {
-        return teamID;
-    }
-
-    void setTeamID(uint8_t teamID)
-    {
-        this->teamID = teamID;
-    }
-
-    String getName()
-    {
-        return name;
+        ID = playerID;
     }
 
     // HP methods
@@ -68,57 +48,61 @@ public:
         hp = health;
     }
 
+    bool isAlive()
+    {
+        return hp > 0;
+    }
+
+    void resetHP()
+    {
+        hp = 100;
+    }
+
     void damage(int damage)
     {
-        hp -= damage;
+        hp = max(0, hp - damage);
     }
 
     // Gun methods
     uint32_t getGunDamage()
     {
-        return gun.getDamage();
+        return gun.damage;
     }
 
     GunData getGunData()
     {
-        return gun.getData();
+        return gun;
     }
 
-    // MacAddress methods
-    MacAddress getGunAddress()
+    // NexusAddress methods
+    NexusAddress getGunAddress()
     {
         return gunAddress;
     }
 
-    MacAddress getVestAddress()
+    NexusAddress getVestAddress()
     {
         return vestAddress;
     }
 
-    void setGunAddress(MacAddress gunAddr)
+    void setGunAddress(NexusAddress gunAddr)
     {
         gunAddress = gunAddr;
     }
 
-    void setVestAddress(MacAddress vestAddr)
+    void setVestAddress(NexusAddress vestAddr)
     {
         vestAddress = vestAddr;
     }
 
     bool hasGun()
     {
-        return gunAddress != MacAddress();
+        return gunAddress != NexusAddress();
     }
 
     bool hasVest()
     {
-        return vestAddress != MacAddress();
-    }
-
-    // Team methods
-    uint8_t getTeamID()
-    {
-        return teamID;
+        return vestAddress != NexusAddress();
     }
 };
 
