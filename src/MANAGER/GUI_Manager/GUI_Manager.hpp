@@ -30,6 +30,9 @@ enum GUI_Manager_Activity : uint8_t {
     GUI_Manager_Activity_size
 };
 
+// Paths to Elements
+#include "Elements/DeviceBox.hpp"
+
 // Paths to Activities
 #include "Activation.hpp"
 #include "Dashboard.hpp"

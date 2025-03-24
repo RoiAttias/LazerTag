@@ -6,6 +6,17 @@
 
 /**
  * @brief A text element that displays text on the screen.
+ * 
+ * Datums:
+ * - TL_DATUM: Top left
+ * - TC_DATUM: Top center
+ * - TR_DATUM: Top right
+ * - ML_DATUM: Middle left
+ * - MC_DATUM: Middle center
+ * - MR_DATUM: Middle right
+ * - BL_DATUM: Bottom left
+ * - BC_DATUM: Bottom center
+ * - BR_DATUM: Bottom right
  */
 class Text : public Element {
 public:
