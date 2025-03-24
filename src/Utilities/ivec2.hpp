@@ -252,6 +252,16 @@ public:
     }
 
     /**
+     * @brief Multiplies the vector components with the provided vector.
+     * 
+     * @param other The vector to multiply with.
+     * @return A new vector that is the product of the two vectors.
+     */
+    ivec2 multiply(const ivec2& other) const {
+        return ivec2(x * other.x, y * other.y);
+    }
+
+    /**
      * @brief Converts the vector to a string representation.
      * 
      * @return A string representing the vector in the format "(x, y)".

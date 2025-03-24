@@ -27,6 +27,7 @@ enum GUI_Manager_Activity : uint8_t {
     DASHBOARD,
     HAVE_A_GOOD_WEEK,
     STORY,
+    SCANNER,
     GUI_Manager_Activity_size
 };
 
@@ -39,11 +40,14 @@ enum GUI_Manager_Activity : uint8_t {
 #include "HaveAGoodWeek.hpp"
 #include "Story.hpp"
 
+#include "Scanner.hpp"
+
 Activity * GUI_Manager_Activities[] = {
     activation,
     new Dashboard(),
     new HaveAGoodWeek(),
-    new Story()
+    new Story(),
+    new Scanner()
 };
 
 namespace GUI {
@@ -60,7 +64,7 @@ namespace GUI {
         screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
         touch.init(ENABLE_ALL);
 
-        selectActivity(GUI_Manager_Activity::DASHBOARD);
+        selectActivity(GUI_Manager_Activity::SCANNER);
     }
 
     void selectActivity(int activity)

@@ -15,11 +15,8 @@ void manager_setup()
     Nexus::begin(NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUPS, NEXUS_DEVICE_ID));
     GUI::init();
 
-    Dashboard *dashboard = (Dashboard*)GUI_Manager_Activities[GUI_Manager_Activity::DASHBOARD];
-    DeviceBox *deviceBox;
-    deviceBox = &dashboard->deviceBox1;
-    deviceBox->invertSelected();
-    deviceBox = &dashboard->deviceBox4;
+    Scanner *scanner = (Scanner*)GUI_Manager_Activities[GUI_Manager_Activity::SCANNER];
+    DeviceBox *deviceBox = (DeviceBox*)scanner->elements[6];
     deviceBox->invertSelected();
 }
 
@@ -27,20 +24,6 @@ void manager_loop()
 {   
     Nexus::loop();
     GUI::loop();
-
-    Dashboard *dashboard = (Dashboard*)GUI_Manager_Activities[GUI_Manager_Activity::DASHBOARD];
-    DeviceBox *deviceBox;
-    deviceBox = &dashboard->deviceBox1;
-    deviceBox->invertSelected();
-    deviceBox = &dashboard->deviceBox2;
-    deviceBox->invertSelected();
-    deviceBox = &dashboard->deviceBox3;
-    deviceBox->invertSelected();
-    deviceBox = &dashboard->deviceBox4;
-    deviceBox->invertSelected();
-    
-    GUI::callRender();
-    delay(1000);
 }
 
 #endif // MANAGER_MAIN_HPP
