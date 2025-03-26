@@ -73,7 +73,8 @@ namespace Nexus {
     uint32_t lastScan = 0;
     uint16_t scanSeq = 0;
     bool isScanComplete = false;
-    bool shouldScan = true;
+    bool readScan = false;
+    bool shouldScan = false;
 
     NexusAddress THIS_ADDRESS(0, 0, 0);
     HyperList<NexusAddress> devices;
@@ -189,12 +190,16 @@ namespace Nexus {
                     }
                 }
             }
-            if (onScanComplete != nullptr) {
+            if (!readScan && isScanComplete && onScanComplete != nullptr) {
+                isScanComplete = false;
+                readScan = true;
                 onScanComplete();
             }
             if (shouldScan) {
+                Serial.println("Scanning...");
                 shouldScan = false;
                 isScanComplete = false;
+                readScan = false;
                 lastScan = now;
                 scanSeq = randomSequenceNum();
                 scanResults.clear();

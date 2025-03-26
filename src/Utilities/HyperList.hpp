@@ -64,6 +64,17 @@ public:
     T back();
 
     /**
+     * Clears all nodes from the list.
+     */
+    void clear();
+
+    /**
+     * Copies the data from the list to another HyperList at its end.
+     * @param list Reference to the HyperList to copy the data to.
+     */
+    void copyTo(HyperList<T>& list) const;
+
+    /**
      * Checks if the list contains a node with the given value.
      * @param value Data to check for in the list.
      * @return True if the value is found, false otherwise.
@@ -76,11 +87,6 @@ public:
      * @return Number of nodes containing the value.
      */
     int count(T value) const;
-
-    /**
-     * Clears all nodes from the list.
-     */
-    void clear();
 
     /**
      * @brief Retrieves the data from the first node in the list.
@@ -277,6 +283,15 @@ void HyperList<T>::clear() {
     listSize = 0;
     lastNode = nullptr;
     lastIndex = -1;
+}
+
+template <typename T>
+void HyperList<T>::copyTo(HyperList<T>& list) const {
+    Node<T>* current = head;
+    while (current != nullptr) {
+        list.addend(current->data);
+        current = current->next;
+    }
 }
 
 template <typename T>

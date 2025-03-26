@@ -171,7 +171,7 @@ public:
                 activity->OnTouch_execute(point, touchStatus);
             }
         }
-        if (renderAfterOnTouch) {
+        if (renderAfterOnTouch && touchStatus != TouchStatus::TouchStatus_HOLD && touchStatus != TouchStatus::TouchStatus_DRAG) {
             callRender();
         }
     }

@@ -2,7 +2,10 @@
 #define SCANNER_HPP
 
 #include "GUI_Manager.hpp"
+#include "Common/Constants_Common.h"
 #include <Arduino.h>
+
+void onScanButtonTouch(ivec2 point, TouchStatus status);
 
 class Scanner : public Activity {
 public:
@@ -17,10 +20,7 @@ public:
     ivec2 deviceBoxOrigin = ivec2(6, 60); // Default origin for DeviceBoxes
     ivec2 deviceBoxSize = ivec2(150, 50); // Default size for DeviceBoxes
     ivec2 deviceBoxSpacing = ivec2(6, 8); // Default spacing between DeviceBoxes
-    /*
-    Button(const Element& element, const String& content = "", uint32_t textColor = TFT_WHITE, uint32_t fillColor = TFT_BLACK,
-        uint32_t borderColor = TFT_WHITE, int cornerRadius = 0, uint8_t textSize = 1, float lineSpacing = 0.0f,
-        const GFXfont *freeFont = FF1, bool renderFill = true, bool renderBorder = true) */
+
     /**
      * @brief Construct a Scanner activity.
      */
@@ -32,9 +32,12 @@ public:
         nextButton(Element(ivec2(250, 240), LuminaUI_AUTO, ivec2(200, 70)), "Next", TFT_BLACK, TFT_ORANGE, TFT_BLACK, 20, 1, 0.0f,
             &FreeMono24pt7b, true, true)
     {
+        // Set the touch event handler for the scan button
+        scanButton.OnTouch_setHandler(onScanButtonTouch);
+        scanButton.OnTouch_setEnable(true);
 
         // Add static elements to the activity
-        Element* elems[13] = { &background, &titleText, &scanButton, &nextButton};
+        Element* elems[13] = {&background, &titleText, &scanButton, &nextButton};
 
         // Create 9 DeviceBoxes with a default size (150x50).
         // Device IDs will be 1 through 9.
@@ -43,6 +46,7 @@ public:
             deviceBoxPos = deviceBoxOrigin + (deviceBoxSize + deviceBoxSpacing).multiply(ivec2(i % 3, i / 3));
             deviceBoxes[i] = new DeviceBox(Element(deviceBoxPos, LuminaUI_AUTO, ivec2(150, 50)), i + 1);
             elems[4 + i] = deviceBoxes[i];
+            elems[4 + i]->visible = false;
         }
 
         elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
@@ -59,6 +63,60 @@ public:
         // Additional custom rendering code for Scanner can be added here if needed.
         return vp;
     }
+
+    virtual void setScannedDevices(HyperList<NexusAddress> devices) {
+        // Update the DeviceBoxes with the scanned devices.
+        for (int i = 0; i < 9; i++) {
+            if (i < devices.size()) {
+                deviceBoxes[i]->updateInformation(devices[i].deviceID, deviceGroupString(devices[i].groups));
+                deviceBoxes[i]->visible = true;
+            } else {
+                deviceBoxes[i]->updateInformation(0, "NEW");
+                deviceBoxes[i]->visible = false;
+            }
+        }
+
+        // Call the render method to update the display.
+        callRender();
+    }
 };
+
+Scanner *scanner = new Scanner();
+
+
+    /**
+     * @brief Touch event handler for the scan button.
+     */
+    void onScanButtonTouch(ivec2 point, TouchStatus status) {
+        switch (status) {
+            case TouchStatus::TouchStatus_RELEASE:
+                // Start scanning for devices
+                Nexus::scan();
+                scanner->scanButton.background.fillColor = TFT_GREEN;
+                scanner->scanButton.background.borderColor = TFT_BLACK;
+                scanner->scanButton.text.textColor = TFT_BLACK;
+                scanner->scanButton.callRender();
+                break;
+
+            case TouchStatus::TouchStatus_PRESS:
+                // Change the button color when pressed
+                scanner->scanButton.background.fillColor = TFT_DARKGREEN;
+                scanner->scanButton.background.borderColor = TFT_WHITE;
+                scanner->scanButton.text.textColor = TFT_WHITE;
+                scanner->scanButton.callRender();
+                break;
+            
+            case TouchStatus::TouchStatus_READY:
+                // Change the button color back when released
+                scanner->scanButton.background.fillColor = TFT_GREEN;
+                scanner->scanButton.background.borderColor = TFT_BLACK;
+                scanner->scanButton.text.textColor = TFT_BLACK;
+                scanner->scanButton.callRender();
+                break;
+
+            default:
+                break;
+        }
+    }
 
 #endif // SCANNER_HPP

@@ -47,7 +47,7 @@ Activity * GUI_Manager_Activities[] = {
     new Dashboard(),
     new HaveAGoodWeek(),
     new Story(),
-    new Scanner()
+    scanner
 };
 
 namespace GUI {
@@ -62,9 +62,10 @@ namespace GUI {
         LuminaUI::tft_instance = &tft;
         screenDiamentions = ivec2(LuminaUI::tft_instance->width(), LuminaUI::tft_instance->height());
         screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
-        touch.init(ENABLE_ALL);
+        touch.init(ENABLE_PRESS | ENABLE_RELEASE);
 
-        selectActivity(GUI_Manager_Activity::SCANNER);
+        // Select the first activity
+        selectActivity(SCANNER);
     }
 
     void selectActivity(int activity)

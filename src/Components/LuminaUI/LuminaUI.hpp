@@ -139,7 +139,7 @@ enum TouchStatus : byte{
     TouchStatus_size
 };
 
-String TouchStatus_str[] = {
+String TouchStatus_strings[] = {
     "READY", "PRESS", "RELEASE", "HOLD", "DRAG", "size"
 };
 

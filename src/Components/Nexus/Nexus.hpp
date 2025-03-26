@@ -61,6 +61,7 @@ namespace Nexus {
     extern uint32_t lastScan;
     extern uint16_t scanSeq;
     extern bool isScanComplete;
+    extern bool readScan;
     extern bool shouldScan;
 
     extern NexusAddress THIS_ADDRESS;

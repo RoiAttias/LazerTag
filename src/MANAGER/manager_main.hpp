@@ -10,14 +10,23 @@
 
 Game game;
 
+void scanCompletedCallback()
+{
+    Serial.println("Scan completed");
+    scanner->setScannedDevices(Nexus::scanResults);
+    for (int i = 0; i < Nexus::scanResults.size(); i++)
+        Serial.println(Nexus::scanResults[i].toString());
+}
+
+
 void manager_setup()
 {
+    Serial.begin(115200);
     Nexus::begin(NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUPS, NEXUS_DEVICE_ID));
+    Nexus::onScanComplete = scanCompletedCallback;
     GUI::init();
-
-    Scanner *scanner = (Scanner*)GUI_Manager_Activities[GUI_Manager_Activity::SCANNER];
-    DeviceBox *deviceBox = (DeviceBox*)scanner->elements[6];
-    deviceBox->invertSelected();
+    Serial.println(Nexus::THIS_ADDRESS.toString());
+    Serial.println("Setup complete");
 }
 
 void manager_loop()
