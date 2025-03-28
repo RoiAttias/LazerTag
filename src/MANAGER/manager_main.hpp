@@ -17,6 +17,8 @@ void scanCompletedCallback()
         Serial.println(Nexus::scanResults[i].toString());
     
     scanner->setScannedDevices(Nexus::scanResults);
+    Serial.println("Devices scanned");
+    GUI::callRender();
 }
 
 

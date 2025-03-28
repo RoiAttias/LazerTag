@@ -73,7 +73,6 @@ namespace Nexus {
     uint32_t lastScan = 0;
     uint16_t scanSeq = 0;
     bool isScanComplete = false;
-    bool readScan = false;
     bool shouldScan = false;
 
     NexusAddress THIS_ADDRESS(0, 0, 0);
@@ -168,32 +167,8 @@ namespace Nexus {
             outgoingPackets.remove(0);
         }
 
-        if (now - lastScan >= NEXUS_SCAN_INTERVAL && !isScanComplete) {
-            isScanComplete = true;
-            // Process newly scanned devices
-            for (size_t i = 0; i < scanResults.size(); i++) {
-                auto device = scanResults[i];
-                if (!devices.contains(device)) {
-                    devices.addend(device);
-                    if (onDeviceConnected != nullptr) {
-                        onDeviceConnected(device);
-                    }
-                }
-            }
-            // Process disconnected devices
-            for (size_t i = 0; i < devices.size(); i++) {
-                auto device = devices[i];
-                if (!scanResults.contains(device)) {
-                    devices.remove(i);
-                    if (onDeviceDisconnected != nullptr) {
-                        onDeviceDisconnected(device);
-                    }
-                }
-            }
-            // Call the scan complete callback if set
-            if (onScanComplete != nullptr) {
-                onScanComplete();
-            }
+        if (now - lastScan >= NEXUS_SCAN_INTERVAL) {
+            // Check if a the scan flag is set
             if (shouldScan) {
                 Serial.println("Scanning...");
                 shouldScan = false;
@@ -202,6 +177,37 @@ namespace Nexus {
                 scanSeq = randomSequenceNum();
                 scanResults.clear();
                 sendPacket(NexusPacket(THIS_ADDRESS, NexusAddress(getProjectID(), 255, 255), scanSeq, NEXUS_COMMAND_SCAN, 0, nullptr));
+            } else if (!isScanComplete) {
+                // If scan timeout is reached, begin processing the scan results, then mark the scan as complete
+
+                // Process newly scanned devices
+                for (size_t i = 0; i < scanResults.size(); i++) {
+                    auto device = scanResults[i];
+                    if (!devices.contains(device)) {
+                        devices.addend(device);
+                        if (onDeviceConnected != nullptr) {
+                            onDeviceConnected(device);
+                        }
+                    }
+                }
+                // Process disconnected devices
+                for (size_t i = 0; i < devices.size(); i++) {
+                    auto device = devices[i];
+                    if (!scanResults.contains(device)) {
+                        devices.remove(i);
+                        if (onDeviceDisconnected != nullptr) {
+                            onDeviceDisconnected(device);
+                        }
+                    }
+                }
+
+                // Call the scan complete callback if set
+                if (onScanComplete != nullptr) {
+                    onScanComplete();
+                }
+
+                // Mark the scan as complete
+                isScanComplete = true;
             }
         }
     }
@@ -222,7 +228,9 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
             if (packet.length == 1) {
                 if (Nexus::scanSeq == --packet.sequenceNum) {
                     if (!Nexus::isScanComplete && !Nexus::scanResults.contains(packet.source)) {
+                        Serial.println("Found device: " + packet.source.toString());
                         Nexus::scanResults.addend(packet.source);
+                        Serial.println("Added device: " + packet.source.toString());
                     }
                 }
             } else if (packet.length == 0) {

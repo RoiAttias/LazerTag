@@ -112,7 +112,6 @@ public:
                     if (element->inRange(point)){
                         // Execute the Touch event handler
                         element->OnTouch_execute(point, touchStatus);
-                        Serial.printf("Element %d - %s at %s\n", i, TouchStatus_strings[touchStatus], point.toString().c_str());
                         // Mark that the Touch event was handled and stop the loop
                         // in order to prevent other elements from receiving the Touch event.
                         continueLoop = false;
@@ -122,8 +121,8 @@ public:
                         // Execute the READY Touch event handler for all elements
                         // that DO NOT get the RELEASE Touch event at the end of the touch event.
                         if (continueLoop == true){
+                            ivec2 point = element->getPosition();
                             element->OnTouch_execute(point, TouchStatus_READY);
-                            Serial.printf("aElement %d - $d -  %s at %s\n", i, touchStatus, TouchStatus_strings[touchStatus], point.toString().c_str());
                         }
                         // Continue the loop to execute the READY Touch event for all elements.
                         continueLoop = true;

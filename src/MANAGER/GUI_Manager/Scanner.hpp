@@ -75,10 +75,6 @@ public:
                 deviceBoxes[i]->visible = false;
             }
         }
-
-        // Call the render method to update the display.
-        callRender();
-        Serial.println("Scanner: setScannedDevices");
     }
 };
 
@@ -89,6 +85,7 @@ Scanner *scanner = new Scanner();
      * @brief Touch event handler for the scan button.
      */
     void onScanButtonTouch(ivec2 point, TouchStatus status) {
+        Serial.println(status);
         switch (status) {
             case TouchStatus::TouchStatus_RELEASE:
                 // Start scanning for devices
