@@ -1,5 +1,5 @@
-#include "Subsystems/Target/Target.hpp"
-#include "Subsystems/Ring/Ring.hpp"
+#include "Target/Target.hpp"
+#include "Ring/Ring.hpp"
 
 #include "Modules/Game.hpp"
 #include "Common/LazerTagPacket.hpp"
@@ -31,20 +31,25 @@ void vest_loop() {
   // Process any Nexus packets.
   NexusPacket nexusPacket;
   while (Nexus::readPacket(nexusPacket)) {
+    // Variables to store the last health and game status.
+    // These are used to check if there are any changes.
+    // If there are changes, the ring will be updated.
+    int lastHP = hp;
+    GameStatus prevStatus = gameStatus;
+
     // Process the packet based on its command.
     switch (nexusPacket.command)
     {
       case COMMS_PLAYERHP:
         // Update the player's health.
-        int lastHP = hp;
         memcpy(&hp, nexusPacket.payload, payloadSizePerCommand[COMMS_PLAYERHP]);
         if (lastHP > hp) {
           Ring::hit();
         }
         break;
+      
       case COMMS_GAMESTATUS:
         // Update the game status.
-        GameStatus prevStatus = gameStatus;
         memcpy(&gameStatus, nexusPacket.payload, payloadSizePerCommand[COMMS_GAMESTATUS]);
         if (prevStatus != gameStatus) {
           switch (gameStatus)

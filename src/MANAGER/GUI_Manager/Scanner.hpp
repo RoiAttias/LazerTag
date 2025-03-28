@@ -78,6 +78,7 @@ public:
 
         // Call the render method to update the display.
         callRender();
+        Serial.println("Scanner: setScannedDevices");
     }
 };
 

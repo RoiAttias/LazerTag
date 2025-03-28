@@ -13,9 +13,10 @@ Game game;
 void scanCompletedCallback()
 {
     Serial.println("Scan completed");
-    scanner->setScannedDevices(Nexus::scanResults);
     for (int i = 0; i < Nexus::scanResults.size(); i++)
         Serial.println(Nexus::scanResults[i].toString());
+    
+    scanner->setScannedDevices(Nexus::scanResults);
 }
 
 

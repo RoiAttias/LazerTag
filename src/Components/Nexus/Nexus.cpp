@@ -168,7 +168,7 @@ namespace Nexus {
             outgoingPackets.remove(0);
         }
 
-        if (now - lastScan >= NEXUS_SCAN_INTERVAL) {
+        if (now - lastScan >= NEXUS_SCAN_INTERVAL && !isScanComplete) {
             isScanComplete = true;
             // Process newly scanned devices
             for (size_t i = 0; i < scanResults.size(); i++) {
@@ -190,16 +190,14 @@ namespace Nexus {
                     }
                 }
             }
-            if (!readScan && isScanComplete && onScanComplete != nullptr) {
-                isScanComplete = false;
-                readScan = true;
+            // Call the scan complete callback if set
+            if (onScanComplete != nullptr) {
                 onScanComplete();
             }
             if (shouldScan) {
                 Serial.println("Scanning...");
                 shouldScan = false;
                 isScanComplete = false;
-                readScan = false;
                 lastScan = now;
                 scanSeq = randomSequenceNum();
                 scanResults.clear();
