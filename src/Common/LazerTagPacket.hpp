@@ -13,6 +13,7 @@ enum CommsCommand : uint32_t {
     COMMS_GUNPARAMS,
     COMMS_FIRECODE,
     COMMS_GAMESTATUS,
+    COMMS_MARK,
     COMMS_size
 };
 
@@ -20,7 +21,8 @@ size_t payloadSizePerCommand[] = {
     sizeof(int),
     sizeof(GunData),
     sizeof(uint32_t),
-    sizeof(GameStatus)
+    sizeof(GameStatus),
+    0
 };
 
 #endif // LAZERTAGPACKET_HPP

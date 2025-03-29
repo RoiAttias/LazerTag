@@ -15,11 +15,6 @@ public:
 
     Grid grid;                // A grid layout
 
-    DeviceBox deviceBox1;     // DeviceBox for device 1
-    DeviceBox deviceBox2;     // DeviceBox for device 2
-    DeviceBox deviceBox3;     // DeviceBox for device 3
-    DeviceBox deviceBox4;     // DeviceBox for device 4
-
     // Constructor
     Dashboard() : Activity(),
         background(TFT_BROWN),
@@ -27,11 +22,7 @@ public:
         titleText(Element(ivec2(120, 20), LuminaUI_AUTO, LuminaUI_AUTO), String("Dashboard"), TFT_WHITE, 1, 1, 2.5f, &FreeMono24pt7b),
         statusIndicator(Element(ivec2(50, 100), LuminaUI_AUTO,ivec2(50, 30)), TFT_GREEN, TFT_BLACK, true, true),
         buttonRect(Element(ivec2(70, 260), LuminaUI_AUTO, ivec2(100, 40)), TFT_RED, TFT_BLACK, true, true, 10),
-        grid(Element(ivec2(0, 40), LuminaUI_AUTO, ivec2(300, 100))),
-        deviceBox1(Element(ivec2(0,40), LuminaUI_AUTO, ivec2(150,50)), 1, "VEST"),
-        deviceBox2(Element(ivec2(150,40), LuminaUI_AUTO, ivec2(150,50)), 2, "GUN"),
-        deviceBox3(Element(ivec2(0,90), LuminaUI_AUTO, ivec2(150,50)), 3, "Vest"),
-        deviceBox4(Element(ivec2(150,90), LuminaUI_AUTO, ivec2(150,50)), 4, "Gun")
+        grid(Element(ivec2(0, 40), LuminaUI_AUTO, ivec2(300, 100)))
     {
         // Add columns and rows to the grid
         grid.addColumn(150);
@@ -49,7 +40,7 @@ public:
 
         */
         // Add all elements to the `elements` HyperList
-        Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect, &deviceBox1, &deviceBox2, &deviceBox3, &deviceBox4};
+        Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect};
         elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
     }
 

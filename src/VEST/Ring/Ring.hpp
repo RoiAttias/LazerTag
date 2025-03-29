@@ -36,9 +36,23 @@ void load2AnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t 
 
 void hitAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
     for (uint16_t i = 0; i < length; i++) { // Loop through each LED
-        uint16_t hue = 0; // Calculate the hue with HP
+        uint16_t hue = mix(Ring::hp/100.0f, 0, 22000); // Calculate the hue with HP
         uint8_t brightness = (uint8_t)(clamp(1.0f - 2*(distance(factor,0,0.5f,0)), 0.0f, 1.0f) * 255); // Calculate the color
         strip->setPixelColor(startIndex + i, strip->ColorHSV(hue, 255, brightness)); // Set the LED color
+    }
+}
+
+void hpAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
+    for (uint16_t i = 0; i < Ring::hp*length/100; i++) { // Loop through each LED
+        uint8_t brightness = (uint8_t)(mix((factor < 0.5f) ? (factor/2.0f) : (1.0f-(factor/2.0f)), 180, 255)); // Calculate the color
+        strip->setPixelColor(startIndex + i, strip->ColorHSV(40000, 255, brightness)); // Set the LED color
+    }
+}
+
+void markAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
+    for (uint16_t i = 0; i < length; i++) { // Loop through each LED
+        uint8_t brightness = (uint8_t)(clamp(1.0f - 2*(distance(factor,0,0.5f,0)), 0.0f, 1.0f) * 255); // Calculate the color
+        strip->setPixelColor(startIndex + i, strip->ColorHSV(0xFFFF/7, 255, brightness)); // Set the LED color
     }
 }
 
@@ -51,8 +65,15 @@ Animation load2Animation(load2AnimationFunc, 1, 0, stripLength, 1000, true);
 // Func: hitAnimationFunc, Layer: 1, Start: 0, Len: 10, Duration: 100, Loop: false
 Animation hitAnimation(hitAnimationFunc, 2, 0, stripLength, 100, false);
 
+// Func: hpAnimationFunc, Layer: 0, Start: 0, Len: 10, Duration: 1000, Loop: true
+Animation hpAnimation(hpAnimationFunc, 0, 0, stripLength, 1000, true);
+
+// Func: markAnimationFunc, Layer: 2, Start: 0, Len: 10, Duration: 1000, Loop: false
+Animation markAnimation(markAnimationFunc, 2, 0, stripLength, 1000, false);
+
 namespace Ring {
     Visualizer visualizer(stripPin, stripLength, stripFrameIntervalMS);
+    int hp = 0;
 
     void init() {
         visualizer.init(stripBrightness);
@@ -73,8 +94,21 @@ namespace Ring {
     }
 
     void hit() {
-        visualizer.clearAnimations();
         visualizer.addAnimation(hitAnimation);
+    }
+
+    void onGameStart() {
+        visualizer.clearAnimations();
+        visualizer.addAnimation(hpAnimation);
+    }
+
+    void hpUpdate(int hp) {
+        Ring::hp = hp;
+        visualizer.addAnimation(hpAnimation);
+    }
+
+    void mark() {
+        visualizer.addAnimation(markAnimation);
     }
 }
 

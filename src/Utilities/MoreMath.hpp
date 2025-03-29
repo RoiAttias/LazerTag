@@ -152,4 +152,6 @@ inline float distance(float x1, float y1, float x2, float y2)
     return sqrt(sq(x2 - x1) + sq(y2 - y1));
 }
 
+
+
 #endif // MOREMATH_HPP

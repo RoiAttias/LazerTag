@@ -195,6 +195,7 @@ namespace Nexus {
                     auto device = devices[i];
                     if (!scanResults.contains(device)) {
                         devices.remove(i);
+                        i--;
                         if (onDeviceDisconnected != nullptr) {
                             onDeviceDisconnected(device);
                         }

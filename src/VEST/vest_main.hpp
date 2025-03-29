@@ -66,6 +66,10 @@ void vest_loop() {
             }
         }
         break;
+      case COMMS_MARK:
+        // Play the mark animation.
+        Ring::mark();
+        break;
     }
   }
 }

@@ -14,7 +14,7 @@ public:
     int cornerRadius;
 
     Rectangle(Element element, uint32_t fillColor = TFT_WHITE, uint32_t borderColor = TFT_BLACK,
-        bool renderFill = true, bool renderBorder = false, int cornerRadius = 0):
+        bool renderFill = true, bool renderBorder = false, int cornerRadius = 0) :
         Element(element), fillColor(fillColor), borderColor(borderColor),
         renderFill(renderFill), renderBorder(renderBorder), cornerRadius(cornerRadius) {}
 

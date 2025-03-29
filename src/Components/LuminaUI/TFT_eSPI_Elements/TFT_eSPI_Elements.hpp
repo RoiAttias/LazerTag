@@ -82,12 +82,13 @@ namespace LuminaUI
 #include "Ellipse.hpp"
 #include "Background.hpp"
 #include "Line.hpp"
+#include "Arc.hpp"
 
 // Layout Elements
 //#include "Table.hpp" - not ready
 
 // Combined Elements
-//#include "Textbox.hpp" - not ready
+#include "Textbox.hpp"
 
 // Overriden Elements
 #include "Button.hpp"

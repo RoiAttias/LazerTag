@@ -33,8 +33,21 @@ void fireAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t l
     }
 }
 
-// Create an Animation object for the fire effect.
+// --- Mark Animation Function ---
+// Creates a marking effect on an LED strip using a specific hue and brightness.
+void markAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
+    for (uint16_t i = 0; i < length; i++) { // Loop through each LED
+        uint8_t brightness = (uint8_t)(clamp(1.0f - 2*(distance(factor,0,0.5f,0)), 0.0f, 1.0f) * 255); // Calculate the color
+        strip->setPixelColor(startIndex + i, strip->ColorHSV(0xFFFF/7, 255, brightness)); // Set the LED color
+    }
+}
+
+// --- Animation Objects ---
+// Func: fireAnimationFunc, Layer: 1, Start: 0, Len: 10, Duration: 100, Loop: false
 Animation fireAnimation(fireAnimationFunc, 1, 0, 10, 100, false);
+
+// Func: markAnimationFunc, Layer: 2, Start: 0, Len: 10, Duration: 1000, Loop: false
+Animation markAnimation(markAnimationFunc, 2, 0, stripLength, 1000, false);
 
 // --- Global Objects ---
 // Player object manages player data and contains a Gun instance.
@@ -123,19 +136,20 @@ void gun_loop() {
     
     // Process any Nexus packets.
     NexusPacket nexusPacket;
+    int newHP;
+    GunData gunData;
+    GameStatus prevStatus;
     while (Nexus::readPacket(nexusPacket)) {
         // Process the packet based on its command.
         switch (nexusPacket.command)
         {
             case COMMS_PLAYERHP:
                 // Update the player's health.
-                int newHP;
                 memcpy(&newHP, nexusPacket.payload, payloadSizePerCommand[COMMS_PLAYERHP]);
                 player.setHP(newHP);
                 break;
             case COMMS_GUNPARAMS:
                 // Update the gun's parameters.
-                GunData gunData;
                 memcpy(&gunData, nexusPacket.payload, payloadSizePerCommand[COMMS_GUNPARAMS]);
                 gun.setData(gunData);
                 break;
@@ -145,7 +159,7 @@ void gun_loop() {
                 break;
             case COMMS_GAMESTATUS:
                 // Update the game status.
-                GameStatus prevStatus = gameStatus;
+                prevStatus = gameStatus;
                 memcpy(&gameStatus, nexusPacket.payload, payloadSizePerCommand[COMMS_GAMESTATUS]);
                 if (prevStatus != gameStatus) {
                     switch (gameStatus)
@@ -170,6 +184,11 @@ void gun_loop() {
                             break;
                     }
                 }
+                break;
+
+            case COMMS_MARK:
+                // Play the mark animation.
+                visualizer.addAnimation(markAnimation);
                 break;
         }
         callRender = true;

@@ -5,12 +5,12 @@
 
 /**
  * @brief DeviceBox element composed of a background rectangle and text,
- * used to display device information in the format "id | deviceType".
+ * used to display device information in the format "id | deviceGroup".
  */
 class DeviceBox : public Textbox {
 public:
     int deviceId;       ///< The device ID.
-    String deviceType;  ///< The device type string.
+    int deviceGroup;   ///< The device type.
     bool selected = false; ///< Whether the DeviceBox is selected.
 
     uint32_t color1T = TFT_VIOLET;
@@ -29,15 +29,15 @@ public:
      * 
      * @param element Base element properties.
      * @param deviceId The device ID.
-     * @param deviceType The device type string.
+     * @param deviceGroup The device type.
      */
-    DeviceBox(const Element &element, int deviceId = 0, String deviceType = "NEW")
+    DeviceBox(const Element &element, int deviceId = 0, int deviceGroup = 0)
         : Textbox(element, "", textColor, fillColor, textColor, 1, MC_DATUM,
             1, cornerRadius, &FreeMono18pt7b, true, true),
-        deviceId(deviceId), deviceType(deviceType)
+        deviceId(deviceId), deviceGroup(deviceGroup)
         {
             // Update the text content.
-            updateInformation(deviceId, deviceType);
+            updateInformation(deviceId, deviceGroup);
             setSelected(selected);
         }
 
@@ -45,13 +45,13 @@ public:
      * @brief Update the device information displayed by the DeviceBox.
      *
      * @param id The device ID.
-     * @param type The device type string.
+     * @param group The device group.
      */
-    void updateInformation(int id, const String &type) {
+    void updateInformation(int id, int group) {
         deviceId = id;
-        deviceType = type;
-        // Format the text content as "(id | deviceType)".
-        Textbox::text.content = String(deviceId) + "|" + deviceType;
+        deviceGroup = group;
+        // Format the text content as "(id | deviceGroup)".
+        Textbox::text.content = String(deviceId) + "|" + deviceGroupString(deviceGroup & 0xFF);
         // Mark the element for re-rendering.
         Element::callRender();
     }

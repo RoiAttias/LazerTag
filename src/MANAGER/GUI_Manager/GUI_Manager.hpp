@@ -8,6 +8,8 @@
 #define LUMINAUI_USE_TFT_ESPI
 #include "Components/LuminaUI/LuminaUI.hpp"
 
+#include "Components/Nexus/Nexus.hpp"
+
 TFT_eSPI tft = TFT_eSPI();   // Invoke library
 
 ivec2 screenDiamentions;
@@ -16,6 +18,9 @@ Screen screen(true);
 Touch_XPT2046 touch(&screen);
 
 namespace GUI {
+    // Shared variables
+    HyperList<NexusAddress> gameDevices;
+    
     void init();
     void selectActivity(int activity);
     void callRender();
@@ -33,6 +38,7 @@ enum GUI_Manager_Activity : uint8_t {
 
 // Paths to Elements
 #include "Elements/DeviceBox.hpp"
+#include "Elements/LoadArc.hpp"
 
 // Paths to Activities
 #include "Activation.hpp"
