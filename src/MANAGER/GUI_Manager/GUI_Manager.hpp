@@ -29,10 +29,9 @@ namespace GUI {
 
 enum GUI_Manager_Activity : uint8_t {
     ACTIVATION,
-    DASHBOARD,
-    HAVE_A_GOOD_WEEK,
-    STORY,
     SCANNER,
+    PLAYERSETUP,
+    DASHBOARD,
     GUI_Manager_Activity_size
 };
 
@@ -43,17 +42,14 @@ enum GUI_Manager_Activity : uint8_t {
 // Paths to Activities
 #include "Activation.hpp"
 #include "Scanner.hpp"
-
+#include "PlayerSetup.hpp"
 #include "Dashboard.hpp"
-#include "HaveAGoodWeek.hpp"
-#include "Story.hpp"
 
 Activity * GUI_Manager_Activities[] = {
     activation,
+    scanner,
+    playerSetup,
     new Dashboard(),
-    new HaveAGoodWeek(),
-    new Story(),
-    scanner
 };
 
 namespace GUI {

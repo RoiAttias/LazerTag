@@ -4,17 +4,6 @@
 #include "Gun.hpp"
 #include "Components/Nexus/Nexus.hpp"
 
-static uint16_t playerIDs = 0;
-
-int newPlayerID()
-{
-    return ++playerIDs;
-}
-
-void resetPlayerIDcounter() {
-    playerIDs = 0;
-}
-
 class Player {
 public:
     uint8_t ID;
@@ -23,7 +12,7 @@ public:
     int hp;
     GunData gunData;
 
-    Player(uint8_t playerID = 0, NexusAddress gunAddr = NexusAddress(), NexusAddress vestAddr = NexusAddress())
+    Player(uint8_t playerID, NexusAddress gunAddr = NexusAddress(), NexusAddress vestAddr = NexusAddress())
         : ID(playerID), gunAddress(gunAddr), vestAddress(vestAddr), hp(100), gunData(Sidearm){}
 
     // ID methods

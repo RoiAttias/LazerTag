@@ -19,10 +19,6 @@ public:
     // Timing
     uint32_t countdownTime = 500;
 
-    // Colors
-    //uint16_t backgroundColor = LuminaUI::tft_instance->color565(143, 24, 186); // Dark Purple
-    uint16_t logoColor = LuminaUI::tft_instance->color565(195, 59, 245); // Light Purple
-
     // Other
     ivec2 textScale = ivec2(480,40);
 
@@ -36,6 +32,7 @@ public:
     {
         // Activity settings
         OnTouch_setEnable(false);
+        renderAlways = false;
 
         // Add all Rectangle elements to the array
         Element* elems[] = {&background, &text1, &text2, &text3, &text4};

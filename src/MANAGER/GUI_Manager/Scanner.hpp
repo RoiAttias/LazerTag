@@ -8,6 +8,8 @@
 #include "Components/Nexus/Nexus.hpp"
 #include "Common/LazerTagPacket.hpp"
 
+#include "PlayerSetup.hpp"
+
 void onScanButtonTouch(ivec2 point, TouchStatus status);
 void onNextButtonTouch(ivec2 point, TouchStatus status);
 void onDeviceBoxTouch(ivec2 point, TouchStatus status);
@@ -101,7 +103,7 @@ public:
                 uint8_t group = deviceBox->deviceGroup;
                 if (group == NEXUS_GROUP_GUN || group == NEXUS_GROUP_VEST) {
                     // Send a scan request to the selected device
-                    NexusAddress deviceAddress = (NEXUS_PROJECT_ID, group, deviceBox->deviceId);
+                    NexusAddress deviceAddress = {NEXUS_PROJECT_ID, group, deviceBox->deviceId};
                     GUI::gameDevices.addend(deviceAddress);
                 }
             } else {
@@ -184,7 +186,8 @@ void onNextButtonTouch(ivec2 point, TouchStatus status) {
                 scanner->nextButton.callRender();
 
                 // Proceed to the next step
-                GUI::selectActivity(GUI_Manager_Activity::DASHBOARD);
+                GUI::selectActivity(GUI_Manager_Activity::PLAYERSETUP);
+                playerSetup->init();
                 break;
 
             case TouchStatus::TouchStatus_PRESS:

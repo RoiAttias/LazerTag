@@ -1,5 +1,5 @@
-#ifndef SCANNER_HPP
-#define SCANNER_HPP
+#ifndef PLAYERSETUP_HPP
+#define PLAYERSETUP_HPP
 
 #include "GUI_Manager.hpp"
 #include "Common/Constants_Common.h"
@@ -8,80 +8,164 @@
 #include "Components/Nexus/Nexus.hpp"
 #include "Common/LazerTagPacket.hpp"
 
-void onScanButtonTouch(ivec2 point, TouchStatus status);
-void onNextButtonTouch(ivec2 point, TouchStatus status);
-void onDeviceBoxTouch(ivec2 point, TouchStatus status);
+// Forward declarations for touch event handlers
+void onGunSwitchButtonTouch(ivec2 point, TouchStatus status);
+void onVestSwitchButtonTouch(ivec2 point, TouchStatus status);
+void onPlayerSetupBackButtonTouch(ivec2 point, TouchStatus status);
+void onPlayerSetupNextButtonTouch(ivec2 point, TouchStatus status);
 
 class PlayerSetup : public Activity {
 public:
-    // Elements
-    Background background;     // A background element
-    Text titleText;            // Title text displayed in the header
-    Button scanButton;         // A scan button
-    Button nextButton;         // A next button
+    // Background and Title
+    Background background;
+    Text titleText;
 
-    DeviceBox* deviceBoxes[9]; // Pointers to DeviceBoxes for devices 1-9
+    // Player 1 elements
+    Text player1Title;
+    DeviceBox gunBox1;
+    DeviceBox vestBox1;
 
-    ivec2 deviceBoxOrigin = ivec2(6, 60); // Default origin for DeviceBoxes
-    ivec2 deviceBoxSize = ivec2(150, 50); // Default size for DeviceBoxes
-    ivec2 deviceBoxSpacing = ivec2(6, 8); // Default spacing between DeviceBoxes
+    // Player 2 elements
+    Text player2Title;
+    DeviceBox gunBox2;
+    DeviceBox vestBox2;
+
+    // Switch buttons for guns and vests
+    Button gunSwitchButton;
+    Button vestSwitchButton;
+
+    // Navigation buttons
+    Button backButton;
+    Button nextButton;
 
     /**
-     * @brief Construct a Scanner activity.
+     * @brief Construct a PlayerSetup activity.
      */
     PlayerSetup() : Activity(),
-        background(TFT_BROWN),
-        titleText(Element(ivec2(0, 10), LuminaUI_AUTO, ivec2(480, 40)), String("Scanner"), TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold24pt7b),
-        scanButton(Element(ivec2(20, 240), LuminaUI_AUTO, ivec2(200, 70)), "Scan", TFT_BLACK, TFT_GREEN, TFT_BLACK, 20, 1, 0.0f,
-            &FreeMono24pt7b, true, true),
-        nextButton(Element(ivec2(250, 240), LuminaUI_AUTO, ivec2(200, 70)), "Next", TFT_BLACK, TFT_DARKGREY, TFT_BLACK, 20, 1, 0.0f,
-            &FreeMono24pt7b, true, true)
-    {
-        // Set the touch event handler for the scan button
-        scanButton.OnTouch_setHandler(onScanButtonTouch);
-        scanButton.OnTouch_setEnable(true);
+        background(TFT_NAVY),
+        titleText(Element(ivec2(0, 10), LuminaUI_AUTO, ivec2(480, 50)),
+                  String("Player Setup"), TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold24pt7b),
 
-        // Set the touch event handler for the next button
-        nextButton.OnTouch_setHandler(onNextButtonTouch);
+        player1Title(Element(ivec2(0, 60), LuminaUI_AUTO, ivec2(240, 40)),
+                     String("Player 1"), TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold18pt7b),
+        gunBox1(Element(ivec2(30, 110), LuminaUI_AUTO, ivec2(150, 50)), 0),
+        vestBox1(Element(ivec2(30, 170), LuminaUI_AUTO, ivec2(150, 50)), 0),
+
+        player2Title(Element(ivec2(240, 60), LuminaUI_AUTO, ivec2(240, 40)),
+                     String("Player 2"), TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold18pt7b),
+        gunBox2(Element(ivec2(300, 110), LuminaUI_AUTO, ivec2(150, 50)), 0),
+        vestBox2(Element(ivec2(300, 170), LuminaUI_AUTO, ivec2(150, 50)), 0),
+
+        gunSwitchButton(Element(ivec2(210, 120), LuminaUI_AUTO, ivec2(60, 40)),
+                        "<->", TFT_BLACK, TFT_YELLOW, TFT_BLACK, 10, 1, 0.0f,
+                        &FreeMonoBold12pt7b, true, true),
+        vestSwitchButton(Element(ivec2(210, 170), LuminaUI_AUTO, ivec2(60, 40)),
+                         "<->", TFT_BLACK, TFT_YELLOW, TFT_BLACK, 10, 1, 0.0f,
+                         &FreeMonoBold12pt7b, true, true),
+
+        backButton(Element(ivec2(20, 240), LuminaUI_AUTO, ivec2(200, 70)),
+                   "Back", TFT_BLACK, TFT_CYAN, TFT_BLACK, 20, 1, 0.0f,
+                   &FreeMono24pt7b, true, true),
+        nextButton(Element(ivec2(250, 240), LuminaUI_AUTO, ivec2(200, 70)),
+                   "Next", TFT_BLACK, TFT_DARKGREY, TFT_BLACK, 20, 1, 0.0f,
+                   &FreeMono24pt7b, true, true)
+    {
+        // Set touch event handlers for the switch buttons
+        gunSwitchButton.OnTouch_setHandler(onGunSwitchButtonTouch);
+        gunSwitchButton.OnTouch_setEnable(true);
+        
+        vestSwitchButton.OnTouch_setHandler(onVestSwitchButtonTouch);
+        vestSwitchButton.OnTouch_setEnable(true);
+
+        // Set touch event handlers for navigation buttons
+        backButton.OnTouch_setHandler(onPlayerSetupBackButtonTouch);
+        backButton.OnTouch_setEnable(true);
+        
+        nextButton.OnTouch_setHandler(onPlayerSetupNextButtonTouch);
         nextButton.OnTouch_setEnable(true);
 
-        // Add static elements to the activity
-        Element* elems[13] = {&background, &titleText, &scanButton, &nextButton};
+        // Add all elements to the activity.
+        Element* elems[12] = {
+            &background,
+            &titleText,
+            &player1Title,
+            &gunBox1,
+            &vestBox1,
+            &player2Title,
+            &gunBox2,
+            &vestBox2,
+            &gunSwitchButton,
+            &vestSwitchButton,
+            &backButton,
+            &nextButton
+        };
+        elements.addFromArray(elems, sizeof(elems)/sizeof(Element*));
+    }
 
-        // Create 9 DeviceBoxes with a default size (150x50).
-        // Device IDs will be 1 through 9.
-        ivec2 deviceBoxPos;
-        for (int i = 0; i < 9; i++) {
-            deviceBoxPos = deviceBoxOrigin + (deviceBoxSize + deviceBoxSpacing).multiply(ivec2(i % 3, i / 3));
-            deviceBoxes[i] = new DeviceBox(Element(deviceBoxPos, LuminaUI_AUTO, ivec2(150, 50)), i + 1);
-            elems[4 + i] = deviceBoxes[i];
-            elems[4 + i]->visible = false;
-            elems[4 + i]->OnTouch_setHandler(onDeviceBoxTouch);
-            elems[4 + i]->OnTouch_setEnable(true);
+    void init() {
+        for (int i = 0, g = 0, v = 0; i < GUI::gameDevices.size(); i++) {
+            if (GUI::gameDevices[i].groups == NEXUS_GROUP_GUN) {
+                if (g == 0) {
+                    Game::player1.setGunAddress(GUI::gameDevices[i]);
+                } else if (g == 1) {
+                    Game::player2.setGunAddress(GUI::gameDevices[i]);
+                }
+                g++;
+            } else if (GUI::gameDevices[i].groups == NEXUS_GROUP_VEST) {
+                if (v == 0) {
+                    Game::player1.setVestAddress(GUI::gameDevices[i]);
+                } else if (v == 1) {
+                    Game::player2.setVestAddress(GUI::gameDevices[i]);
+                }
+                v++;
+            }
         }
 
-        // Add all elements to the activity
-        elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
+        // Set the initial state of the next button
+        if (canNext())
+        {
+            nextButton.background.fillColor = TFT_ORANGE;
+            nextButton.background.borderColor = TFT_BLACK;
+            nextButton.text.textColor = TFT_BLACK;
+        } else {
+            nextButton.background.fillColor = TFT_DARKGREY;
+            nextButton.background.borderColor = TFT_BLACK;
+            nextButton.text.textColor = TFT_BLACK;
+        }
     }
 
     /**
      * @brief Check if the next button can be pressed.
-     * 
      * @return true if the next button can be pressed, false otherwise.
      */
     bool canNext() {
-        int countGuns = 0;
-        int countVests = 0;
+        return Game::canStart();
+    }
 
-        for (int i = 0; i < gameDevices.size(); i++) {
-             if (gameDevices[i].deviceGroup == NEXUS_GROUP_GUN) {
-                countGuns++;
-            } else if (gameDevices[i].deviceGroup == NEXUS_GROUP_VEST) {
-                countVests++;
-            }
-        }
+    void update() {
+        // Update the device boxes with the current game devices.
+        gunBox1.updateInformation(Game::player1.getGunAddress().deviceID, Game::player1.getGunAddress().groups);
+        gunBox2.updateInformation(Game::player2.getGunAddress().deviceID, Game::player2.getGunAddress().groups);
+        vestBox1.updateInformation(Game::player1.getVestAddress().deviceID, Game::player1.getVestAddress().groups);
+        vestBox2.updateInformation(Game::player2.getVestAddress().deviceID, Game::player2.getVestAddress().groups);
 
-        return (countGuns == 1 && countVests == 1);
+         // Update the visibility of the device boxes based on their group.
+         gunBox1.visible = (gunBox1.deviceGroup != 0);
+         gunBox2.visible = (gunBox2.deviceGroup != 0);
+         vestBox1.visible = (vestBox1.deviceGroup != 0);
+         vestBox2.visible = (vestBox2.deviceGroup != 0);
+    }
+
+    void switchGuns() {
+        NexusAddress temp = Game::player1.getGunAddress();
+        Game::player1.setGunAddress(Game::player2.getGunAddress());
+        Game::player2.setGunAddress(temp);
+    }
+
+    void switchVests() {
+        NexusAddress temp = Game::player1.getVestAddress();
+        Game::player1.setVestAddress(Game::player2.getVestAddress());
+        Game::player2.setVestAddress(temp);
     }
 
     /**
@@ -91,77 +175,63 @@ public:
      * @return The clamped viewport.
      */
     virtual Viewport render(const Viewport &viewport) override {
-        GUI::gameDevices.clear(); // Clear the game devices list
-        DeviceBox* deviceBox;
-        for (int i = 0; i < 9; i++) {
-            deviceBox = deviceBoxes[i];
-            if (deviceBox->selected) {
-                uint8_t group = deviceBox->deviceGroup;
-                if (group == NEXUS_GROUP_GUN || group == NEXUS_GROUP_VEST) {
-                    // Send a scan request to the selected device
-                    NexusAddress deviceAddress = (NEXUS_PROJECT_ID, group, deviceBox->deviceId);
-                    GUI::gameDevices.addend(deviceAddress);
-                }
-            } else {
-                break; // Exit the loop if the device is not a gun or vest
-            }
-        }
+        update(); // Update the device boxes with the current game devices.
 
         // Call the base class render method
-        Viewport vp = Activity::render(viewport);
-        // Additional custom rendering code for Scanner can be added here if needed.
-        return vp;
-    }
-
-    virtual void updateScannedDevices() {
-        // Update the DeviceBoxes with the scanned devices.
-        for (int i = 0; i < 9; i++) {
-            if (i < Nexus::devices.size()) {
-                deviceBoxes[i]->updateInformation(Nexus::devices[i].deviceID, Nexus::devices[i].groups);
-                deviceBoxes[i]->setSelected(false);
-                deviceBoxes[i]->visible = true;
-            } else {
-                deviceBoxes[i]->updateInformation(0, 0);
-                deviceBoxes[i]->setSelected(false);
-                deviceBoxes[i]->visible = false;
-            }
-        }
-
-        scanButton.background.fillColor = TFT_GREEN;
-        nextButton.background.fillColor = canNext() ? TFT_ORANGE : TFT_DARKGREY;
+        return Activity::render(viewport);
     }
 };
 
-Scanner *scanner = new Scanner();
+PlayerSetup *playerSetup = new PlayerSetup();
+
 
 /**
- * @brief Touch event handler for the scan button.
+ * @brief Touch event handler for the Gun Switch button.
  */
-void onScanButtonTouch(ivec2 point, TouchStatus status) {
+void onGunSwitchButtonTouch(ivec2 point, TouchStatus status) {
+    if (status == TouchStatus::TouchStatus_PRESS) {
+        playerSetup->switchGuns();
+    }
+}
+
+/**
+ * @brief Touch event handler for the Vest Switch button.
+ */
+void onVestSwitchButtonTouch(ivec2 point, TouchStatus status) {
+    if (status == TouchStatus::TouchStatus_PRESS) {
+        playerSetup->switchVests();
+    }
+}
+
+/**
+ * @brief Touch event handler for the Back button.
+ */
+void onPlayerSetupBackButtonTouch(ivec2 point, TouchStatus status) {
     switch (status) {
         case TouchStatus::TouchStatus_RELEASE:
-            // Start scanning for devices
-            Nexus::scan();
-            scanner->scanButton.background.fillColor = TFT_DARKGREY;
-            scanner->scanButton.background.borderColor = TFT_BLACK;
-            scanner->scanButton.text.textColor = TFT_BLACK;
-            scanner->scanButton.callRender();
+            playerSetup->backButton.background.fillColor = TFT_CYAN;
+            playerSetup->backButton.background.borderColor = TFT_BLACK;
+            playerSetup->backButton.text.textColor = TFT_BLACK;
+            playerSetup->backButton.callRender();
+
+            // Go back to the previous activity
+            GUI::selectActivity(GUI_Manager_Activity::SCANNER);
             break;
 
         case TouchStatus::TouchStatus_PRESS:
             // Change the button color when pressed
-            scanner->scanButton.background.fillColor = TFT_DARKGREEN;
-            scanner->scanButton.background.borderColor = TFT_WHITE;
-            scanner->scanButton.text.textColor = TFT_WHITE;
-            scanner->scanButton.callRender();
+            playerSetup->backButton.background.fillColor = TFT_BLUE;
+            playerSetup->backButton.background.borderColor = TFT_WHITE;
+            playerSetup->backButton.text.textColor = TFT_WHITE;
+            playerSetup->backButton.callRender();
             break;
 
         case TouchStatus::TouchStatus_READY:
             // Change the button color back when released
-            scanner->scanButton.background.fillColor = Nexus::isScanComplete ? TFT_GREEN : TFT_DARKGREY;
-            scanner->scanButton.background.borderColor = TFT_BLACK;
-            scanner->scanButton.text.textColor = TFT_BLACK;
-            scanner->scanButton.callRender();
+            playerSetup->backButton.background.fillColor = TFT_CYAN;
+            playerSetup->backButton.background.borderColor = TFT_BLACK;
+            playerSetup->backButton.text.textColor = TFT_BLACK;
+            playerSetup->backButton.callRender();
             break;
 
         default:
@@ -170,16 +240,16 @@ void onScanButtonTouch(ivec2 point, TouchStatus status) {
 }
 
 /**
- * @brief Touch event handler for the next button.
+ * @brief Touch event handler for the Next button.
  */
-void onNextButtonTouch(ivec2 point, TouchStatus status) {
-    if (scanner->canNext()) {
+void onPlayerSetupNextButtonTouch(ivec2 point, TouchStatus status) {
+    if (playerSetup->canNext()) {
         switch (status) {
             case TouchStatus::TouchStatus_RELEASE:
-                scanner->nextButton.background.fillColor = TFT_ORANGE;
-                scanner->nextButton.background.borderColor = TFT_BLACK;
-                scanner->nextButton.text.textColor = TFT_BLACK;
-                scanner->nextButton.callRender();
+                playerSetup->nextButton.background.fillColor = TFT_ORANGE;
+                playerSetup->nextButton.background.borderColor = TFT_BLACK;
+                playerSetup->nextButton.text.textColor = TFT_BLACK;
+                playerSetup->nextButton.callRender();
 
                 // Proceed to the next step
                 GUI::selectActivity(GUI_Manager_Activity::DASHBOARD);
@@ -187,56 +257,30 @@ void onNextButtonTouch(ivec2 point, TouchStatus status) {
 
             case TouchStatus::TouchStatus_PRESS:
                 // Change the button color when pressed
-                scanner->nextButton.background.fillColor = TFT_MAROON;
-                scanner->nextButton.background.borderColor = TFT_YELLOW;
-                scanner->nextButton.text.textColor = TFT_YELLOW;
-                scanner->nextButton.callRender();
+                playerSetup->nextButton.background.fillColor = TFT_MAROON;
+                playerSetup->nextButton.background.borderColor = TFT_YELLOW;
+                playerSetup->nextButton.text.textColor = TFT_YELLOW;
+                playerSetup->nextButton.callRender();
                 break;
 
             case TouchStatus::TouchStatus_READY:
                 // Change the button color back when released
-                scanner->nextButton.background.fillColor = TFT_ORANGE;
-                scanner->nextButton.background.borderColor = TFT_BLACK;
-                scanner->nextButton.text.textColor = TFT_BLACK;
-                scanner->nextButton.callRender();
+                playerSetup->nextButton.background.fillColor = TFT_ORANGE;
+                playerSetup->nextButton.background.borderColor = TFT_BLACK;
+                playerSetup->nextButton.text.textColor = TFT_BLACK;
+                playerSetup->nextButton.callRender();
                 break;
-
              
             default:
                 break;
         }
     } else {
         // Change the button color to indicate it cannot be pressed
-        scanner->nextButton.background.fillColor = TFT_DARKGREY;
-        scanner->nextButton.background.borderColor = TFT_BLACK;
-        scanner->nextButton.text.textColor = TFT_BLACK;
-        scanner->nextButton.callRender();
+        playerSetup->nextButton.background.fillColor = TFT_DARKGREY;
+        playerSetup->nextButton.background.borderColor = TFT_BLACK;
+        playerSetup->nextButton.text.textColor = TFT_BLACK;
+        playerSetup->nextButton.callRender();
     }
 }
 
-void onDeviceBoxTouch(ivec2 point, TouchStatus status) {
-    DeviceBox* deviceBox;
-    for (int i = 0; i < 9; i++) {
-        deviceBox = scanner->deviceBoxes[i];
-        if (deviceBox->inRange(point) && deviceBox->visible && status == TouchStatus::TouchStatus_PRESS) {
-            // Handle the touch event for the DeviceBox
-            deviceBox->invertSelected();
-
-            if (deviceBox->selected) {
-                uint8_t group = deviceBox->deviceGroup;
-                if (group == NEXUS_GROUP_GUN || group == NEXUS_GROUP_VEST) {
-                    // Send a scan request to the selected device
-                    NexusAddress deviceAddress = {NEXUS_PROJECT_ID, group, (uint8_t)deviceBox->deviceId};
-                    Nexus::sendData(COMMS_MARK, 0, nullptr, deviceAddress);
-                } else {
-                    // Deselect the device
-                    deviceBox->setSelected(false);
-                }
-            }
-            break;
-        }
-    }
-    GUI::callRender();
-}
-
-#endif // SCANNER_HPP
+#endif // PLAYERSETUP_HPP
