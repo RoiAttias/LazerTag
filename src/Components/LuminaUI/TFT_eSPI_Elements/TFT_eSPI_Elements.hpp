@@ -85,7 +85,7 @@ namespace LuminaUI
 #include "Arc.hpp"
 
 // Layout Elements
-//#include "Table.hpp" - not ready
+#include "Table.hpp"
 
 // Combined Elements
 #include "Textbox.hpp"

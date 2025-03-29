@@ -14,6 +14,7 @@ public:
     Rectangle buttonRect;     // A button rectangle
 
     Grid grid;                // A grid layout
+    Table table;            // A table for displaying data
 
     // Constructor
     Dashboard() : Activity(),
@@ -22,7 +23,8 @@ public:
         titleText(Element(ivec2(120, 20), LuminaUI_AUTO, LuminaUI_AUTO), String("Dashboard"), TFT_WHITE, 1, 1, 2.5f, &FreeMono24pt7b),
         statusIndicator(Element(ivec2(50, 100), LuminaUI_AUTO,ivec2(50, 30)), TFT_GREEN, TFT_BLACK, true, true),
         buttonRect(Element(ivec2(70, 260), LuminaUI_AUTO, ivec2(100, 40)), TFT_RED, TFT_BLACK, true, true, 10),
-        grid(Element(ivec2(0, 40), LuminaUI_AUTO, ivec2(300, 100)))
+        grid(Element(ivec2(0, 40), LuminaUI_AUTO, ivec2(450, 150))),
+        table(&grid)
     {
         // Add columns and rows to the grid
         grid.addColumn(150);
@@ -31,16 +33,20 @@ public:
         grid.addRow(50);
         grid.addRow(50);
         grid.addRow(50);
-        /*
+        
         // Add cells to the grid
-        grid.addCell(new DeviceBox(Element(LuminaUI_AUTO, LuminaUI_AUTO, ivec2(150,50)), 1, "VEST"), ivec2(0, 0));
-        grid.addCell(new DeviceBox(Element(LuminaUI_AUTO, LuminaUI_AUTO, ivec2(150,50)), 2, "GUN"), ivec2(0, 1));
-        grid.addCell(new DeviceBox(Element(LuminaUI_AUTO, LuminaUI_AUTO, ivec2(150,50)), 3, "Vest"), ivec2(1, 0));
-        grid.addCell(new DeviceBox(Element(LuminaUI_AUTO, LuminaUI_AUTO, ivec2(150,50)), 4, "Gun"), ivec2(1, 1));
-
-        */
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_RED, TFT_BLACK), ivec2(0, 0));
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_GREEN, TFT_BLACK), ivec2(0, 1));
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_BLUE, TFT_BLACK), ivec2(0, 2));
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_YELLOW, TFT_BLACK), ivec2(1, 0));
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_CYAN, TFT_BLACK), ivec2(1, 1));
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_MAGENTA, TFT_BLACK), ivec2(1, 2));
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_ORANGE, TFT_BLACK), ivec2(2, 0));
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_PURPLE, TFT_BLACK), ivec2(2, 1));
+        grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_WHITE, TFT_BLACK), ivec2(2, 2));
+        
         // Add all elements to the `elements` HyperList
-        Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect};
+        Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect, &grid, &table};
         elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
     }
 

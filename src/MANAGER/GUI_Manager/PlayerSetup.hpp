@@ -12,7 +12,7 @@ void onScanButtonTouch(ivec2 point, TouchStatus status);
 void onNextButtonTouch(ivec2 point, TouchStatus status);
 void onDeviceBoxTouch(ivec2 point, TouchStatus status);
 
-class Scanner : public Activity {
+class PlayerSetup : public Activity {
 public:
     // Elements
     Background background;     // A background element
@@ -29,7 +29,7 @@ public:
     /**
      * @brief Construct a Scanner activity.
      */
-    Scanner() : Activity(),
+    PlayerSetup() : Activity(),
         background(TFT_BROWN),
         titleText(Element(ivec2(0, 10), LuminaUI_AUTO, ivec2(480, 40)), String("Scanner"), TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold24pt7b),
         scanButton(Element(ivec2(20, 240), LuminaUI_AUTO, ivec2(200, 70)), "Scan", TFT_BLACK, TFT_GREEN, TFT_BLACK, 20, 1, 0.0f,
@@ -73,13 +73,11 @@ public:
         int countGuns = 0;
         int countVests = 0;
 
-        for (int i = 0; i < 9; i++) {
-            if (deviceBoxes[i]->selected) {
-                if (deviceBoxes[i]->deviceGroup == NEXUS_GROUP_GUN) {
-                    countGuns++;
-                } else if (deviceBoxes[i]->deviceGroup == NEXUS_GROUP_VEST) {
-                    countVests++;
-                }
+        for (int i = 0; i < gameDevices.size(); i++) {
+             if (gameDevices[i].deviceGroup == NEXUS_GROUP_GUN) {
+                countGuns++;
+            } else if (gameDevices[i].deviceGroup == NEXUS_GROUP_VEST) {
+                countVests++;
             }
         }
 

@@ -2,68 +2,59 @@
 #define ACTIVATION_HPP
 
 #include "GUI_Manager.hpp"
+#include "Utilities/Countdowner.hpp"
+#include "Utilities/MoreMath.hpp"
+
+void activationTouch(int param);
 
 class Activation : public Activity {
 public:
     // Elements
-    Text text;
-    Button plus_button;
-    Button minus_button;
-    Button story_button;
+    Background background; // A background element
+    Text text1;
+    Text text2;
+    Text text3;
+    Text text4;
 
-    // Variables
-    int counter = 0;
+    // Timing
+    uint32_t countdownTime = 500;
+
+    // Colors
+    //uint16_t backgroundColor = LuminaUI::tft_instance->color565(143, 24, 186); // Dark Purple
+    uint16_t logoColor = LuminaUI::tft_instance->color565(195, 59, 245); // Light Purple
+
+    // Other
+    ivec2 textScale = ivec2(480,40);
 
     // Constructor
-    Activation(TouchEvent up, TouchEvent down, TouchEvent story) : Activity(),
-        text(Element(LuminaUI_AUTO, LuminaUI_AUTO, this->scale, true, true), "0", TFT_WHITE, 2, TR_DATUM, 2.0f, &FreeSans9pt7b),
-        plus_button(Element(ivec2(60,200),LuminaUI_AUTO,ivec2(100,50),true,true,true,up), "+", TFT_BLACK, TFT_GREEN, TFT_WHITE, 2, 1.0f, 10, FF10),
-        minus_button(Element(ivec2(160,200),LuminaUI_AUTO,ivec2(100,50),true,true,true,down), "-", TFT_BLACK, TFT_RED, TFT_WHITE, 2, 1.0f, 10, FF10),
-        story_button(Element(ivec2(80,300),LuminaUI_AUTO,ivec2(160,50),true,true,true,story), "Story Time", 
-                    TFT_GOLD, TFT_DARKCYAN, TFT_GOLD, 1, 1.0f, 0, &FreeSerifBoldItalic24pt7b)
+    Activation() : Activity(),
+        background(TFT_PURPLE),
+        text1(Element(ivec2(0, 30), LuminaUI_AUTO, textScale, true, true), "Project", TFT_WHITE, 1, TC_DATUM, 0.0f, &FreeMonoBold18pt7b),
+        text2(Element(ivec2(0, 80), LuminaUI_AUTO, textScale, true, true), "LazerTag", TFT_WHITE, 2, TC_DATUM, 0.0f, &FreeMonoBold18pt7b),
+        text3(Element(ivec2(0, 180), LuminaUI_AUTO, textScale, true, true), "PRESS ANYWHERE TO PLAY", TFT_WHITE, 1, TC_DATUM, 0.0f, &FreeMono12pt7b),
+        text4(Element(ivec2(0, 260), LuminaUI_AUTO, textScale, true, true), "Made by Roi Attias", TFT_WHITE, 1, TC_DATUM, 0.0f, &FreeMonoBold12pt7b)
     {
         // Activity settings
-        renderAlways = false;
+        OnTouch_setEnable(false);
 
         // Add all Rectangle elements to the array
-        Element* elems[] = {new Background(TFT_PURPLE), &text, &plus_button, &minus_button, &story_button};
-        elements.addFromArray(elems, 5);
+        Element* elems[] = {&background, &text1, &text2, &text3, &text4};
+        elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
+
+        countdowner->addEvent(countdownTime, activationTouch, 0);
     }
 
-    Viewport render(const Viewport &viewport) override {
-        update();
-        return Activity::render(viewport);
-    }
-
-    void update() {
-        text.content = String(counter);
+    void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override {
+        if (touchStatus == TouchStatus_PRESS) {
+            countdowner->addEvent(countdownTime, GUI::selectActivity, GUI_Manager_Activity::SCANNER);
+        }
     }
 };
 
-void up(ivec2 point, TouchStatus touchStatus);
-void down(ivec2 point, TouchStatus touchStatus);
-void story(ivec2 point, TouchStatus touchStatus);
+Activation *activation = new Activation();
 
-Activation * activation = new Activation(up, down, story);
-
-void up(ivec2 point, TouchStatus touchStatus) {
-    if (touchStatus == TouchStatus_PRESS) {
-        activation->counter++;
-        activation->callRender();
-    }
-}
-
-void down(ivec2 point, TouchStatus touchStatus) {
-    if (touchStatus == TouchStatus_PRESS) {
-        activation->counter--;
-        activation->callRender();
-    }
-}
-
-void story(ivec2 point, TouchStatus touchStatus) {
-    if (touchStatus == TouchStatus_PRESS) {
-        GUI::selectActivity(GUI_Manager_Activity::STORY);
-    }
+void activationTouch(int param) {
+    activation->OnTouch_setEnable(true);
 }
 
 #endif // ACTIVATION_HPP

@@ -42,11 +42,11 @@ enum GUI_Manager_Activity : uint8_t {
 
 // Paths to Activities
 #include "Activation.hpp"
+#include "Scanner.hpp"
+
 #include "Dashboard.hpp"
 #include "HaveAGoodWeek.hpp"
 #include "Story.hpp"
-
-#include "Scanner.hpp"
 
 Activity * GUI_Manager_Activities[] = {
     activation,
@@ -71,7 +71,7 @@ namespace GUI {
         touch.init(ENABLE_PRESS | ENABLE_RELEASE);
 
         // Select the first activity
-        selectActivity(SCANNER);
+        selectActivity(ACTIVATION);
     }
 
     void selectActivity(int activity)

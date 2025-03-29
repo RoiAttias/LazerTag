@@ -31,6 +31,7 @@ void manager_loop()
 {   
     Nexus::loop();
     GUI::loop();
+    countdowner->loop();
 }
 
 #endif // MANAGER_MAIN_HPP

@@ -41,7 +41,7 @@ public:
     CountdownEvent event;
     for (size_t i = 0; i < events.size(); i++) {
         event = events[i];
-        if (event.triggerTime >= now) {
+        if (now >= event.triggerTime) {
             event.callback(event.parameter); // Call the callback function with the parameter.
             events.remove(i); // Remove the event from the list.
             i--; // Adjust index after removal.
