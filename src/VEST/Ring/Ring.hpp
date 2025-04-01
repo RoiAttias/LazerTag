@@ -6,6 +6,10 @@
 #include "Components/Visualizer/Visualizer.hpp"
 #include "Utilities/MoreMath.hpp"
 
+namespace Ring {
+    extern int hp;
+}
+
 // Animation functions
 void load1AnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
     int index = mix(factor, startIndex, length + startIndex); // Calculate the index

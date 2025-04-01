@@ -14,17 +14,6 @@ namespace LuminaUI
         img_instance->pushSprite(0,0);
     }
 
-    void drawPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint32_t color)
-    {
-        ivec2 p1,p2;
-        for (uint i = 0; i < vertexCount; i++)
-        {
-            p1 = ivec2(vertices[i].x, vertices[i].y);
-            p2 = ivec2(vertices[(i + 1) % vertexCount].x, vertices[(i + 1) % vertexCount].y);
-            tftptr->drawLine(p1.x, p1.y, p2.x, p2.y, color);
-        }
-    }
-
     void drawTriangles(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, int triangleCount, uint32_t color)
     {
         ivec2 triangleVertices[3];
@@ -83,6 +72,7 @@ namespace LuminaUI
 #include "Background.hpp"
 #include "Line.hpp"
 #include "Arc.hpp"
+#include "Polygon.hpp"
 
 // Layout Elements
 #include "Table.hpp"

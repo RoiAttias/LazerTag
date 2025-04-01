@@ -8,10 +8,13 @@
 enum GameStatus {
     GAME_WAITING,
     GAME_STARTING,
+    GAME_THREE,
+    GAME_TWO,
+    GAME_ONE,
     GAME_RUNNING,
     GAME_OVER,
     GAME_WON,
-    GAME_LOST,
+    GAME_LOST
 };
 
 

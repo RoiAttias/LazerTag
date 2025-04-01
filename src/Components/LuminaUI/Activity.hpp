@@ -43,6 +43,11 @@ public:
             }
         }
 
+    Activity(const Element &element) {
+        Activity(element.origin, element.scale, element.visible, element.renderAlways, 
+            element.OnTouch_enable, element.OnTouch_handler);
+        }
+
     // Overrides
     /**
      * @brief Render the Activity and all its child elements.

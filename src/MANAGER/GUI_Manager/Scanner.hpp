@@ -103,7 +103,7 @@ public:
                 uint8_t group = deviceBox->deviceGroup;
                 if (group == NEXUS_GROUP_GUN || group == NEXUS_GROUP_VEST) {
                     // Send a scan request to the selected device
-                    NexusAddress deviceAddress = {NEXUS_PROJECT_ID, group, deviceBox->deviceId};
+                    NexusAddress deviceAddress = {NEXUS_PROJECT_ID, group, (uint8_t)deviceBox->deviceId};
                     GUI::gameDevices.addend(deviceAddress);
                 }
             } else {

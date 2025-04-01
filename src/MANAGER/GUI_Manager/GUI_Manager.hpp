@@ -37,7 +37,7 @@ enum GUI_Manager_Activity : uint8_t {
 
 // Paths to Elements
 #include "Elements/DeviceBox.hpp"
-#include "Elements/LoadArc.hpp"
+#include "Elements/HpBar.hpp"
 
 // Paths to Activities
 #include "Activation.hpp"
@@ -53,7 +53,7 @@ Activity * GUI_Manager_Activities[] = {
 };
 
 namespace GUI {
-    void init(){
+    void init(int startActivity = GUI_Manager_Activity::ACTIVATION){
         // TFT Initialization
         tft.begin();  
         tft.setRotation(1);
@@ -67,7 +67,7 @@ namespace GUI {
         touch.init(ENABLE_PRESS | ENABLE_RELEASE);
 
         // Select the first activity
-        selectActivity(ACTIVATION);
+        selectActivity(startActivity);
     }
 
     void selectActivity(int activity)

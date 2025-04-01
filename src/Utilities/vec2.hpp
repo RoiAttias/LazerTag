@@ -154,6 +154,10 @@ struct vec2
         return vec2(-x, -y);
     }
 
+    vec2 multiply(const vec2& other) const {
+        return vec2(x * other.x, y * other.y);
+    }
+
      /**
      * @brief Calculates the angle of the vector in radians.
      * 

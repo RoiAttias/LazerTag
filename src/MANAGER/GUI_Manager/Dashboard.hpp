@@ -8,23 +8,17 @@ class Dashboard : public Activity {
 public:
     // Elements
     Background background;     // A background element
-    Rectangle header;         // A header rectangle for the title
     Text titleText;           // Title text displayed in the header
-    Ellipse statusIndicator;   // A circle indicating system status
-    Rectangle buttonRect;     // A button rectangle
+    HpBar bar;            // A health bar
 
     Grid grid;                // A grid layout
-    Table table;            // A table for displaying data
 
     // Constructor
     Dashboard() : Activity(),
         background(TFT_BROWN),
-        header(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(240, 40)), TFT_BLUE, TFT_BLACK),
         titleText(Element(ivec2(120, 20), LuminaUI_AUTO, LuminaUI_AUTO), String("Dashboard"), TFT_WHITE, 1, 1, 2.5f, &FreeMono24pt7b),
-        statusIndicator(Element(ivec2(50, 100), LuminaUI_AUTO,ivec2(50, 30)), TFT_GREEN, TFT_BLACK, true, true),
-        buttonRect(Element(ivec2(70, 260), LuminaUI_AUTO, ivec2(100, 40)), TFT_RED, TFT_BLACK, true, true, 10),
         grid(Element(ivec2(0, 40), LuminaUI_AUTO, ivec2(450, 150))),
-        table(&grid)
+        bar(Element(ivec2(200,200), LuminaUI_AUTO, ivec2(200, 100)))
     {
         // Add columns and rows to the grid
         grid.addColumn(150);
@@ -46,7 +40,7 @@ public:
         grid.addCell(new Rectangle(Element(ivec2(0, 0), LuminaUI_AUTO, ivec2(150, 50)), TFT_WHITE, TFT_BLACK), ivec2(2, 2));
         
         // Add all elements to the `elements` HyperList
-        Element* elems[] = {&background ,&header, &titleText, &statusIndicator, &buttonRect, &grid, &table};
+        Element* elems[] = {&background, &titleText, &bar};
         elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
     }
 
@@ -74,8 +68,8 @@ public:
 
         LuminaUI::drawTriangles(&tft, gunVertices, sizeof(gunVertices) / sizeof(ivec2),
                     gunTriangles, sizeof(gunTriangles) / sizeof(uint), TFT_BLACK);
-
-        */
+*/
+        
         return vp;
     }
 
