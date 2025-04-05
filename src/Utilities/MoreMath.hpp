@@ -152,6 +152,58 @@ inline float distance(float x1, float y1, float x2, float y2)
     return sqrt(sq(x2 - x1) + sq(y2 - y1));
 }
 
+/**
+ * @brief Calculates colors in RGB format based on a hue value.
+ *
+ * @param hue The hue value (range [0, 1]).
+ * @param red Pointer to store the red component (0-255).
+ * @param green Pointer to store the green component (0-255).
+ * @param blue Pointer to store the blue component (0-255).
+ */
+inline void hueToRgb(float hue, byte *red, byte *green, byte *blue)
+{
+    // This function converts a hue value (range [0, 1]) to an RGB color
+    // with full saturation and brightness. The resulting RGB components
+    // are scaled to the range [0, 255].
+
+    // Wrap hue to the range [0, 1] in case it exceeds 1.
+    float normalizedHue = fmod(hue, 1.0f);
+
+    // Scale hue to [0, 6) to determine its position on the color wheel.
+    float hueScaled = normalizedHue * 6.0f;
+
+    // Determine which of the 6 sectors of the color wheel the hue falls into.
+    int sectorIndex = (int) floor(hueScaled) % 6;
+
+    // Calculate the fractional part within the sector.
+    float fractionWithinSector = hueScaled - sectorIndex;
+    // Compute the complementary fraction (used for interpolation).
+    float inverseFraction = 1.0f - fractionWithinSector;
+
+    float r, g, b;
+    // Determine the RGB values based on the sector.
+    switch (sectorIndex)
+    {
+        // Red -> Yellow: red is at full intensity; green increases with fraction.
+        case 0: r = 1.0f; g = fractionWithinSector; b = 0.0f; break;
+        // Yellow -> Green: green is at full intensity; red decreases with inverse fraction.
+        case 1: r = inverseFraction; g = 1.0f; b = 0.0f; break;
+        // Green -> Cyan: green is at full intensity; blue increases with fraction.
+        case 2: r = 0.0f; g = 1.0f; b = fractionWithinSector; break;
+        // Cyan -> Blue: blue is at full intensity; green decreases with inverse fraction.
+        case 3: r = 0.0f; g = inverseFraction; b = 1.0f; break;
+        // Blue -> Magenta: blue is at full intensity; red increases with fraction.
+        case 4: r = fractionWithinSector; g = 0.0f; b = 1.0f; break;
+        // Magenta -> Red: red is at full intensity; blue decreases with inverse fraction.
+        case 5: r = 1.0f; g = 0.0f; b = inverseFraction; break;
+        default: r = 0.0f; g = 0.0f; b = 0.0f; break; // Fallback (should never occur)
+    }
+
+    // Convert the computed RGB values from [0, 1] to [0, 255]
+    *red   = (byte)(r * 255.0f);
+    *green = (byte)(g * 255.0f);
+    *blue  = (byte)(b * 255.0f);
+}
 
 
 #endif // MOREMATH_HPP

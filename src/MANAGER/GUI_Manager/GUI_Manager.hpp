@@ -2,7 +2,6 @@
 #define GUI_MANAGER_HPP
 
 #include <Arduino.h>
-#include "Manager_TFT_eSPI_user_setup.h"
 #include <TFT_eSPI.h>
 
 #define LUMINAUI_USE_TFT_ESPI
@@ -12,7 +11,7 @@
 
 TFT_eSPI tft = TFT_eSPI();   // Invoke library
 
-ivec2 screenDiamentions;
+ivec2 screenDiamentions1;
 
 Screen screen(true);
 Touch_XPT2046 touch(&screen);
@@ -31,6 +30,7 @@ enum GUI_Manager_Activity : uint8_t {
     ACTIVATION,
     SCANNER,
     PLAYERSETUP,
+    GAMEPLAY,
     DASHBOARD,
     GUI_Manager_Activity_size
 };
@@ -43,16 +43,24 @@ enum GUI_Manager_Activity : uint8_t {
 #include "Activation.hpp"
 #include "Scanner.hpp"
 #include "PlayerSetup.hpp"
+#include "Gameplay.hpp"
 #include "Dashboard.hpp"
 
 Activity * GUI_Manager_Activities[] = {
     activation,
     scanner,
     playerSetup,
+    gameplay,
     new Dashboard(),
 };
 
 namespace GUI {
+    // Declears
+    void init(int);
+    void selectActivity(int);
+    void callRender();
+    void loop();
+
     void init(int startActivity = GUI_Manager_Activity::ACTIVATION){
         // TFT Initialization
         tft.begin();  
@@ -62,8 +70,8 @@ namespace GUI {
 
         // LuminaUI Initialization
         LuminaUI::tft_instance = &tft;
-        screenDiamentions = ivec2(LuminaUI::tft_instance->width(), LuminaUI::tft_instance->height());
-        screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
+        screenDiamentions1 = ivec2(LuminaUI::tft_instance->width(), LuminaUI::tft_instance->height());
+        screen.init(screenDiamentions1, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
         touch.init(ENABLE_PRESS | ENABLE_RELEASE);
 
         // Select the first activity

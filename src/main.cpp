@@ -1,6 +1,4 @@
-#include "Common/Constants_Common.h"
-
-#define DEVICE_TEST 4
+#include "SelectDevice.h"
 
 #ifndef DEVICE_TYPE
 #error "DEVICE_TYPE is not defined! Define DEVICE_TYPE in your build flags (e.g., -DDEVICE_MANAGER)."
@@ -30,8 +28,6 @@ void setup()
     gun_setup();
 #elif DEVICE_TYPE == DEVICE_VEST
     vest_setup();
-#elif DEVICE_TYPE == DEVICE_TEST
-    test_setup();
 #endif
 }
 
@@ -43,7 +39,5 @@ void loop()
     gun_loop();
 #elif DEVICE_TYPE == DEVICE_VEST
     vest_loop();
-#elif DEVICE_TYPE == DEVICE_TEST
-    test_loop();
 #endif
 }

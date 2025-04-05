@@ -30,16 +30,15 @@ Activity * GUI_Gun_Activities[] = {
 };
 
 ivec2 screenDiamentions(128, 64);
-Screen screen(false);
+Screen screen2(false);
 
 namespace GUI {
-    void init(Player *playerPtr, Gun *gunPtr) {
+    inline void init(Player *playerPtr, Gun *gunPtr) {
         // OLED initialization
         u8g2.begin();
 
         // LuminaUI initialization
-        screen.init(screenDiamentions, GUI_Gun_Activities, GUI_Gun_Activity_size, true);
-        screen.selectActivity(GUI_Gun_Activity::ONGAME);
+        screen2.init(screenDiamentions, GUI_Gun_Activities, GUI_Gun_Activity_size, true);
 
         // Player initialization
         onGame->setPointers(playerPtr, gunPtr);
@@ -47,25 +46,25 @@ namespace GUI {
         u8g2.clearBuffer();
     }
     
-    void loop() {
-        if (screen.shouldRender()) {
+    inline void loop() {
+        if (screen2.shouldRender()) {
             u8g2.clearBuffer();
-            screen.render();
+            screen2.render();
             u8g2.sendBuffer();
         }
     }
 
-    void callRender() {
-        screen.callRender();
+    inline void callRender() {
+        screen2.callRender();
     }
 
-    void onGame() {
-        screen.selectActivity(GUI_Gun_Activity::ONGAME);
+    inline void onGame() {
+        screen2.selectActivity(GUI_Gun_Activity::ONGAME);
     }
 
-    void message(String message) {
+    inline void message(String message) {
         messageBox->setMessage(message);
-        screen.selectActivity(GUI_Gun_Activity::MESSAGEBOX);
+        screen2.selectActivity(GUI_Gun_Activity::MESSAGEBOX);
     }
 }
 

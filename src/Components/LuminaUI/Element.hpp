@@ -29,8 +29,6 @@ using TouchEvent = void(*)(ivec2, TouchStatus);
 class Element
 {
 protected:
-    const int ID = newElementID(); // Unique ID of the element
-
     bool _shouldRender; ///< Flag for rendering when called
 public:
 

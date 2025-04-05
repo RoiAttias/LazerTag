@@ -2,6 +2,7 @@
 #define HPBAR_HPP
 
 #include "MANAGER/GUI_Manager/GUI_Manager.hpp"
+#include "Utilities/MoreMath.hpp"
 
 class HpBar : public Element
 {
@@ -15,42 +16,55 @@ class HpBar : public Element
     ivec2 fillScale;
     String textContent;
 
-    uint32_t borderColor;
-    uint32_t fillColor;
-    uint32_t textColor;
+    uint32_t color1;
+    uint32_t color2;
 
-    ivec2 margin = {10, 10};
+    ivec2 margin = {5,5};
 
 public:
-    HpBar(const Element &element, uint32_t borderColor = TFT_WHITE, uint32_t fillColor = TFT_WHITE, uint32_t textColor = TFT_GOLD)
-        : Element(element), borderColor(borderColor), fillColor(fillColor), textColor(textColor),
-            border(Element(), borderColor, borderColor, false, true),
-            fill(Element(), fillColor, fillColor, true, false),
-            text(Element(), "ABC/DEF", textColor, 1, MC_DATUM, 0.0f, &FreeMonoBold18pt7b)
+    HpBar(const Element &element)
+        : Element(element),
+            border(Element(), TFT_WHITE, TFT_WHITE, false, true),
+            fill(Element(), TFT_WHITE, TFT_WHITE, true, false),
+            text(Element(), "ABC/DEF", TFT_BLACK, 1, MC_DATUM, 0.0f, &FreeMonoBold12pt7b)
     {
-        fillScale = element.scale - (margin * 2);
         setValue(value);
     }
 
     void setValue(int value)
     {
         this->value = value;
-        percent = (float)value / (float)maxValue;
-        fill.scale = ivec2(int(fillScale.x * percent), fillScale.y);
-        textContent = String(value) + "/" + String(maxValue);
-        text.content= textContent;
+        callRender();
     }
 
     Viewport render(const Viewport &viewport) override
     {
-        border.origin = ivec2(0, 0);
-        border.scale = scale;
-        fill.origin = margin;
-        // fill.scale is set in setValue
-        text.origin = margin;
-        text.scale = fill.scale;
+        fillScale = scale - (margin * 2);
+        percent = (float)value / (float)maxValue;
+        textContent = String(value) + "/" + String(maxValue);
 
-        setValue(value);
+        byte r,g,b;
+        float hue = max(percent-0.2f, 0.0f) / 0.8f * 0.333f;
+        hueToRgb(hue, &r, &g, &b);
+        Serial.printf("r: %d, g: %d, b: %d\n", r, g, b);
+        color1 = LuminaUI::tft_instance->color565(r, g, b);
+        byte v = 255 - (percent * 255);
+        color2 = LuminaUI::tft_instance->color565(v, v, v);
+
+        border.origin = origin;
+        border.scale = scale;
+        border.borderColor = color1;
+        border.fillColor = color1;
+
+        fill.origin = origin + margin;
+        fill.scale = ivec2(int(fillScale.x * percent), fillScale.y);
+        fill.borderColor = color1;
+        fill.fillColor = color1;
+
+        text.origin = origin + margin;
+        text.scale = fillScale;
+        text.content= textContent;
+        text.textColor = color2;
 
         Viewport vp = Element::render(viewport);
         border.render(vp);
@@ -59,6 +73,5 @@ public:
         return vp;
     }
 };
-
 
 #endif // HPBAR_HPP

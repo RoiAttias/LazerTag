@@ -17,7 +17,7 @@ enum CommsCommand : uint32_t {
     COMMS_size
 };
 
-size_t payloadSizePerCommand[] = {
+const int payloadSizePerCommand[] = {
     sizeof(int),
     sizeof(GunData),
     sizeof(uint32_t),

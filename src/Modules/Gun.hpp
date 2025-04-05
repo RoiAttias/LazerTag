@@ -2,7 +2,6 @@
 #define GUN_HPP
 
 #include <Arduino.h>
-#include <stdint.h> // Include the standard integer types
 
 /**
  * @brief An enum representing the status of a Gun
@@ -203,7 +202,7 @@ public:
  * Reload time: 1800ms
  * Full auto: true
  */
-GunData Sidearm = {23, 16, 300, 1800, true};
+const GunData Sidearm = {23, 16, 300, 1800, true};
 
 /**
  * Name: Hand Cannon
@@ -213,6 +212,6 @@ GunData Sidearm = {23, 16, 300, 1800, true};
  * Reload time: 3000ms
  * Full auto: false
  */
-GunData HandCannon = {42, 8, 150, 3000, false};
+const GunData HandCannon = {42, 8, 150, 3000, false};
 
 #endif // GUN_HPP

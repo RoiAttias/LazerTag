@@ -13,19 +13,6 @@
 
 const ivec2 LuminaUI_AUTO = ivec2(-1,-1); // Auto value for origin and scale
 
-// Element IDs
-int elementIDs = 0; // The amount of elements created
-
-/**
- * @brief Gives each element a unique ID number.
- * Helps when comparing 2 similar elements.
- * @return New ID number for an element.
- */
-int newElementID()
-{
-    return ++elementIDs;
-}
-
 /**
  * @brief Viewport struct for defining a rectangular area for rendering.
  */
@@ -139,7 +126,7 @@ enum TouchStatus : byte{
     TouchStatus_size
 };
 
-String TouchStatus_strings[] = {
+const String TouchStatus_strings[] = {
     "READY", "PRESS", "RELEASE", "HOLD", "DRAG", "size"
 };
 

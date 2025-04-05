@@ -1,12 +1,7 @@
 #ifndef HYPER_LIST_HPP
 #define HYPER_LIST_HPP
 
-/*
-duplicate
-reserve
-removeValue
-findAll
-*/
+#include <Arduino.h>
 
 /**
  * Node struct template for the doubly linked list.
@@ -480,7 +475,7 @@ bool HyperList<T>::reserveMore(int additionalNodes, const T& defaultValue) {
     }
 
     // Allocate memory for additional nodes using new
-    Node<T>* newNodes = new(std::nothrow) Node<T>[additionalNodes];
+    Node<T>* newNodes = new Node<T>[additionalNodes];
     if (newNodes == nullptr) {
         return false; // Memory allocation failed
     }

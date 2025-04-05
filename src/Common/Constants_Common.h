@@ -2,15 +2,7 @@
 #define CONSTANTS_COMMON_H
 
 #include <Arduino.h>
-
-// Device Types
-#define DEVICE_MANAGER 1
-#define DEVICE_GUN 2
-#define DEVICE_VEST 3
-
-// Select device here
-#define DEVICE_TYPE 1
-#define DEVICE_ID 1
+#include "SelectDevice.h"
 
 // Define the version of the system
 #define SYSTEM_VERSION_MAJOR 1
@@ -31,7 +23,7 @@
 
 
 // Type Conversions
-uint8_t deviceTypeToGroup(uint8_t deviceType) {
+inline uint8_t deviceTypeToGroup(uint8_t deviceType) {
     switch (deviceType) {
         case DEVICE_MANAGER:
             return NEXUS_GROUP_MANAGER;
@@ -44,7 +36,7 @@ uint8_t deviceTypeToGroup(uint8_t deviceType) {
     }
 }
 
-uint8_t groupToDeviceType(uint8_t group) {
+inline uint8_t groupToDeviceType(uint8_t group) {
     switch (group) {
         case NEXUS_GROUP_MANAGER:
             return DEVICE_MANAGER;
@@ -57,7 +49,7 @@ uint8_t groupToDeviceType(uint8_t group) {
     }
 }
 
-String deviceTypeString(int deviceType) {
+inline String deviceTypeString(int deviceType) {
     switch (deviceType) {
         case DEVICE_MANAGER:
             return "Manager";
@@ -70,7 +62,7 @@ String deviceTypeString(int deviceType) {
     }
 }
 
-String deviceGroupString(uint8_t deviceType) {
+inline String deviceGroupString(uint8_t deviceType) {
     switch (deviceType) {
         case NEXUS_GROUP_MANAGER:
             return "Manager";
