@@ -9,14 +9,14 @@
 
 #include "Components/Nexus/Nexus.hpp"
 
-TFT_eSPI tft = TFT_eSPI();   // Invoke library
-
-ivec2 screenDiamentions1;
-
-Screen screen(true);
-Touch_XPT2046 touch(&screen);
-
 namespace GUI {
+    TFT_eSPI tft = TFT_eSPI();
+
+    ivec2 screenDiamentions;
+
+    Screen screen(true);
+    Touch_XPT2046 touch(&screen);
+    
     // Shared variables
     HyperList<NexusAddress> gameDevices;
     
@@ -38,6 +38,7 @@ enum GUI_Manager_Activity : uint8_t {
 // Paths to Elements
 #include "Elements/DeviceBox.hpp"
 #include "Elements/HpBar.hpp"
+#include "Elements/Gradient.hpp"
 
 // Paths to Activities
 #include "Activation.hpp"
@@ -70,8 +71,8 @@ namespace GUI {
 
         // LuminaUI Initialization
         LuminaUI::tft_instance = &tft;
-        screenDiamentions1 = ivec2(LuminaUI::tft_instance->width(), LuminaUI::tft_instance->height());
-        screen.init(screenDiamentions1, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
+        screenDiamentions = ivec2(LuminaUI::tft_instance->width(), LuminaUI::tft_instance->height());
+        screen.init(screenDiamentions, GUI_Manager_Activities, GUI_Manager_Activity_size, true);
         touch.init(ENABLE_PRESS | ENABLE_RELEASE);
 
         // Select the first activity

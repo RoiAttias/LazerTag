@@ -22,7 +22,7 @@ void manager_setup()
     Serial.begin(115200);
     Nexus::begin(NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUPS, NEXUS_DEVICE_ID));
     Nexus::onScanComplete = scanCompletedCallback;
-    GUI::init(GUI_Manager_Activity::GAMEPLAY);
+    GUI::init(GUI_Manager_Activity::ACTIVATION);
 
     Game::reset();
 }

@@ -41,7 +41,13 @@ inline float radToDeg(float rad)
  */
 inline float clamp(float value, float minVal, float maxVal)
 {
-    return (value < minVal) ? minVal : (value > maxVal ? maxVal : value);
+    if (value < minVal)
+        return minVal;
+    else if (value > maxVal)
+        return maxVal;
+    else
+        return value;
+    //return (value < minVal) ? minVal : (value > maxVal ? maxVal : value);
 }
 
 /**
@@ -79,6 +85,18 @@ inline float mix(float factor, float v1, float v2)
 inline int mix(float factor, int v1, int v2)
 {
     return (int)(mix(factor, (float)v1, (float)v2));
+}
+
+/**
+ * @brief Mixes two byte values based on a factor. 
+ * @param factor The mixing factor.
+ * @param v1 The first value.
+ * @param v2 The second value.
+ * @return The mixed value.
+ */
+inline byte mix(float factor, byte v1, byte v2)
+{
+    return (byte)(mix(factor, (float)v1, (float)v2));
 }
 
 /**

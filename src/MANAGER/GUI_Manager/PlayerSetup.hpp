@@ -17,7 +17,7 @@ void onPlayerSetupNextButtonTouch(ivec2 point, TouchStatus status);
 class PlayerSetup : public Activity {
 public:
     // Background and Title
-    Background background;
+    Gradient background;
     Text titleText;
 
     // Player 1 elements
@@ -42,7 +42,7 @@ public:
      * @brief Construct a PlayerSetup activity.
      */
     PlayerSetup() : Activity(),
-        background(TFT_NAVY),
+        background(),
         titleText(Element(ivec2(0, 10), LuminaUI_AUTO, ivec2(480, 50)),
                   String("Player Setup"), TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold24pt7b),
 

@@ -46,7 +46,6 @@ public:
         byte r,g,b;
         float hue = max(percent-0.2f, 0.0f) / 0.8f * 0.333f;
         hueToRgb(hue, &r, &g, &b);
-        Serial.printf("r: %d, g: %d, b: %d\n", r, g, b);
         color1 = LuminaUI::tft_instance->color565(r, g, b);
         byte v = 255 - (percent * 255);
         color2 = LuminaUI::tft_instance->color565(v, v, v);

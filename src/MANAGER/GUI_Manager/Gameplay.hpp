@@ -4,9 +4,6 @@
 #include "GUI_Manager.hpp"
 #include <Arduino.h>
 
-#include "Utilities/Countdowner.hpp"
-
-void countdownerCallback(int param);
 
 // Gameplay activity with only the health bar element
 class Gameplay : public Activity {
@@ -14,16 +11,18 @@ public:
     Background background;
     HpBar bar;
 
+    Gradient gradient;
+
     // Constructor
     Gameplay() : Activity(),
         background(TFT_BLACK),
+        gradient(Element()),
         bar(Element(ivec2(100, 200), LuminaUI_AUTO, ivec2(200, 50)))
     {
         // Add the health bar to the activity's elements list
-        Element* elems[] = { &background, &bar };
+        Element* elems[] = { &background, &gradient, &bar };
         elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
 
-        countdowner->addEvent(1000, countdownerCallback);
     }
 
     // Render method (calls base Activity render and returns viewport)
@@ -35,18 +34,5 @@ public:
 };
 
 Gameplay* gameplay = new Gameplay();
-
-int health = 0;
-void countdownerCallback(int param) {
-    health += 2;
-    if (health > 100) {
-        health = 0;
-    }
-
-    gameplay->bar.setValue(health);
-    GUI::callRender();
-
-    countdowner->addEvent(200, countdownerCallback);
-}
 
 #endif // GAMEPLAY_HPP
