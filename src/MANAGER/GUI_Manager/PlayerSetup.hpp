@@ -252,7 +252,7 @@ void onPlayerSetupNextButtonTouch(ivec2 point, TouchStatus status) {
                 playerSetup->nextButton.callRender();
 
                 // Proceed to the next step
-                GUI::selectActivity(GUI_Manager_Activity::DASHBOARD);
+                GUI::selectActivity(GUI_Manager_Activity::READYSETGO);
                 break;
 
             case TouchStatus::TouchStatus_PRESS:

@@ -5,8 +5,6 @@
 #include "Utilities/Countdowner.hpp"
 #include "Utilities/MoreMath.hpp"
 
-void activationTouch(int param);
-
 class Activation : public Activity {
 public:
     // Elements
@@ -30,15 +28,9 @@ public:
         text3(Element(ivec2(0, 180), LuminaUI_AUTO, textScale, true, true), "PRESS ANYWHERE TO PLAY", TFT_WHITE, 1, TC_DATUM, 0.0f, &FreeMono12pt7b),
         text4(Element(ivec2(0, 260), LuminaUI_AUTO, textScale, true, true), "Made by Roi Attias", TFT_WHITE, 1, TC_DATUM, 0.0f, &FreeMonoBold12pt7b)
     {
-        // Activity settings
-        OnTouch_setEnable(false);
-        renderAlways = false;
-
         // Add all Rectangle elements to the array
         Element* elems[] = {&background, &text1, &text2, &text3, &text4};
         elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
-
-        countdowner->addEvent(countdownTime, activationTouch, 0);
     }
 
     void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override {
@@ -49,9 +41,5 @@ public:
 };
 
 Activation *activation = new Activation();
-
-void activationTouch(int param) {
-    activation->OnTouch_setEnable(true);
-}
 
 #endif // ACTIVATION_HPP

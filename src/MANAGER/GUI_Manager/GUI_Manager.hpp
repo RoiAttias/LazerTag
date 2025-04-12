@@ -30,6 +30,7 @@ enum GUI_Manager_Activity : uint8_t {
     ACTIVATION,
     SCANNER,
     PLAYERSETUP,
+    READYSETGO,
     GAMEPLAY,
     DASHBOARD,
     GUI_Manager_Activity_size
@@ -44,6 +45,8 @@ enum GUI_Manager_Activity : uint8_t {
 #include "Activation.hpp"
 #include "Scanner.hpp"
 #include "PlayerSetup.hpp"
+#include "Message.hpp"
+#include "ReadySetGo.hpp"
 #include "Gameplay.hpp"
 #include "Dashboard.hpp"
 
@@ -51,6 +54,7 @@ Activity * GUI_Manager_Activities[] = {
     activation,
     scanner,
     playerSetup,
+    readySetGoMessage,
     gameplay,
     new Dashboard(),
 };

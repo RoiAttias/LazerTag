@@ -5,7 +5,6 @@
 #include <Arduino.h>
 
 
-// Gameplay activity with only the health bar element
 class Gameplay : public Activity {
 public:
     Background background;
