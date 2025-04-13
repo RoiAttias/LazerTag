@@ -11,6 +11,7 @@ enum GameStatus {
     GAME_THREE,
     GAME_TWO,
     GAME_ONE,
+    GAME_GO,
     GAME_RUNNING,
     GAME_OVER,
     GAME_WON,

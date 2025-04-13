@@ -66,16 +66,13 @@ namespace Game {
         player1.resetHP();
         player2.resetHP();
 
-        fireSignals[0] = random(0, 0xFFFFFFFF);
-        do
-        {
-            fireSignals[1] = random(0, 0xFFFFFFFF);
+        do {
+            fireSignals[0] = millis() + micros();
+            fireSignals[1] = fireSignals[0] << 22 | fireSignals[0] >> 10;
         } while (fireSignals[0] == fireSignals[1]);
-        
     }
 
     void run() {
-        if (status != GAME_STARTING) return;
         status = GAME_RUNNING;
     }
 

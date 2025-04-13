@@ -30,8 +30,52 @@ void countdownHandler(int parameter) {
         readySetGoMessage->setButtonVisible(false);
         GUI::callRender();
         countdowner->addEvent(1000, countdownHandler, parameter + 1);
-    } else {
+
+        switch (parameter) {
+            case 0:
+                Game::status = GameStatus::GAME_THREE;
+                break;
+            case 1:
+                Game::status = GameStatus::GAME_TWO;
+                break;
+            case 2:
+                Game::status = GameStatus::GAME_ONE;
+                break;
+            case 3:
+                Game::status = GameStatus::GAME_GO;
+                break;
+        }
+        // Send the game status to all devices
+        Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
+            (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
+        
+    } else if (parameter == 4) {
+        // Player 1
+        Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
+            (uint8_t *)&Game::player1.hp, Game::player1.getGunAddress());
+        Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
+            (uint8_t *)&Game::player1.hp, Game::player1.getVestAddress());
+        Nexus::sendData(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE],
+            (uint8_t *)&Game::player1.gunData.damage, Game::player1.getGunAddress());
+        Nexus::sendData(COMMS_GUNPARAMS, payloadSizePerCommand[COMMS_GUNPARAMS],
+            (uint8_t *)&Game::player1.gunData, Game::player1.getGunAddress());
+
+        // Player 2
+        Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
+            (uint8_t *)&Game::player2.hp, Game::player2.getGunAddress());
+        Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
+            (uint8_t *)&Game::player2.hp, Game::player2.getVestAddress());
+        Nexus::sendData(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE],
+            (uint8_t *)&Game::player2.gunData.damage, Game::player2.getGunAddress());
+        Nexus::sendData(COMMS_GUNPARAMS, payloadSizePerCommand[COMMS_GUNPARAMS],
+            (uint8_t *)&Game::player2.gunData, Game::player2.getGunAddress());
+
+        // Run the game
         GUI::selectActivity(GUI_Manager_Activity::GAMEPLAY);
+        Game::run();
+        Serial.println("Game running");
+        Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
+            (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
     }
 }
 

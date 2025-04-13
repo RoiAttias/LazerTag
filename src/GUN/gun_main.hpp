@@ -73,10 +73,15 @@ bool callRender = false;
 // Variable to store the current game status.
 GameStatus gameStatus = GameStatus::GAME_WAITING;
 
-// --- Interrupt Handler ---
+// --- Interrupt and callback Handlers ---
 // Called when the trigger pushbutton interrupt occurs.
 void gun_trigger_interrupt() {
     trigger.handleInterrupt();
+}
+
+// Called when the gun finishes reloading.
+void gun_OnReloadFinish_callback(Gun* gun) {
+    GUI::callRender();
 }
 
 // --- Setup Function ---
@@ -99,6 +104,7 @@ void gun_setup() {
     trigger.enablePressEvent(true);
     
     // Start the gun.
+    gun.setOnReloadFinishCallback(gun_OnReloadFinish_callback);
     gun.start();
     callRender = true;
 }
@@ -169,6 +175,19 @@ void gun_loop() {
                             break;
                         case GAME_STARTING:
                             GUI::message("Starting...");
+                            break;
+                        case GAME_THREE:
+                            GUI::message("3");
+                            break;
+                        case GAME_TWO:
+                            GUI::message("2");
+                            break;
+                        case GAME_ONE:
+                            GUI::message("1");
+                            break;
+                        case GAME_GO:
+                            GUI::message("GO!");
+                            gun.reload();
                             break;
                         case GAME_RUNNING:
                             GUI::onGame();

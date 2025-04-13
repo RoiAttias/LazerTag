@@ -71,7 +71,6 @@ namespace LuminaUI
 #include "Ellipse.hpp"
 #include "Background.hpp"
 #include "Line.hpp"
-#include "Arc.hpp"
 #include "Polygon.hpp"
 
 // Layout Elements

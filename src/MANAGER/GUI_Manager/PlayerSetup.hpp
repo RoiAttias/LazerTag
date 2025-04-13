@@ -253,6 +253,9 @@ void onPlayerSetupNextButtonTouch(ivec2 point, TouchStatus status) {
 
                 // Proceed to the next step
                 GUI::selectActivity(GUI_Manager_Activity::READYSETGO);
+                Game::start();
+                Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
+                    (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
                 break;
 
             case TouchStatus::TouchStatus_PRESS:

@@ -28,7 +28,7 @@ public:
                 title, colorB1, 1, MC_DATUM, 0, &FreeMonoBold24pt7b),
         messageText(Element(ivec2(0, 70), LuminaUI_AUTO, ivec2(480, 200)),
                 message, colorB1, 1, MC_DATUM, 0, &FreeMonoBold18pt7b),
-        okButton(Element(ivec2(0, 260), LuminaUI_AUTO, ivec2(480, 50)),
+        okButton(Element(ivec2(10, 260), LuminaUI_AUTO, ivec2(460, 50)),
                 buttonText, colorB2, colorB1, colorB2, 10, 1, 0.0f)
     {
         if (buttonHandler != nullptr) {        

@@ -47,6 +47,9 @@ public:
     uint32_t lastReload;
     GunStatus status;
 
+    // Events
+    void (*onReloadFinish)(Gun *gun) = nullptr;
+
     // Multipliers
     float damageMultiplier = 1.0f;
     float fireRateMultiplier = 1.0f;
@@ -96,11 +99,18 @@ public:
             if (currentMillis - lastReload >= uint32_t(reloadTime * reloadTimeMultiplier)) {
                 ammo = magazine;
                 status = READY;
+
+                if (onReloadFinish) {
+                    onReloadFinish(this);
+                }
             }
         }
     }
 
-    // Getters
+    void setOnReloadFinishCallback(void (*callback)(Gun *gun)) {
+        onReloadFinish = callback;
+    }    
+
     GunData getData() {
         GunData data = {
             damage,
