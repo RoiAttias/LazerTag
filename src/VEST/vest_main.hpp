@@ -9,6 +9,7 @@ int hp = 100;
 GameStatus gameStatus = GameStatus::GAME_WAITING;
 
 void vest_setup() {
+  Serial.begin(115200);
   Target::init();
   Ring::init();
 
@@ -23,7 +24,7 @@ void vest_loop() {
   Nexus::loop();
 
   // Send the hit data to the manager.
-  if (Target::hasHit() > 0) {
+  if (Target::hasHit() > 0 && gameStatus == GAME_RUNNING) {
     uint32_t firecode =  Target::readHit().data;
     Nexus::sendToGroup(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE], (uint8_t*)&firecode, NEXUS_GROUP_MANAGER);
   }
@@ -44,7 +45,7 @@ void vest_loop() {
         // Update the player's health.
         memcpy(&hp, nexusPacket.payload, payloadSizePerCommand[COMMS_PLAYERHP]);
         if (lastHP > hp) {
-          Ring::hit();
+          Ring::hit(hp);
         }
         break;
       
@@ -60,8 +61,31 @@ void vest_loop() {
               case GAME_STARTING:
                 Ring::load2();
                 break;
+              case GAME_THREE:
+                Ring::countdown(3);
+                break;
+              case GAME_TWO:
+                Ring::countdown(2);
+                break;
+              case GAME_ONE:
+                Ring::countdown(1);
+                break;
+              case GAME_GO:
+                Ring::countdown(0);
+                break;
+              case GAME_RUNNING:
+                Ring::onGameStart();
+                break;
               case GAME_OVER:
                 Ring::load1();
+                break;
+              
+              case GAME_WON:
+                Ring::win();
+                break;
+
+              case GAME_LOST:
+                Ring::lose();
                 break;
             }
         }

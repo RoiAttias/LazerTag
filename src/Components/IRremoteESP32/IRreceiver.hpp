@@ -93,7 +93,6 @@ public:
       return;
 
     lastTime = currentTime;
-
     switch (nec_stage)
     {
     case headerMark:
