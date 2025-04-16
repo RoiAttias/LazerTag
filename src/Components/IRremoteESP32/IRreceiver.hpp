@@ -88,11 +88,13 @@ public:
       return;
 
     currentTime = micros();
+
     duration = currentTime - lastTime;
     if (duration < NEC_BOUNCE_STOP_FILTER)
       return;
 
     lastTime = currentTime;
+
     switch (nec_stage)
     {
     case headerMark:

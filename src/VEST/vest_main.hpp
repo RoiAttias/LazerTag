@@ -16,6 +16,7 @@ void vest_setup() {
   Nexus::begin(NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUPS, NEXUS_DEVICE_ID));
 
   Ring::load1();
+  Serial.println("VEST Setup");
 }
 
 void vest_loop() {
@@ -24,9 +25,11 @@ void vest_loop() {
   Nexus::loop();
 
   // Send the hit data to the manager.
-  if (Target::hasHit() > 0 && gameStatus == GAME_RUNNING) {
+  if (Target::hasHit() > 0) {
     uint32_t firecode =  Target::readHit().data;
-    Nexus::sendToGroup(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE], (uint8_t*)&firecode, NEXUS_GROUP_MANAGER);
+    if (gameStatus == GAME_RUNNING){
+      Nexus::sendToGroup(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE], (uint8_t*)&firecode, NEXUS_GROUP_MANAGER);
+    }
   }
 
   // Process any Nexus packets.
