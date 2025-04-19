@@ -103,6 +103,8 @@ public:
     }
 
     void init() {
+        Game::reset();
+        
         for (int i = 0, g = 0, v = 0; i < GUI::gameDevices.size(); i++) {
             if (GUI::gameDevices[i].groups == NEXUS_GROUP_GUN) {
                 if (g == 0) {

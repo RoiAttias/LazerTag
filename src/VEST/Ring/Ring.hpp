@@ -53,13 +53,13 @@ void hitAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t le
 }
 
 void hpAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
-    for (uint16_t i = 0; i < Ring::hp*length/100; i++) { // Loop through each LED
+    for (uint16_t i = 0; i < length*Ring::hp/100; i++) { // Loop through each LED
         uint8_t brightness = (uint8_t)(mix((factor < 0.5f) ? (factor/2.0f) : (1.0f-(factor/2.0f)), 180, 255)); // Calculate the color
         strip->setPixelColor(startIndex + i, strip->ColorHSV(40000, 255, brightness)); // Set the LED color
     }
 }
 
-void markAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
+void markedAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
     for (uint16_t i = 0; i < length; i++) { // Loop through each LED
         uint8_t brightness = (uint8_t)(clamp(1.0f - 2*(distance(factor,0,0.5f,0)), 0.0f, 1.0f) * 255); // Calculate the color
         strip->setPixelColor(startIndex + i, strip->ColorHSV(Ring::flashingHue, 255, brightness)); // Set the LED color
@@ -133,11 +133,11 @@ Animation hitAnimation(hitAnimationFunc, 2, 0, stripLength, 100, false);
 // Func: hpAnimationFunc, Layer: 0, Start: 0, Len: 24, Duration: 1000, Loop: true
 Animation hpAnimation(hpAnimationFunc, 0, 0, stripLength, 1000, true);
 
-// Func: markAnimationFunc, Layer: 2, Start: 0, Len: 24, Duration: 1000, Loop: false
-Animation markAnimation(markAnimationFunc, 2, 0, stripLength, 1000, false);
+// Func: markedAnimationFunc, Layer: 2, Start: 0, Len: 24, Duration: 1000, Loop: false
+Animation markedAnimation(markedAnimationFunc, 2, 0, stripLength, 1000, false);
 
-// Func: markAnimationFunc, Layer: 2, Start: 0, Len: 6, Duration: 600, Loop: false
-Animation countdownAnimation(markAnimationFunc, 2, 0, stripLength / 4, 600, false);
+// Func: countdownAnimationfunc, Layer: 2, Start: 0, Len: 6, Duration: 600, Loop: false
+Animation countdownAnimation(markedAnimationFunc, 2, 0, stripLength / 4, 600, false);
 
 // Func: winAnimationFunc, Layer: 1, Start: 0, Len: 24, Duration: 5000, Loop: true
 Animation winAnimation(winAnimationFunc, 1, 0, stripLength, 5000, true);
@@ -190,19 +190,14 @@ namespace Ring {
         visualizer.addAnimation(hitAnimation);
     }
 
-    void onGameStart() {
+    void onGameStart(int hp) {
         visualizer.clearAnimations();
-        visualizer.addAnimation(hpAnimation);
-    }
-
-    void hpUpdate(int hp) {
-        Ring::hp = hp;
         visualizer.addAnimation(hpAnimation);
     }
 
     void mark() {
         flashingHue = HUE_YELLOW;
-        visualizer.addAnimation(markAnimation);
+        visualizer.addAnimation(markedAnimation);
     }
 
     void win() {

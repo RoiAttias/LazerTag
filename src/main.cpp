@@ -10,8 +10,6 @@
 #include "GUN/gun_main.hpp"
 #elif DEVICE_TYPE == DEVICE_VEST
 #include "VEST/vest_main.hpp"
-#elif DEVICE_TYPE == DEVICE_TEST
-#include "test_main.hpp"
 #elif DEVICE_TYPE == 0
 #warning "DEVICE_TYPE is set to 0! Code will be empty."
 #else

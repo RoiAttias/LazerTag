@@ -65,7 +65,7 @@ Gun gun(Sidearm);
 
 // --- Global Variables ---
 // IR fire signal.
-uint32_t fireSignal = 0XFF00FF00;
+uint32_t fireSignal = 0x0000000;
 
 // Flag to indicate that the GUI should render.
 bool callRender = false;

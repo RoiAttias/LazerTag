@@ -17,7 +17,7 @@ class IRsender {
 
     void space(int time) {
       if (invert) {
-        ledcWrite(channel, 1023); // Inverted logic: Turn on LED
+        ledcWrite(channel, 1023); // Inverted logic
       } else {
         ledcWrite(channel, 0); // Turn off LED
       }

@@ -12,12 +12,15 @@
 #define NEC_ONE_SPACE 1687UL
 #define NEC_ZERO_SPACE 562UL
 
-#define NEC_END_MARK 562UL
-
 #define NEC_THRESHOLD 100UL
 #define NEC_BOUNCE_STOP_FILTER (NEC_THRESHOLD * 2UL)
 
 #define IR_RECEIVER_BUFFER_SIZE 32  // Define buffer size for storing received data
+
+inline bool compare (uint32_t value, uint32_t valToCompare, uint32_t epsilon)
+{
+  return value >= (valToCompare - epsilon) && value <= (valToCompare + epsilon);
+}
 
 enum NEC_STAGE
 {
@@ -51,11 +54,6 @@ union NEC_DATA
     return data != other.data;
   }
 };
-
-bool compare (uint32_t value, uint32_t valToCompare, uint32_t epsilon)
-{
-  return value >= (valToCompare - epsilon) && value <= (valToCompare + epsilon);
-}
 
 #include "IRsender.hpp"
 #include "IRreceiver.hpp"

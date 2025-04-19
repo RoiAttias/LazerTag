@@ -56,7 +56,7 @@ void countdownHandler(int parameter) {
         Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
             (uint8_t *)&Game::player1.hp, Game::player1.getVestAddress());
         Nexus::sendData(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE],
-            (uint8_t *)&Game::player1.gunData.damage, Game::player1.getGunAddress());
+            (uint8_t *)&Game::fireSignals[0], Game::player1.getGunAddress());
         Nexus::sendData(COMMS_GUNPARAMS, payloadSizePerCommand[COMMS_GUNPARAMS],
             (uint8_t *)&Game::player1.gunData, Game::player1.getGunAddress());
 
@@ -66,14 +66,13 @@ void countdownHandler(int parameter) {
         Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
             (uint8_t *)&Game::player2.hp, Game::player2.getVestAddress());
         Nexus::sendData(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE],
-            (uint8_t *)&Game::player2.gunData.damage, Game::player2.getGunAddress());
+            (uint8_t *)&Game::fireSignals[1], Game::player2.getGunAddress());
         Nexus::sendData(COMMS_GUNPARAMS, payloadSizePerCommand[COMMS_GUNPARAMS],
             (uint8_t *)&Game::player2.gunData, Game::player2.getGunAddress());
 
         // Run the game
-        GUI::selectActivity(GUI_Manager_Activity::GAMEPLAY);
         Game::run();
-        Serial.println("Game running");
+        GUI::selectActivity(GUI_Manager_Activity::GAMEPLAY);
         Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
             (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
     }

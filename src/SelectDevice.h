@@ -7,7 +7,7 @@
 #define DEVICE_VEST 3
 
 // Select device here
-#define DEVICE_TYPE 3
-#define DEVICE_ID 3
+#define DEVICE_TYPE 1
+#define DEVICE_ID 1
 
 #endif // SELECT_DEVICE_H

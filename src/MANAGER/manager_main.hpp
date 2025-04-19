@@ -8,8 +8,6 @@
 #include "Modules/Game.hpp"
 #include "GUI_Manager/GUI_Manager.hpp"
 
-NexusPacket nexusPacket;
-
 void scanCompletedCallback()
 {
     scanner->updateScannedDevices();
@@ -35,19 +33,24 @@ void manager_loop()
 
     if (Game::status == GAME_RUNNING)
     {
+        NexusPacket nexusPacket;
         while (Nexus::readPacket(nexusPacket)) {
+            Serial.println(nexusPacket.toString());
             if (nexusPacket.command == COMMS_FIRECODE && nexusPacket.source.groups == NEXUS_GROUP_VEST)
             {
                 // Process the fire signal from the vest
                 uint32_t fireSignal;
                 memcpy((uint8_t *)&fireSignal, nexusPacket.payload, payloadSizePerCommand[COMMS_FIRECODE]);
-                Game::processHit(nexusPacket.source.deviceID, fireSignal);
-
-                Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP], (uint8_t *)&Game::player1.hp, Game::player1.getGunAddress());
-                Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP], (uint8_t *)&Game::player1.hp, Game::player1.getVestAddress());
-                Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP], (uint8_t *)&Game::player2.hp, Game::player2.getGunAddress());
-                Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP], (uint8_t *)&Game::player2.hp, Game::player2.getVestAddress());
-
+                if (Game::processHit(nexusPacket.source.deviceID, fireSignal))
+                {
+                    // Send the updated HP to the gun and vest                    
+                    Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP], (uint8_t *)&Game::player1.hp, Game::player1.getGunAddress());
+                    Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP], (uint8_t *)&Game::player1.hp, Game::player1.getVestAddress());
+                    Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP], (uint8_t *)&Game::player2.hp, Game::player2.getGunAddress());
+                    Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP], (uint8_t *)&Game::player2.hp, Game::player2.getVestAddress());
+                    
+                    GUI::callRender();
+                }
             }
         }
 
@@ -57,8 +60,11 @@ void manager_loop()
             GUI::callRender();
             Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
                 (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
+            
+            GUI::loop();
 
-            delay(1000);
+            delay(3000);
+
             uint8_t winner = Game::getWinner();
             GameStatus won = GameStatus::GAME_WON, lost = GameStatus::GAME_LOST;
             if (Game::player1.getID() == winner)

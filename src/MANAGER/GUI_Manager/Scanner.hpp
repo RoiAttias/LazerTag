@@ -56,14 +56,22 @@ public:
         for (int i = 0; i < 9; i++) {
             deviceBoxPos = deviceBoxOrigin + (deviceBoxSize + deviceBoxSpacing).multiply(ivec2(i % 3, i / 3));
             deviceBoxes[i] = new DeviceBox(Element(deviceBoxPos, LuminaUI_AUTO, ivec2(150, 50)), i + 1);
-            elems[4 + i] = deviceBoxes[i];
-            elems[4 + i]->visible = false;
-            elems[4 + i]->OnTouch_setHandler(onDeviceBoxTouch);
-            elems[4 + i]->OnTouch_setEnable(true);
+            elems[4 + i] = deviceBoxes[i]; // Add the DeviceBox to the elements list
         }
+
+        init(); // Initialize the DeviceBoxes
 
         // Add all elements to the activity
         elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
+    }
+
+    void init() {
+        // Initialize the DeviceBoxes
+        for (int i = 0; i < 9; i++) {
+            deviceBoxes[i]->visible = false; // Initially hide the DeviceBoxes
+            deviceBoxes[i]->OnTouch_setHandler(onDeviceBoxTouch); // Set the touch event handler
+            deviceBoxes[i]->OnTouch_setEnable(true); // Enable touch events
+        }
     }
 
     /**

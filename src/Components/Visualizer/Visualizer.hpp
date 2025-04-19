@@ -78,6 +78,7 @@ struct Animation {
 };
 
 // An example for animation function
+/*
 void rainbowAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
     const uint16_t factorOffset = uint16_t(0xFFFF * factor); // Calculate the factor offset
     const uint16_t offsetPerFactor = 0xFFFF / length; // Calculate the offset per factor
@@ -90,6 +91,7 @@ void rainbowAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_
 
 // func: rainbowAnimationFunc, layer: 0, startIndex: 0, length: 10, durationMS: 1000, repeat: true
 Animation rainbowAnimation(rainbowAnimationFunc, 0, 0, 10, 1000, true); // Create a rainbow animation
+*/
 
 // Visualizer class to manage the strip and animations
 class Visualizer {

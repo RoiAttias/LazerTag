@@ -40,9 +40,8 @@ public:
     void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override {
         if (touchStatus == TouchStatus_PRESS) {
             countdowner->addEvent(countdownTime, GUI::selectActivity, GUI_Manager_Activity::SCANNER);
-            Game::reset();
-                Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
-                    (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
+            Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
+                (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
         }
     }
 };

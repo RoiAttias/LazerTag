@@ -36,12 +36,9 @@ namespace Target
         for (int i = 0; i < irReceiversCount; i++) {
             if (irReceivers[i].available()) {
                 NEC_DATA receivedData = irReceivers[i].read();
-                /*
                 if (!hits.contains(receivedData)) {
                     hits.addend(receivedData);
                 }
-                    */
-                Serial.printf("IR %d: %X\n", i, receivedData.data);
             }
         }
     }

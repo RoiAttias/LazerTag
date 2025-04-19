@@ -5,6 +5,8 @@
 #include "Modules/Game.hpp"
 #include <Arduino.h>
 
+void againButtonCallback(ivec2 point, TouchStatus touchStatus);
+
 class Gameplay : public Activity {
 public:
     // Background and title elements
@@ -19,6 +21,9 @@ public:
     // Player 2 elements
     Text player2Title;
     HpBar player2HpBar;
+
+    // Additional elements
+    Button againButton; // Button to restart the game
 
     // Variables
     int player1Hp = 100; // Player 1 health
@@ -41,10 +46,17 @@ public:
 
         player2Title(Element(ivec2(240, 130), LuminaUI_AUTO, ivec2(240, 40)),
                 String("Player 2"), TFT_WHITE, 1, MC_DATUM, 0.0f, &FreeMonoBold18pt7b),
-        player2HpBar(Element(ivec2(260, 180), LuminaUI_AUTO, ivec2(200, 50)))
+        player2HpBar(Element(ivec2(260, 180), LuminaUI_AUTO, ivec2(200, 50))),
+        againButton(Element(ivec2(90, 240), LuminaUI_AUTO, ivec2(300, 70), false),
+                "Play Again!", TFT_BLACK, TFT_YELLOW, TFT_BLACK, 20, 1,
+                0.0f, &FreeMono18pt7b, true, true)
     {
+        // Set touch event for the button
+        againButton.OnTouch_setHandler(againButtonCallback);
+        againButton.OnTouch_setEnable(true);
+
         // Add the health bar to the activity's elements list
-        Element* elems[] = { &background, &titleText, &narratorText, &player1Title, &player1HpBar, &player2Title, &player2HpBar };
+        Element* elems[] = { &background, &titleText, &narratorText, &player1Title, &player1HpBar, &player2Title, &player2HpBar, &againButton };
         elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
 
     }
@@ -68,6 +80,9 @@ public:
         player1HpBar.setValue(player1Hp);
         player2HpBar.setValue(player2Hp);
 
+        titleText.content =  
+            "Game is running!";
+        
         // Narration for key game events with added dynamic sentences
         if (maxHP == 100 && leadingPlayer == 0) {
             narratorText.content =  
@@ -77,9 +92,13 @@ public:
              * "The arena is alive with energy! Both players are at full health, ready to unleash their skills in this electrifying duel!"
              */
         } else if (minHP == 0 && leadingPlayer != 0) {
+            titleText.content =  
+                "Player " + String(leadingPlayer) + " wins!";
             narratorText.content =  "Game's Over! Player " + String(leadingPlayer)
                 + " wins! What an electrifying duel that kept us on the edge of our seats!";
         } else if (minHP == 0 && leadingPlayer == 0) {
+            titleText.content =  
+                "It's a tie!";
             narratorText.content =  
                 "It's a tie! Both players fought valiantly, but the arena has claimed them both!";
         } else if (maxHP == 100 && leadingPlayer != 0) {
@@ -101,6 +120,14 @@ public:
             narratorText.content =  
                 "The duel rages on... Every shot is a heartbeat, and the tension is lighting up the arena!";
         }
+
+        if (minHP == 0) {
+            // Disable the button if the game is over
+            againButton.visible = true;
+        } else {
+            // Enable the button if the game is still on
+            againButton.visible = false;
+        }
         
         Viewport vp = Activity::render(viewport);
         // Additional rendering logic for the health bar can be added here if needed.
@@ -109,5 +136,25 @@ public:
 };
 
 Gameplay* gameplay = new Gameplay();
+
+void againButtonCallback(ivec2 point, TouchStatus status) {
+    if (status == TouchStatus_RELEASE) {
+        ESP.restart();
+    }
+    else if (status == TouchStatus_PRESS) {
+        // Change the button color when pressed
+        gameplay->againButton.background.fillColor = TFT_MAROON;
+        gameplay->againButton.background.borderColor = TFT_YELLOW;
+        gameplay->againButton.text.textColor = TFT_YELLOW;
+        gameplay->againButton.callRender();
+    }
+    else if (status == TouchStatus_READY) {
+        // Change the button color back when released
+        gameplay->againButton.background.fillColor = TFT_BLACK;
+        gameplay->againButton.background.borderColor = TFT_YELLOW;
+        gameplay->againButton.text.textColor = TFT_YELLOW;
+        gameplay->againButton.callRender();
+    }
+}
 
 #endif // GAMEPLAY_HPP

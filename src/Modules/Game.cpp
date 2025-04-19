@@ -23,9 +23,9 @@ namespace Game {
         if (status != GAME_RUNNING) return false;
 
         uint8_t who;
-        if (id == player1.gunAddress.deviceID) {
+        if (id == player1.vestAddress.deviceID) {
             who = 1;
-        } else if (id == player2.gunAddress.deviceID) {
+        } else if (id == player2.vestAddress.deviceID) {
             who = 2;
         } else {
             return false; // Invalid player ID
