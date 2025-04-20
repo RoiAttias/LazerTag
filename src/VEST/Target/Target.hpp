@@ -2,7 +2,7 @@
 #define TARGET_HPP
 
 #include <Arduino.h>
-#include "Constants/Constants_Vest.h"
+#include "VEST/Constants_Vest.h"
 #include "Components/IRremoteESP32/IRremoteESP32.hpp"
 #include "Utilities/HyperList.hpp"
 #include "Utilities/HyperMap.hpp"
@@ -15,6 +15,16 @@ void IRAM_ATTR (*recvISRs[])() = {
     recvISR_0, recvISR_1, recvISR_2
 };
 
+struct ReceivedFireSignal
+{
+    NEC_DATA data;
+    uint32_t lastTime;
+
+    bool shouldStore() {
+        return (millis() - lastTime) > NEC_VALID_TIME_MS;
+    }
+};
+
 namespace Target
 {
     IRreceiver irReceivers[] = {
@@ -25,6 +35,7 @@ namespace Target
     size_t irReceiversCount = 3;
 
     HyperList<NEC_DATA> hits;
+    HyperList<ReceivedFireSignal> receivedFireSignals;
 
     void init() {
         for (int i = 0; i < irReceiversCount; i++) {
@@ -33,11 +44,45 @@ namespace Target
     }
 
     void loop() {
+        bool skip = false, receivedContains = false;
         for (int i = 0; i < irReceiversCount; i++) {
             if (irReceivers[i].available()) {
                 NEC_DATA receivedData = irReceivers[i].read();
+
                 if (!hits.contains(receivedData)) {
-                    hits.addend(receivedData);
+
+                    for (int j = 0; j < receivedFireSignals.size(); j++) {
+                        if (receivedFireSignals[j].data == receivedData) {
+                            receivedContains = true;
+
+                            if (receivedFireSignals[j].shouldStore()) {
+                                ReceivedFireSignal temp = receivedFireSignals[j];
+                                temp.lastTime = millis();
+                                receivedFireSignals.remove(j);
+                                receivedFireSignals.insert(j, temp);
+                                skip = false;
+                            } else {
+                                skip = true;
+                            }
+
+                        }
+                        else {
+                            skip = false;
+                            receivedContains = false;
+                        }
+                    }
+
+
+                    if (skip) {
+                        continue;
+                    }
+                    else {
+                        hits.addend(receivedData);
+                        if (!receivedContains) {
+                            ReceivedFireSignal fireSignal = {receivedData, millis()};
+                            receivedFireSignals.addend(fireSignal);
+                        }
+                    }
                 }
             }
         }
@@ -55,6 +100,7 @@ namespace Target
 
     void clear() {
         hits.clear();
+        receivedFireSignals.clear();
     }
 }
 

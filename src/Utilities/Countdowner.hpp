@@ -4,13 +4,10 @@
 #include <Arduino.h>
 #include "Utilities/HyperList.hpp"
 
-// Define a type for our callback function.
-typedef void (*Callback)(int);
-
 // Struct that holds the trigger time (in millis) and a callback pointer.
 struct CountdownEvent {
   uint32_t triggerTime;  // Absolute time (in millis) when the callback should be executed.
-  Callback callback;
+  void (*callback)(int); // Pointer to the callback function to be executed.
   int parameter; // Optional parameter for the callback function.
 };
 
@@ -29,7 +26,7 @@ public:
 
   // Add an event that will trigger after delayMillis milliseconds from now.
   // The event is inserted in sorted order (by triggerTime) in the linked list.
-  void addEvent(uint32_t delayMillis, Callback callback, int parameter = -1) {
+  void addEvent(uint32_t delayMillis, void (*callback)(int), int parameter = -1) {
     CountdownEvent newEvent = {millis() + delayMillis, callback, parameter};
     events.addend(newEvent);
   }
@@ -50,6 +47,6 @@ public:
   }
 };
 
-Countdowner * countdowner = new Countdowner; // Global instance of Countdowner.
+extern Countdowner * countdowner;
 
 #endif // COUNTDOWNER_HPP

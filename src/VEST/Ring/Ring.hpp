@@ -2,7 +2,7 @@
 #define RING_HPP
 
 #include <Arduino.h>
-#include "Constants/Constants_Vest.h"
+#include "VEST/Constants_Vest.h"
 #include "Components/Visualizer/Visualizer.hpp"
 #include "Utilities/MoreMath.hpp"
 
@@ -14,6 +14,7 @@
 namespace Ring {
     extern int hp;
     extern uint16_t flashingHue;
+    extern uint16_t load2Hue;
 }
 
 // Animation functions
@@ -35,12 +36,11 @@ void load2AnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t 
     int index = mix(factor, startIndex, length + startIndex); // Calculate the index
     float maxDistance = 3.0f; // Set the maximum distance
     for (uint16_t i = 0; i < length; i++) { // Loop through each LED
-        uint16_t hue = HUE_BLUE; // Set the hue to blue
         uint8_t brightness = (uint8_t)(pow(
                                             clamp((maxDistance - distance(i,0, index,0)) / maxDistance, 0.0f, 1.0f)
                                             +clamp((maxDistance - distance(i,0, index+length,0)) / maxDistance, 0.0f, 1.0f)
                                             ,3) * 255); // Calculate the color
-        strip->setPixelColor(startIndex + i, strip->ColorHSV(hue, 255, brightness)); // Set the LED color
+        strip->setPixelColor(startIndex + i, strip->ColorHSV(Ring::load2Hue, 255, brightness)); // Set the LED color
     }
 }
 
@@ -54,8 +54,9 @@ void hitAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t le
 
 void hpAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
     for (uint16_t i = 0; i < length*Ring::hp/100; i++) { // Loop through each LED
-        uint8_t brightness = (uint8_t)(mix((factor < 0.5f) ? (factor/2.0f) : (1.0f-(factor/2.0f)), 180, 255)); // Calculate the color
-        strip->setPixelColor(startIndex + i, strip->ColorHSV(40000, 255, brightness)); // Set the LED color
+        uint16_t hue = mix(Ring::hp/100.0f, HUE_RED, HUE_GREEN); // Calculate the hue with HP
+        uint8_t brightness = mix((clamp(1.0f - 2*(distance(factor,0,0.5f,0)), 0.0f, 1.0f)), 200, 255); // Calculate the color
+        strip->setPixelColor(startIndex + i, strip->ColorHSV(hue, 255, brightness)); // Set the LED color
     }
 }
 
@@ -67,10 +68,13 @@ void markedAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t
 }
 
 void winAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
+    float fac = factor * 6;
     int current = (int)(factor * 6);
     if (current >= 0 && current < 3) {
+        int repeats = 5;
+        int curr = (int)fmod(fac * repeats, 3);
         for (uint16_t i = 0; i < length; i++) { // Loop through each LED
-            strip->setPixelColor(startIndex + i, strip->ColorHSV(HUE_GREEN, 255, 255 * (i % 3 == current)));
+            strip->setPixelColor(startIndex + i, strip->ColorHSV(HUE_GREEN, 255, 255 * (i % 3 == curr)));
         }
     } else if (current == 3) {
         for (uint16_t i = 0; i < length*(factor*6 - 3); i++) { // Loop through each LED
@@ -149,6 +153,7 @@ namespace Ring {
     Visualizer visualizer(stripPin, stripLength, stripFrameIntervalMS);
     int hp = 0;
     uint16_t flashingHue;
+    uint16_t load2Hue;
 
     void init() {
         visualizer.init(stripBrightness);
@@ -165,6 +170,7 @@ namespace Ring {
 
     void load2() {
         visualizer.clearAnimations();
+        load2Hue = HUE_GREEN;
         visualizer.addAnimation(load2Animation);
     }
 
@@ -198,6 +204,12 @@ namespace Ring {
     void mark() {
         flashingHue = HUE_YELLOW;
         visualizer.addAnimation(markedAnimation);
+    }
+
+    void over(){
+        visualizer.clearAnimations();
+        load2Hue = HUE_RED;
+        visualizer.addAnimation(load2Animation);
     }
 
     void win() {

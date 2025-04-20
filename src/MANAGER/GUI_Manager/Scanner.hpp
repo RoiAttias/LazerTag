@@ -93,7 +93,7 @@ public:
             }
         }
 
-        return (countGuns == 1 && countVests == 1);
+        return (countGuns > 0 && countVests > 0);
     }
 
     /**

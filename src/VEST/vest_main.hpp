@@ -29,7 +29,8 @@ void vest_loop() {
     uint32_t firecode = Target::readHit().data;
     Serial.printf("Firecode: %08X\n", firecode);
     if (game_status == GAME_RUNNING){
-      Nexus::sendToGroup(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE], (uint8_t*)&firecode, NEXUS_GROUP_MANAGER);
+      //Nexus::sendToGroup(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE], (uint8_t*)&firecode, NEXUS_GROUP_MANAGER);
+      Nexus::sendData(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE], (uint8_t*)&firecode, NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUP_MANAGER, 0xFF));
       Serial.println("Hit detected");
     }
   }
@@ -77,6 +78,7 @@ void vest_loop() {
                 break;
               case GAME_GO:
                 Ring::countdown(0);
+                Target::clear();
                 break;
               case GAME_RUNNING:
                 Ring::onGameStart(hp);

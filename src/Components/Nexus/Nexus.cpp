@@ -51,7 +51,7 @@ String NexusPacket::toString() const {
     str += "Length: " + String(length) + "\n";
     str += "Payload: ";
     for (size_t i = 0; i < length; i++) {
-        str += String((char)payload[i]);
+        str += String((char)payload[i],HEX);
     }
     str += "\n}";
     return str;

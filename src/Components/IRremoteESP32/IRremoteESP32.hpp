@@ -15,6 +15,8 @@
 #define NEC_THRESHOLD 100UL
 #define NEC_BOUNCE_STOP_FILTER (NEC_THRESHOLD * 2UL)
 
+#define NEC_VALID_TIME_MS 70
+
 #define IR_RECEIVER_BUFFER_SIZE 32  // Define buffer size for storing received data
 
 inline bool compare (uint32_t value, uint32_t valToCompare, uint32_t epsilon)

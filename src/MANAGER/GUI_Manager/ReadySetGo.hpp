@@ -3,6 +3,7 @@
 
 #include "GUI_Manager.hpp"
 #include "Utilities/Countdowner.hpp"
+#include "MANAGER/manager_shared.hpp"
 
 void countdownHandler(int parameter);
 void readySetGoHandler(ivec2 point, TouchStatus status);
@@ -30,52 +31,30 @@ void countdownHandler(int parameter) {
         readySetGoMessage->setButtonVisible(false);
         GUI::callRender();
         countdowner->addEvent(1000, countdownHandler, parameter + 1);
-
-        switch (parameter) {
-            case 0:
-                Game::status = GameStatus::GAME_THREE;
-                break;
-            case 1:
-                Game::status = GameStatus::GAME_TWO;
-                break;
-            case 2:
-                Game::status = GameStatus::GAME_ONE;
-                break;
-            case 3:
-                Game::status = GameStatus::GAME_GO;
-                break;
-        }
-        // Send the game status to all devices
-        Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
-            (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
-        
-    } else if (parameter == 4) {
-        // Player 1
-        Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
-            (uint8_t *)&Game::player1.hp, Game::player1.getGunAddress());
-        Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
-            (uint8_t *)&Game::player1.hp, Game::player1.getVestAddress());
-        Nexus::sendData(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE],
-            (uint8_t *)&Game::fireSignals[0], Game::player1.getGunAddress());
-        Nexus::sendData(COMMS_GUNPARAMS, payloadSizePerCommand[COMMS_GUNPARAMS],
-            (uint8_t *)&Game::player1.gunData, Game::player1.getGunAddress());
-
-        // Player 2
-        Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
-            (uint8_t *)&Game::player2.hp, Game::player2.getGunAddress());
-        Nexus::sendData(COMMS_PLAYERHP, payloadSizePerCommand[COMMS_PLAYERHP],
-            (uint8_t *)&Game::player2.hp, Game::player2.getVestAddress());
-        Nexus::sendData(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE],
-            (uint8_t *)&Game::fireSignals[1], Game::player2.getGunAddress());
-        Nexus::sendData(COMMS_GUNPARAMS, payloadSizePerCommand[COMMS_GUNPARAMS],
-            (uint8_t *)&Game::player2.gunData, Game::player2.getGunAddress());
-
-        // Run the game
-        Game::run();
-        GUI::selectActivity(GUI_Manager_Activity::GAMEPLAY);
-        Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
-            (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
     }
+
+    switch (parameter) {
+        case 0:
+            Game::status = GameStatus::GAME_THREE;
+            break;
+        case 1:
+            Game::status = GameStatus::GAME_TWO;
+            break;
+        case 2:
+            Game::status = GameStatus::GAME_ONE;
+            break;
+        case 3:
+            Game::status = GameStatus::GAME_GO;
+            break;
+        case 4:
+            startGame();
+            delay(100);
+            break;
+    }
+
+    // Send the game status to all devices
+    Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
+        (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
 }
 
 void readySetGoHandler(ivec2 point, TouchStatus status) {

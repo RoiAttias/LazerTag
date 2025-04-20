@@ -63,6 +63,11 @@ public:
         return gunData;
     }
 
+    void setGunData(GunData data)
+    {
+        gunData = data;
+    }
+
     // NexusAddress methods
     NexusAddress getGunAddress()
     {

@@ -4,13 +4,13 @@ namespace Game {
     Player player1(1);
     Player player2(2);
     GameStatus status = GAME_WAITING;
-    uint32_t fireSignals[2] = {0, 0};
+    NEC_DATA fireSignals[2];
 
     GameStatus getStatus() {
         return status;
     }
 
-    bool hasPlayerHit(uint32_t fireSignal, uint8_t who) {
+    bool hasPlayerHit(NEC_DATA fireSignal, uint8_t who) {
         if (who == 1) {
             return fireSignal == fireSignals[1];
         } else if (who == 2) {
@@ -19,7 +19,7 @@ namespace Game {
         return false;
     }
 
-    bool processHit(uint8_t id, uint32_t fireSignal) {
+    bool processHit(uint8_t id, NEC_DATA fireSignal) {
         if (status != GAME_RUNNING) return false;
 
         uint8_t who;
@@ -66,10 +66,10 @@ namespace Game {
         player1.resetHP();
         player2.resetHP();
 
-        do {
-            fireSignals[0] = millis() + micros();
-            fireSignals[1] = fireSignals[0] << 22 | fireSignals[0] >> 10;
-        } while (fireSignals[0] == fireSignals[1]);
+        byte val = micros() & 0xFF;
+
+        fireSignals[0] = NEC_DATA(val, val + 10);
+        fireSignals[1] = NEC_DATA(val + 20, val + 30);
     }
 
     void run() {
@@ -77,7 +77,7 @@ namespace Game {
     }
 
     void end() {
-        if (status != GAME_RUNNING) return;
+        // if (status != GAME_RUNNING) return;
         status = GAME_OVER;
     }
 

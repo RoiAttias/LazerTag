@@ -2,6 +2,7 @@
 #define GAME_HPP
 
 #include "Utilities/HyperList.hpp"
+#include "Components/IRremoteESP32/IRremoteESP32.hpp"
 
 #include "Player.hpp"
 
@@ -23,11 +24,11 @@ namespace Game {
     extern Player player1;
     extern Player player2;
     extern GameStatus status;
-    extern uint32_t fireSignals[2];
+    extern NEC_DATA fireSignals[2];
 
     GameStatus getStatus();
-    bool hasPlayerHit(uint32_t fireSignal, uint8_t who);
-    bool processHit(uint8_t id, uint32_t fireSignal);
+    bool hasPlayerHit(NEC_DATA fireSignal, uint8_t who);
+    bool processHit(uint8_t id, NEC_DATA fireSignal);
     bool canStart();
     bool shouldEnd();
     void reset();

@@ -10,7 +10,7 @@
 
 #include "Utilities/MoreMath.hpp"
 
-#include "Constants/Constants_Gun.h"
+#include "Constants_Gun.h"
 #include "Common/LazerTagPacket.hpp"
 
 #include "Modules/Game.hpp"
@@ -19,8 +19,10 @@
 
 #include "GUI_Gun/GUI_Gun.hpp"
 
-// Forward declaration for the trigger interrupt function.
-void gun_trigger_interrupt();
+// Forward declaration for functions.
+void IRAM_ATTR gun_trigger_interrupt();
+void gun_Shoot_callback(int parameter);
+void gun_OnReloadFinish_callback(Gun* gun);
 
 // --- Fire Animation Function ---
 // Creates a fire-like effect on an LED strip using random hues and saturation.
@@ -61,7 +63,7 @@ IRsender irSender(irPin, irChannel, irFrequency);
 Visualizer visualizer(stripPin, stripLength, stripFrameIntervalMS);
 
 // Gun object for the player's gun.
-Gun gun(Sidearm);
+Gun gun(Sidearm, gun_Shoot_callback, gun_OnReloadFinish_callback);
 
 // --- Global Variables ---
 // IR fire signal.
@@ -77,6 +79,18 @@ GameStatus gameStatus = GameStatus::GAME_WAITING;
 // Called when the trigger pushbutton interrupt occurs.
 void gun_trigger_interrupt() {
     trigger.handleInterrupt();
+}
+
+// Called when the gun is shot.
+void gun_Shoot_callback(int parameter) {
+    
+    if (gun.magazine > 0) {
+        // On a successful shot, send the IR fire signal and add the fire animation.
+        irSender.sendNEC(fireSignal);
+        visualizer.addAnimation(fireAnimation);
+        gun.decreaseAmmo();
+        callRender = true;
+    }
 }
 
 // Called when the gun finishes reloading.
@@ -104,13 +118,14 @@ void gun_setup() {
     trigger.enablePressEvent(true);
     
     // Start the gun.
-    gun.setOnReloadFinishCallback(gun_OnReloadFinish_callback);
     gun.start();
     callRender = true;
 }
 
 // --- Main Loop ---
 void gun_loop() {
+    // Update the trigger state.
+    countdowner->loop();
     // Update Nexus networking.
     Nexus::loop();
 
@@ -130,13 +145,9 @@ void gun_loop() {
         }
         
         // Check the trigger and shoot if pressed.
-        if (trigger.hasPressed()) {
-            if (gun.shoot()) {
-                // On a successful shot, send the IR fire signal and add the fire animation.
-                irSender.sendNEC(fireSignal);
-                visualizer.addAnimation(fireAnimation);
-                callRender = true;
-            }
+        if (trigger.hasPressed() || trigger.isPressed()) {
+            gun.shoot();
+            // On successful shot, the shoot callback will be called.
         }
     }
     
