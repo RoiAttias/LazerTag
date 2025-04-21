@@ -5,7 +5,6 @@
 
 #include "TFT_eSPI_Elements.hpp"
 #include "Components/LuminaUI/Touch.hpp"
-#include "Components/Pushbutton/Pushbutton.hpp"
 
 class Touch_XPT2046 : public Touch {
 private:
@@ -26,7 +25,7 @@ public:
      * @param samplesCount The number of samples to average.
      * @return True if the screen is being touched, false otherwise.
      */
-    virtual bool isTouched(int pressureThreshold, int samplesCount = 1) {
+    virtual bool isTouched(uint16_t pressureThreshold, int samplesCount = 1) {
         if (samplesCount > 1) {
             int validSamples = 0;
             for (int i = 0; i < samplesCount; i++) {

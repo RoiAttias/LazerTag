@@ -47,8 +47,12 @@ public:
      * @param touchStatus The status of the touch.
      */
     virtual void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override {
-        if (touchStatus == TouchStatus_PRESS) {
+        if (touchStatus == TouchStatus::RELEASED) {
+            // If the user touches the screen, go to the next page or activity
             GUI::selectActivity(GUI_Manager_Activity::ACTIVATION);
+            background.setColor(TFT_DARKCYAN); // Reset background color
+        } else if (touchStatus == TouchStatus::PRESSED) {
+            backgeround.setColor(TFT_BROWN); // Change background color on touch
         }
     }
 };
