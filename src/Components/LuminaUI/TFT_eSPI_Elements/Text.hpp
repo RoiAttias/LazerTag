@@ -1,145 +1,166 @@
-#ifndef TEXT_HPP
-#define TEXT_HPP
-
-#include "TFT_eSPI_Elements.hpp"
-#include <TFT_eSPI.h>
-
 /**
- * @brief A text element that displays text on the screen.
- * 
- * Datums:
- * - TL_DATUM: Top left
- * - TC_DATUM: Top center
- * - TR_DATUM: Top right
- * - ML_DATUM: Middle left
- * - MC_DATUM: Middle center
- * - MR_DATUM: Middle right
- * - BL_DATUM: Bottom left
- * - BC_DATUM: Bottom center
- * - BR_DATUM: Bottom right
+ * @file Text.hpp
+ * @brief UI element for rendering multi-line and single-line text with wrapping and datum alignment.
+ *
+ * Inherits from Element and uses the TFT_eSPI library to draw text within a clipped viewport.
+ * Supports custom fonts (GFX FreeFonts), text size, color, background, datum alignment, and
+ * configurable line spacing. Handles manual word wrapping and newline splitting for top-aligned text.
  */
-class Text : public Element {
-public:
-    String content;
-    uint32_t textColor;
-    uint8_t textSize;
-    uint8_t textDatum;
-    float lineSpacing;
-    const GFXfont *freeFont;
-    uint32_t backgroundColor;
-    bool renderBackground;
 
-    // New member to store the processed lines.
-    HyperList<String> lines;
-
-    Text(const Element& element, const String& content = "", uint32_t textColor = TFT_WHITE,
-         uint8_t textSize = 1, uint8_t textDatum = TL_DATUM, float lineSpacing = 1.0f, const GFXfont *freeFont = FF1,
-         uint32_t backgroundColor = TFT_BLACK, bool renderBackground = false)
-        : Element(element), content(content), textColor(textColor), textSize(textSize), 
-          textDatum(textDatum), lineSpacing(lineSpacing), freeFont(freeFont),
-          backgroundColor(backgroundColor), renderBackground(renderBackground) {}
-
-    Viewport render(const Viewport& viewport) override {
-        Viewport textViewport = Element::render(viewport);
-        
-        if (content.isEmpty()) {
-            return textViewport;
-        }
-        
-        // Set the viewport to the element's position and size.
-        LuminaUI::tft_instance->setViewport(textViewport.position.x, textViewport.position.y, 
-                                              textViewport.scale.x, textViewport.scale.y);
-
-        // Configure text rendering properties.
-        LuminaUI::tft_instance->setTextDatum(textDatum);
-        LuminaUI::tft_instance->setTextSize(textSize);
-        LuminaUI::tft_instance->setFreeFont(freeFont);
-        if (renderBackground) {
-            LuminaUI::tft_instance->setTextColor(textColor, backgroundColor);
-        } else {
-            LuminaUI::tft_instance->setTextColor(textColor);
-        }
-
-        // Enable text wrapping in the TFT library (we're handling our own word wrapping below).
-        LuminaUI::tft_instance->setTextWrap(true, true);
-
-        // Calculate line height based on font height and line spacing.
-        int lineHeight = LuminaUI::tft_instance->fontHeight() * lineSpacing;
-        // Calculate starting X and Y based on the datum.
-        int16_t cursorX = min(textDatum % 3, 2) * textViewport.scale.x / 2;
-        int16_t cursorY = min(textDatum / 3, 2) * textViewport.scale.y / 2;
-        
-        // Only process multiline text for top datums (TL_DATUM, TC_DATUM, TR_DATUM).
-        if (textDatum <= TR_DATUM) {
-            lines.clear();
-            int maxWidth = textViewport.scale.x;
-            int startIndex = 0;
-            int contentLen = content.length();
-            
-            // First, split content by newline characters.
-            while (startIndex < contentLen) {
-                int newlineIndex = content.indexOf('\n', startIndex);
-                String rawLine;
-                if (newlineIndex == -1) {
-                    rawLine = content.substring(startIndex);
-                    startIndex = contentLen;
-                } else {
-                    rawLine = content.substring(startIndex, newlineIndex);
-                    startIndex = newlineIndex + 1;
-                }
-                
-                // Word-wrap the raw line if its width exceeds the available viewport width.
-                while (LuminaUI::tft_instance->textWidth(rawLine) > maxWidth) {
-                    int breakPos = 0;
-                    for (int j = 1; j <= rawLine.length(); j++) {
-                        String subStr = rawLine.substring(0, j);
-                        if (LuminaUI::tft_instance->textWidth(subStr) > maxWidth) {
-                            breakPos = j - 1;
-                            break;
-                        }
-                        if (j == rawLine.length()) {
-                            breakPos = j;
-                        }
-                    }
-                    // Attempt to break at the last space for better word separation.
-                    int spacePos = rawLine.lastIndexOf(' ', breakPos);
-                    if (spacePos != -1 && spacePos > 0) {
-                        breakPos = spacePos;
-                    }
-                    // Add the fitting substring to our list of lines.
-                    String subLine = rawLine.substring(0, breakPos);
-                    lines.addend(subLine);
-                    
-                    // Remove the rendered substring and trim any leading spaces.
-                    rawLine = rawLine.substring(breakPos);
-                    while (rawLine.startsWith(" ")) {
-                        rawLine = rawLine.substring(1);
-                    }
-                }
-                // Add any remaining text from the current raw line.
-                if (rawLine.length() > 0) {
-                    lines.addend(rawLine);
-                }
-            }
-            
-            // Render each processed line.
-            if (lines.size() > 1) {
-                for (int i = 0; i < lines.size(); i++) {
-                    LuminaUI::tft_instance->drawString(lines[i], cursorX, cursorY);
-                    cursorY += lineHeight;
-                }
-            }
-        } 
-        
-        if (lines.size() < 2) {
-            // For non-top datums, render the content in a single line.
-            LuminaUI::tft_instance->drawString(content, cursorX, cursorY);
-        }
-        
-        // Reset the viewport after rendering.
-        LuminaUI::tft_instance->resetViewport();
-        return textViewport;
-    }
-};
-
-#endif // TEXT_HPP
+ #ifndef TEXT_HPP
+ #define TEXT_HPP
+ 
+ #include "TFT_eSPI_Elements.hpp"  ///< Global TFT and sprite instances
+ #include <TFT_eSPI.h>
+ 
+ /**
+  * @class Text
+  * @brief Draws text strings with alignment, wrapping, and background support.
+  *
+  * Members:
+  *  - content: The string to render (can include '\n' for explicit line breaks).
+  *  - textColor: Foreground color for text.
+  *  - textSize: Scale factor for bitmap fonts.
+  *  - textDatum: Datum for alignment (TL, TC, TR, ML, MC, MR, BL, BC, BR).
+  *  - lineSpacing: Multiplier for line height between wrapped lines.
+  *  - freeFont: Pointer to a GFXfont for high-quality vector text.
+  *  - backgroundColor: Background fill color when renderBackground is true.
+  *  - renderBackground: Enable or disable background fill behind text.
+  *  - lines: Internal list of wrapped lines for rendering.
+  */
+ class Text : public Element {
+ public:
+     String content;            ///< Text content to render
+     uint32_t textColor;        ///< Text color (RGB565)
+     uint8_t textSize;          ///< Text size multiplier for bitmap fonts
+     uint8_t textDatum;         ///< Alignment datum constant
+     float lineSpacing;         ///< Line spacing multiplier
+     const GFXfont* freeFont;   ///< Pointer to GFX FreeFont (nullptr for bitmap)
+     uint32_t backgroundColor;  ///< Background color behind text
+     bool renderBackground;     ///< Whether to render background fill
+ 
+     HyperList<String> lines;   ///< Wrapped lines computed at render time
+ 
+     /**
+      * @brief Constructs a Text element with full customization.
+      *
+      * @param element           Base Element (origin, scale, etc.).
+      * @param content           Text to display (default empty).
+      * @param textColor         Color of text (default TFT_WHITE).
+      * @param textSize          Bitmap text size (default 1).
+      * @param textDatum         Alignment datum (default TL_DATUM).
+      * @param lineSpacing       Multiplier for line height (default 1.0).
+      * @param freeFont          GFX FreeFont pointer (default FF1).
+      * @param backgroundColor   Background fill color (default TFT_BLACK).
+      * @param renderBackground  Enable background color (default false).
+      */
+     Text(
+         const Element& element,
+         const String& content = "",
+         uint32_t textColor = TFT_WHITE,
+         uint8_t textSize = 1,
+         uint8_t textDatum = TL_DATUM,
+         float lineSpacing = 1.0f,
+         const GFXfont* freeFont = FF1,
+         uint32_t backgroundColor = TFT_BLACK,
+         bool renderBackground = false)
+       : Element(element)
+       , content(content)
+       , textColor(textColor)
+       , textSize(textSize)
+       , textDatum(textDatum)
+       , lineSpacing(lineSpacing)
+       , freeFont(freeFont)
+       , backgroundColor(backgroundColor)
+       , renderBackground(renderBackground) {}
+ 
+     /**
+      * @brief Render text inside the given viewport.
+      *
+      * - Sets clipping to the element's viewport.
+      * - Configures font, color, datum, size, and wrapping.
+      * - Splits content by '\n' and performs manual word wrapping if necessary.
+      * - Draws each line at computed cursor positions.
+      * - Restores full viewport after drawing.
+      *
+      * @param viewport Clipping and offset rectangle for rendering.
+      * @return The viewport used for this Text element.
+      */
+     Viewport render(const Viewport& viewport) override {
+         Viewport textVP = Element::render(viewport);
+         if (content.isEmpty()) return textVP;
+ 
+         // Clip to Text element area
+         LuminaUI::tft_instance->setViewport(
+             textVP.position.x,
+             textVP.position.y,
+             textVP.scale.x,
+             textVP.scale.y);
+ 
+         // Configure font and rendering settings
+         LuminaUI::tft_instance->setTextDatum(textDatum);
+         LuminaUI::tft_instance->setTextSize(textSize);
+         LuminaUI::tft_instance->setFreeFont(freeFont);
+         if (renderBackground) {
+             LuminaUI::tft_instance->setTextColor(textColor, backgroundColor);
+         } else {
+             LuminaUI::tft_instance->setTextColor(textColor);
+         }
+         LuminaUI::tft_instance->setTextWrap(true, true);
+ 
+         // Compute line height
+         int lineHeight = LuminaUI::tft_instance->fontHeight() * lineSpacing;
+         // Initial cursor based on datum alignment
+         int16_t cursorX = (textDatum % 3) * textVP.scale.x / 2;
+         int16_t cursorY = (textDatum / 3) * textVP.scale.y / 2;
+ 
+         // Manual wrapping and newline splitting for top-aligned datums
+         if (textDatum <= TR_DATUM) {
+             lines.clear();
+             int maxW = textVP.scale.x;
+             int idx = 0;
+             while (idx < content.length()) {
+                 int nl = content.indexOf('\n', idx);
+                 String raw = (nl < 0)
+                     ? content.substring(idx)
+                     : content.substring(idx, nl);
+                 idx = (nl < 0) ? content.length() : nl + 1;
+ 
+                 // Word-wrap raw line
+                 while (LuminaUI::tft_instance->textWidth(raw) > maxW) {
+                     int br = 0;
+                     for (int j = 1; j <= raw.length(); ++j) {
+                         if (LuminaUI::tft_instance->textWidth(raw.substring(0,j)) > maxW) {
+                             br = j - 1;
+                             break;
+                         }
+                         if (j == raw.length()) br = j;
+                     }
+                     int sp = raw.lastIndexOf(' ', br);
+                     if (sp > 0) br = sp;
+                     lines.addend(raw.substring(0, br));
+                     raw = raw.substring(br);
+                     while (raw.startsWith(" ")) raw = raw.substring(1);
+                 }
+                 if (!raw.isEmpty()) lines.addend(raw);
+             }
+ 
+             // Draw each wrapped line
+             for (int i = 0; i < lines.size(); ++i) {
+                 LuminaUI::tft_instance->drawString(lines[i], cursorX, cursorY);
+                 cursorY += lineHeight;
+             }
+         }
+         
+         // Single-line rendering for other datums or no wrapping
+         if (lines.size() < 2) {
+             LuminaUI::tft_instance->drawString(content, cursorX, cursorY);
+         }
+ 
+         // Restore viewport for subsequent draws
+         LuminaUI::tft_instance->resetViewport();
+         return textVP;
+     }
+ };
+ 
+ #endif // TEXT_HPP 

@@ -1,106 +1,128 @@
-#ifndef TOUCH_HPP
-#define TOUCH_HPP
+/**
+ * @file Touch.hpp
+ * @brief Processes raw touch input into higher-level touch events and delegates to Screen.
+ *
+ * The Touch class handles press, release, hold, and drag detection based on
+ * input coordinates and edge transitions. It debounces press events and measures
+ * drag distance thresholds. When enabled, it forwards events to the associated Screen.
+ */
 
-#include "LuminaUI.hpp"
-
-class Touch {
-protected:
-    TouchStatus status; // Status of the touch event - TouchStatus: press, release, hold, drag
-
-    TouchDragData dragData;
-
-    volatile unsigned long pressStartTime; // Time when the press started in milliseconds
-    ivec2 lastPoint; // Last point of touch
-
-    const unsigned long pressDebounceThreshold = 150; // Debounce time in milliseconds
-    const float dragDistanceThreshold = 25.0f; // Drag distance in pixels
-
-    byte enable; // Flags to enable touch events
-
-    Screen *screen;
-
-public:
-    // Constructors
-    Touch(Screen *screen) : screen(screen), pressStartTime(0), 
-        lastPoint(ivec2(0, 0)), enable(0) {}
-
-    virtual void init(int enable){
-        this->enable = enable;
-        reset();
-    }
-
-    virtual void reset(){
-        status = TouchStatus::TouchStatus_READY;
-    }
-
-    virtual ivec2 getLastPoint() {
-        return lastPoint;
-    }
-    
-    virtual void next(ivec2 point, bool isEdge, bool isTouched) {
-        if (enable) {
-            bool execute = false;
-            unsigned long currentTime = millis();
-            // Update the current touch position
-            dragData.currentPosition = point;
-            // If the status is invalid, reset
-            if (status >= TouchStatus::TouchStatus_size) {
-                reset();
-            }
-            
-            // Handle the edge (press/release) events
-            if (isEdge) {
-                if (isTouched && status != TouchStatus::TouchStatus_PRESS && currentTime - pressStartTime > pressDebounceThreshold) {
-                    // Handle press event
-                    status = TouchStatus::TouchStatus_PRESS;
-                    dragData.startPosition = dragData.currentPosition;
-                    pressStartTime = currentTime;
-                    execute = true;
-                } else if (!isTouched && status != TouchStatus::TouchStatus_RELEASE) {
-                    // Handle release event
-                    status = TouchStatus::TouchStatus_RELEASE;
-                    dragData.endPosition = dragData.currentPosition;
-                    execute = true;
-                } else {
-                    reset();
-                }
-            } 
-            // Handle other touch interactions (hold, drag, swipe)
-            else if (isTouched && status > TouchStatus::TouchStatus_READY) {
-                // Check if it's a hold event
-                if (status == TouchStatus::TouchStatus_PRESS || status == TouchStatus::TouchStatus_HOLD) {
-                    status = TouchStatus::TouchStatus_HOLD;
-                    execute = true;
-                }
-                
-                // Check for drag or swipe based on movement
-                if (vec2(dragData.currentPosition).distanceTo(dragData.startPosition) > dragDistanceThreshold) {
-                    if (status == TouchStatus::TouchStatus_HOLD || status == TouchStatus::TouchStatus_DRAG) {
-                        status = TouchStatus::TouchStatus_DRAG;
-                        execute = true;
-                    }
-                }
-            }
-            // Reset touch status when not touched
-            else {
-                reset();
-            }
-            
-            // If the status is press or release and not an edge event, return
-            if ((status == TouchStatus::TouchStatus_PRESS || status == TouchStatus::TouchStatus_RELEASE) && !isEdge) {
-                return;
-            }
-
-            // If the current status is enabled, trigger the screen's touch event
-            if (enable & (1 << status) && execute) {
-                screen->executeTouch(point, status);
-                if (status == TouchStatus::TouchStatus_RELEASE) {
-                    reset();
-                }
-            }
-        }
-    }
-
-};
-
-#endif // TOUCH_HPP
+ #ifndef TOUCH_HPP
+ #define TOUCH_HPP
+ 
+ #include "LuminaUI.hpp"
+ 
+ /**
+  * @class Touch
+  * @brief Converts raw touch signals into TouchStatus events and invokes Screen callbacks.
+  *
+  * Maintains state for press timing, debouncing, and drag detection. Supports configurable
+  * thresholds for debounce and minimum drag distance. Use init() to configure enabled events.
+  */
+ class Touch {
+ protected:
+     TouchStatus status;                ///< Current touch phase (PRESS, HOLD, etc.)
+     TouchDragData dragData;            ///< Data for drag events
+ 
+     volatile unsigned long pressStartTime; ///< Timestamp when last press occurred
+     ivec2 lastPoint;                   ///< Last reported touch coordinates
+ 
+     const unsigned long pressDebounceThreshold = 150; ///< ms to debounce press
+     const float dragDistanceThreshold = 25.0f;        ///< px to detect drag
+ 
+     byte enable;                       ///< Bitmask of enabled TouchStatus events
+     Screen* screen;                    ///< Screen instance to receive events
+ 
+ public:
+     /**
+      * @brief Construct Touch processor linked to a Screen.
+      * @param screen Pointer to Screen for event dispatch.
+      */
+     Touch(Screen* screen)
+       : status(TouchStatus_READY), dragData(),
+         pressStartTime(0), lastPoint(0, 0), enable(0), screen(screen) {}
+ 
+     /**
+      * @brief Initialize touch event handling.
+      * @param enableMask Bitmask of enabled TouchStatus events.
+      */
+     virtual void init(int enableMask) {
+         enable = enableMask;
+         reset();
+     }
+ 
+     /**
+      * @brief Reset to READY state and clear timing data.
+      */
+     virtual void reset() {
+         status = TouchStatus_READY;
+     }
+ 
+     /**
+      * @brief Get last known touch point.
+      * @return Coordinates of last touch.
+      */
+     virtual ivec2 getLastPoint() const {
+         return lastPoint;
+     }
+     
+     /**
+      * @brief Process the next raw touch input.
+      *
+      * @param point     Current touch coordinates.
+      * @param isEdge    True on press/release edge transitions.
+      * @param isTouched True if touch is active (pressed down).
+      */
+     virtual void next(ivec2 point, bool isEdge, bool isTouched) {
+         if (!enable) return;
+         bool shouldDispatch = false;
+         unsigned long now = millis();
+         dragData.currentPosition = point;
+ 
+         // Validate status
+         if (status >= TouchStatus_size) reset();
+ 
+         // Edge events: press/release
+         if (isEdge) {
+             if (isTouched && status != TouchStatus_PRESS && now - pressStartTime > pressDebounceThreshold) {
+                 status = TouchStatus_PRESS;
+                 dragData.startPosition = point;
+                 pressStartTime = now;
+                 shouldDispatch = true;
+             } else if (!isTouched && status != TouchStatus_RELEASE) {
+                 status = TouchStatus_RELEASE;
+                 dragData.endPosition = point;
+                 shouldDispatch = true;
+             } else {
+                 reset();
+             }
+         }
+         // Hold and drag detection
+         else if (isTouched && status > TouchStatus_READY) {
+             if (status == TouchStatus_PRESS || status == TouchStatus_HOLD) {
+                 status = TouchStatus_HOLD;
+                 shouldDispatch = true;
+             }
+             if (vec2(dragData.currentPosition).distanceTo(dragData.startPosition) > dragDistanceThreshold) {
+                 if (status == TouchStatus_HOLD || status == TouchStatus_DRAG) {
+                     status = TouchStatus_DRAG;
+                     shouldDispatch = true;
+                 }
+             }
+         } else {
+             reset();
+         }
+ 
+         // Only dispatch edge events on edges
+         if ((status == TouchStatus_PRESS || status == TouchStatus_RELEASE) && !isEdge)
+             return;
+ 
+         // Dispatch if enabled and flagged
+         if ((enable & (1 << status)) && shouldDispatch) {
+             screen->executeTouch(point, status);
+             if (status == TouchStatus_RELEASE) reset();
+         }
+     }
+ };
+ 
+ #endif // TOUCH_HPP 
