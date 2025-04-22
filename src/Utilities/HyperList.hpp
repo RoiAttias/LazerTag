@@ -1,29 +1,47 @@
-#ifndef HYPER_LIST_HPP
-#define HYPER_LIST_HPP
-
-#include <Arduino.h>
-
 /**
- * Node struct template for the doubly linked list.
- * @tparam T Type of data stored in the node.
+ * @file hyper_list.hpp
+ * @brief Defines the HyperList template, a doubly linked list implementation for Arduino.
+ *
+ * Provides a generic, efficient doubly linked list supporting operations
+ * such as insertion, removal, traversal, search, and memory reservation.
+ * Suitable for embedded applications where dynamic list management is needed.
  */
-template <typename T>
-struct Node {
-    T data;           ///< Data stored in the node.
-    Node<T>* next;    ///< Pointer to the next node in the list.
-    Node<T>* prev;    ///< Pointer to the previous node in the list.
 
-    /**
-     * Constructor to initialize a node with a given value.
-     * @param value Data to be stored in the node.
-     */
-    Node(T value) : data(value), next(nullptr), prev(nullptr) {}
-};
-
-/**
- * HyperList class template representing a doubly linked list.
- * @tparam T Type of data stored in the list.
- */
+ #ifndef HYPER_LIST_HPP
+ #define HYPER_LIST_HPP
+ 
+ #include <Arduino.h>
+ 
+ /**
+  * @brief Node struct template for a doubly linked list.
+  *
+  * Represents an element in the list, storing data and pointers
+  * to the next and previous nodes in the list.
+  *
+  * @tparam T Type of data stored in the node.
+  */
+ template <typename T>
+ struct Node {
+     T data;           ///< Data stored in the node.
+     Node<T>* next;    ///< Pointer to the next node in the list.
+     Node<T>* prev;    ///< Pointer to the previous node in the list.
+ 
+     /**
+      * @brief Constructs a node containing the specified data.
+      *
+      * @param value Data to store in this node.
+      */
+     Node(T value) : data(value), next(nullptr), prev(nullptr) {}
+ };
+ 
+ /**
+  * @brief Template class for a doubly linked list.
+  *
+  * HyperList provides dynamic list operations including adding/removing nodes,
+  * accessing by index, searching, and reserving memory for nodes.
+  *
+  * @tparam T Type of data stored in the list.
+  */
 template <typename T>
 class HyperList{
 public:

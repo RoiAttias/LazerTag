@@ -1,291 +1,308 @@
-#ifndef IVEC2_HPP
-#define IVEC2_HPP
-
-#include <Arduino.h>
-
 /**
- * @brief Struct representing a point (or vector) in 2D space with integer coordinates.
- * 
- * This struct is designed for use in Arduino projects, providing a simple and efficient way 
- * to represent 2D vectors with integer values. It includes operations such as addition, 
- * subtraction, scalar multiplication and division, normalization, and dot product, making it useful 
- * for graphics, physics calculations, and general vector math.
+ * @file ivec2.hpp
+ * @brief Defines the ivec2 class for 2D integer vector operations.
+ *
+ * Provides a simple, efficient representation and manipulation of 2D vectors
+ * in integer space, suitable for Arduino projects. Includes common vector
+ * operations such as addition, subtraction, scaling, clamping, and comparison,
+ * along with utility functions for string conversion and serial display.
  */
-class ivec2 {
-public:
-    int x, y;
 
-    ivec2(int x = 0, int y = 0) : x(x), y(y) {}
-
-    /**
-     * @brief Addition assignment operator (+=).
-     * 
-     * @param other The vector to add.
-     * @return A reference to the modified vector.
-     */
-    ivec2& operator+=(const ivec2& other) {
-        x += other.x;
-        y += other.y;
-        return *this;
-    }
-
-    /**
-     * @brief Subtraction assignment operator (-=).
-     * 
-     * @param other The vector to subtract.
-     * @return A reference to the modified vector.
-     */
-    ivec2& operator-=(const ivec2& other) {
-        x -= other.x;
-        y -= other.y;
-        return *this;
-    }
-
-    /**
-     * @brief Scalar multiplication assignment operator (*=).
-     * 
-     * @param scalar The scalar to multiply with.
-     * @return A reference to the modified vector.
-     */
-    ivec2& operator*=(int scalar) {
-        x *= scalar;
-        y *= scalar;
-        return *this;
-    }
-
-    /**
-     * @brief Scalar division assignment operator (/=).
-     * 
-     * @param scalar The scalar to divide by.
-     * @return A reference to the modified vector.
-     */
-    ivec2& operator/=(int scalar) {
-        if (scalar != 0) { // Avoid division by zero
-            x /= scalar;
-            y /= scalar;
-        }
-        return *this;
-    }
-
-    /**
-     * @brief Equality operator (==).
-     * 
-     * @param other The vector to compare against.
-     * @return True if the vectors are equal, false otherwise.
-     */
-    bool operator==(const ivec2& other) const {
-        return (x == other.x) && (y == other.y);
-    }
-
-    /**
-     * @brief Inequality operator (!=).
-     * 
-     * @param other The vector to compare against.
-     * @return True if the vectors are not equal, false otherwise.
-     */
-    bool operator!=(const ivec2& other) const {
-        return !(*this == other);
-    }
-
-    /**
-     * @brief Addition operator (+).
-     * 
-     * @param other The vector to add.
-     * @return A new vector that is the sum of the two vectors.
-     */
-    ivec2 operator+(const ivec2& other) const {
-        return ivec2(x + other.x, y + other.y);
-    }
-
-    /**
-     * @brief Subtraction operator (-).
-     * 
-     * @param other The vector to subtract.
-     * @return A new vector that is the difference of the two vectors.
-     */
-    ivec2 operator-(const ivec2& other) const {
-        return ivec2(x - other.x, y - other.y);
-    }
-
-    /**
-     * @brief Scalar multiplication operator (*).
-     * 
-     * @param scalar The scalar to multiply with.
-     * @return A new vector that is the product of the vector and scalar.
-     */
-    ivec2 operator*(int scalar) const {
-        return ivec2(x * scalar, y * scalar);
-    }
-
-    /**
-     * @brief Scalar division operator (/).
-     * 
-     * @param scalar The scalar to divide by.
-     * @return A new vector that is the quotient of the vector and scalar.
-     */
-    ivec2 operator/(int scalar) const {
-        if (scalar != 0) {
-            return ivec2(x / scalar, y / scalar);
-        }
-        return ivec2(0, 0); // Handle division by zero
-    }
-
-    /**
-     * @brief Negation operator (-).
-     * 
-     * @return A new vector that is the negation of this vector.
-     */
-    ivec2 operator-() const {
-        return ivec2(-x, -y);
-    }
-
-    /**
-     * @brief Less than operator (<).
-     * 
-     * @param other The vector to compare against.
-     * @return True if this vector is less than the other vector, false otherwise.
-     */
-    bool operator<(const ivec2& other) const {
-        return (x < other.x) && (y < other.y);
-    }
-
-    /**
-     * @brief Greater than operator (>).
-     * 
-     * @param other The vector to compare against.
-     * @return True if this vector is greater than the other vector, false otherwise.
-     */
-    bool operator>(const ivec2& other) const {
-        return (x > other.x) && (y > other.y);
-    }
-
-    /**
-     * @brief Less than or equal to operator (<=).
-     * 
-     * @param other The vector to compare against.
-     * @return True if this vector is less than or equal to the other vector, false otherwise.
-     */
-    bool operator<=(const ivec2& other) const {
-        return (x <= other.x) && (y <= other.y);
-    }
-
-    /**
-     * @brief Greater than or equal to operator (>=).
-     * 
-     * @param other The vector to compare against.
-     * @return True if this vector is greater than or equal to the other vector, false otherwise.
-     */
-    bool operator>=(const ivec2& other) const {
-        return (x >= other.x) && (y >= other.y);
-    }
-
-    /**
-     * @brief Greater than operator per diamension.
-     * 
-     * @param other The vector to compare against.
-     * @return Vector with 1 in the x and y components if the condition is met, 0 otherwise.
-     */
-    ivec2 greaterThan(const ivec2& other) const {
-        return ivec2(x > other.x ? 1 : 0, y > other.y ? 1 : 0);
-    }
-
-    /**
-     * @brief Less than operator per diamension.
-     * 
-     * @param other The vector to compare against.
-     * @return Vector with 1 in the x and y components if the condition is met, 0 otherwise.
-     */
-    ivec2 lessThan(const ivec2& other) const {
-        return ivec2(x < other.x ? 1 : 0, y < other.y ? 1 : 0);
-    }
-
-    /**
-     * @brief Greater than or equal to operator per diamension.
-     * 
-     * @param other The vector to compare against.
-     * @return Vector with 1 in the x and y components if the condition is met, 0 otherwise.
-     */
-    ivec2 greaterThanOrEqual(const ivec2& other) const {
-        return ivec2(x >= other.x ? 1 : 0, y >= other.y ? 1 : 0);
-    }
-
-    /**
-     * @brief Less than or equal to operator per diamension.
-     * 
-     * @param other The vector to compare against.
-     * @return Vector with 1 in the x and y components if the condition is met, 0 otherwise.
-     */
-    ivec2 lessThanOrEqual(const ivec2& other) const {
-        return ivec2(x <= other.x ? 1 : 0, y <= other.y ? 1 : 0);
-    }
-
-    /**
-     * @brief Min operator per diamension.
-     * 
-     * @param other The vector to compare against.
-     * @return Vector with smaller x and y.
-     */
-    ivec2 min(const ivec2& other) const {
-        return ivec2(x < other.x ? x : other.x, y < other.y ? y : other.y);
-    }
-
-    /**
-     * @brief Max operator per diamension.
-     * 
-     * @param other The vector to compare against.
-     * @return Vector with bigger x and y.
-     */
-    ivec2 max(const ivec2& other) const {
-        return ivec2(x > other.x ? x : other.x, y > other.y ? y : other.y);
-    }
-
-    /**
-     * @brief Clamps the vector components to the provided vector.
-     * 
-     * @param minVec The minimum vector values.
-     * @param maxVec The maximum vector values.
-     * @return Vector with x and y components clamped between minVec and maxVec.
-     */
-    ivec2 clamp(const ivec2& minVec, const ivec2& maxVec) const {
-        return ivec2(x < minVec.x ? minVec.x : (x > maxVec.x ? maxVec.x : x),
-                    y < minVec.y ? minVec.y : (y > maxVec.y ? maxVec.y : y));
-    }
-
-    /**
-     * @brief Multiplies the vector components with the provided vector.
-     * 
-     * @param other The vector to multiply with.
-     * @return A new vector that is the product of the two vectors.
-     */
-    ivec2 multiply(const ivec2& other) const {
-        return ivec2(x * other.x, y * other.y);
-    }
-
-    /**
-     * @brief Converts the vector to a string representation.
-     * 
-     * @return A string representing the vector in the format "(x, y)".
-     */
-    String toString() const {
-        String result = "(";
-        result += String(x);
-        result += ", ";
-        result += String(y);
-        result += ")";
-        return result;
-    }
-
-    /**
-     * @brief Prints the vector on the Serial Monitor.
-     */
-    void display(bool newLine = true) const {
-        if(newLine) {
-            Serial.println(this->toString());
-        }
-        else {
-            Serial.print(this->toString());
-        }
-    }
-};
-
-#endif // IVEC2_HPP
+ #ifndef IVEC2_HPP
+ #define IVEC2_HPP
+ 
+ #include <Arduino.h>
+ 
+ /**
+  * @brief Struct representing a point (or vector) in 2D space with integer coordinates.
+  *
+  * Designed for Arduino projects, enabling vector math in graphics, physics,
+  * and general calculations with integer precision. Supports arithmetic
+  * operations, component-wise comparisons, and utility functions.
+  */
+ class ivec2 {
+ public:
+     int x;  ///< X-coordinate or first component of the vector
+     int y;  ///< Y-coordinate or second component of the vector
+ 
+     /**
+      * @brief Constructs a 2D integer vector with given coordinates.
+      *
+      * @param x The x-coordinate (default 0).
+      * @param y The y-coordinate (default 0).
+      */
+     ivec2(int x = 0, int y = 0) : x(x), y(y) {}
+ 
+     /**
+      * @brief Addition assignment operator (+=).
+      *
+      * @param other The vector to add.
+      * @return Reference to this vector after addition.
+      */
+     ivec2& operator+=(const ivec2& other) {
+         x += other.x;
+         y += other.y;
+         return *this;
+     }
+ 
+     /**
+      * @brief Subtraction assignment operator (-=).
+      *
+      * @param other The vector to subtract.
+      * @return Reference to this vector after subtraction.
+      */
+     ivec2& operator-=(const ivec2& other) {
+         x -= other.x;
+         y -= other.y;
+         return *this;
+     }
+ 
+     /**
+      * @brief Scalar multiplication assignment operator (*=).
+      *
+      * @param scalar The integer to multiply both components by.
+      * @return Reference to this vector after scaling.
+      */
+     ivec2& operator*=(int scalar) {
+         x *= scalar;
+         y *= scalar;
+         return *this;
+     }
+ 
+     /**
+      * @brief Scalar division assignment operator (/=).
+      *
+      * @param scalar The integer to divide both components by.
+      * @return Reference to this vector after division (no effect if scalar is zero).
+      */
+     ivec2& operator/=(int scalar) {
+         if (scalar != 0) {
+             x /= scalar;
+             y /= scalar;
+         }
+         return *this;
+     }
+ 
+     /**
+      * @brief Equality comparison operator (==).
+      *
+      * @param other The vector to compare against.
+      * @return True if both x and y are equal.
+      */
+     bool operator==(const ivec2& other) const {
+         return (x == other.x) && (y == other.y);
+     }
+ 
+     /**
+      * @brief Inequality comparison operator (!=).
+      *
+      * @param other The vector to compare against.
+      * @return True if any component differs.
+      */
+     bool operator!=(const ivec2& other) const {
+         return !(*this == other);
+     }
+ 
+     /**
+      * @brief Vector addition operator (+).
+      *
+      * @param other The vector to add.
+      * @return New ivec2 representing the sum.
+      */
+     ivec2 operator+(const ivec2& other) const {
+         return ivec2(x + other.x, y + other.y);
+     }
+ 
+     /**
+      * @brief Vector subtraction operator (-).
+      *
+      * @param other The vector to subtract.
+      * @return New ivec2 representing the difference.
+      */
+     ivec2 operator-(const ivec2& other) const {
+         return ivec2(x - other.x, y - other.y);
+     }
+ 
+     /**
+      * @brief Scalar multiplication operator (*).
+      *
+      * @param scalar The integer to multiply by.
+      * @return New ivec2 after scaling.
+      */
+     ivec2 operator*(int scalar) const {
+         return ivec2(x * scalar, y * scalar);
+     }
+ 
+     /**
+      * @brief Scalar division operator (/).
+      *
+      * @param scalar The integer to divide by.
+      * @return New ivec2 after division, or (0,0) if scalar is zero.
+      */
+     ivec2 operator/(int scalar) const {
+         if (scalar != 0) {
+             return ivec2(x / scalar, y / scalar);
+         }
+         return ivec2(0, 0);
+     }
+ 
+     /**
+      * @brief Unary negation operator (-).
+      *
+      * @return New ivec2 where both components are negated.
+      */
+     ivec2 operator-() const {
+         return ivec2(-x, -y);
+     }
+ 
+     /**
+      * @brief Component-wise less-than comparison (<).
+      *
+      * @param other The vector to compare.
+      * @return True if both x < other.x and y < other.y.
+      */
+     bool operator<(const ivec2& other) const {
+         return (x < other.x) && (y < other.y);
+     }
+ 
+     /**
+      * @brief Component-wise greater-than comparison (>).
+      *
+      * @param other The vector to compare.
+      * @return True if both x > other.x and y > other.y.
+      */
+     bool operator>(const ivec2& other) const {
+         return (x > other.x) && (y > other.y);
+     }
+ 
+     /**
+      * @brief Component-wise less-than-or-equal comparison (<=).
+      *
+      * @param other The vector to compare.
+      * @return True if x <= other.x and y <= other.y.
+      */
+     bool operator<=(const ivec2& other) const {
+         return (x <= other.x) && (y <= other.y);
+     }
+ 
+     /**
+      * @brief Component-wise greater-than-or-equal comparison (>=).
+      *
+      * @param other The vector to compare.
+      * @return True if x >= other.x and y >= other.y.
+      */
+     bool operator>=(const ivec2& other) const {
+         return (x >= other.x) && (y >= other.y);
+     }
+ 
+     /**
+      * @brief Returns component-wise greater-than result as a mask.
+      *
+      * @param other The vector to compare.
+      * @return Vector where each component is 1 if this > other, else 0.
+      */
+     ivec2 greaterThan(const ivec2& other) const {
+         return ivec2(x > other.x ? 1 : 0, y > other.y ? 1 : 0);
+     }
+ 
+     /**
+      * @brief Returns component-wise less-than result as a mask.
+      *
+      * @param other The vector to compare.
+      * @return Vector where each component is 1 if this < other, else 0.
+      */
+     ivec2 lessThan(const ivec2& other) const {
+         return ivec2(x < other.x ? 1 : 0, y < other.y ? 1 : 0);
+     }
+ 
+     /**
+      * @brief Returns component-wise greater-than-or-equal result as a mask.
+      *
+      * @param other The vector to compare.
+      * @return Vector where each component is 1 if this >= other, else 0.
+      */
+     ivec2 greaterThanOrEqual(const ivec2& other) const {
+         return ivec2(x >= other.x ? 1 : 0, y >= other.y ? 1 : 0);
+     }
+ 
+     /**
+      * @brief Returns component-wise less-than-or-equal result as a mask.
+      *
+      * @param other The vector to compare.
+      * @return Vector where each component is 1 if this <= other, else 0.
+      */
+     ivec2 lessThanOrEqual(const ivec2& other) const {
+         return ivec2(x <= other.x ? 1 : 0, y <= other.y ? 1 : 0);
+     }
+ 
+     /**
+      * @brief Returns the component-wise minimum.
+      *
+      * @param other The vector to compare.
+      * @return New ivec2 with min(x, other.x), min(y, other.y).
+      */
+     ivec2 min(const ivec2& other) const {
+         return ivec2(x < other.x ? x : other.x,
+                      y < other.y ? y : other.y);
+     }
+ 
+     /**
+      * @brief Returns the component-wise maximum.
+      *
+      * @param other The vector to compare.
+      * @return New ivec2 with max(x, other.x), max(y, other.y).
+      */
+     ivec2 max(const ivec2& other) const {
+         return ivec2(x > other.x ? x : other.x,
+                      y > other.y ? y : other.y);
+     }
+ 
+     /**
+      * @brief Clamps each component between given min and max vectors.
+      *
+      * @param minVec Vector of minimum allowed values.
+      * @param maxVec Vector of maximum allowed values.
+      * @return New ivec2 with clamped components.
+      */
+     ivec2 clamp(const ivec2& minVec, const ivec2& maxVec) const {
+         return ivec2(
+             x < minVec.x ? minVec.x : (x > maxVec.x ? maxVec.x : x),
+             y < minVec.y ? minVec.y : (y > maxVec.y ? maxVec.y : y)
+         );
+     }
+ 
+     /**
+      * @brief Component-wise multiplication.
+      *
+      * @param other The vector to multiply with.
+      * @return New ivec2 where each component is multiplied.
+      */
+     ivec2 multiply(const ivec2& other) const {
+         return ivec2(x * other.x, y * other.y);
+     }
+ 
+     /**
+      * @brief Converts the vector to a human-readable string.
+      *
+      * @return Arduino String in the format "(x, y)".
+      */
+     String toString() const {
+         String result = "(" + String(x) + ", " + String(y) + ")";
+         return result;
+     }
+ 
+     /**
+      * @brief Prints the vector to the Serial Monitor.
+      *
+      * @param newLine If true, appends a newline after printing.
+      */
+     void display(bool newLine = true) const {
+         if (newLine) {
+             Serial.println(this->toString());
+         } else {
+             Serial.print(this->toString());
+         }
+     }
+ };
+ 
+ #endif // IVEC2_HPP 

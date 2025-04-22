@@ -9,13 +9,12 @@ int hp = 100;
 GameStatus game_status = GameStatus::GAME_WAITING;
 
 void vest_setup() {
-  Serial.begin(115200);
-  Serial.println("VEST Setup");
   Ring::init();
   Target::init();
 
   Nexus::begin(NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUPS, NEXUS_DEVICE_ID));
 
+  // Play the loading animation.
   Ring::load1();
 }
 
@@ -27,11 +26,9 @@ void vest_loop() {
   // Send the hit data to the manager.
   if (Target::hasHit() > 0) {
     uint32_t firecode = Target::readHit().data;
-    Serial.printf("Firecode: %08X\n", firecode);
     if (game_status == GAME_RUNNING){
       //Nexus::sendToGroup(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE], (uint8_t*)&firecode, NEXUS_GROUP_MANAGER);
       Nexus::sendData(COMMS_FIRECODE, payloadSizePerCommand[COMMS_FIRECODE], (uint8_t*)&firecode, NexusAddress(NEXUS_PROJECT_ID, NEXUS_GROUP_MANAGER, 0xFF));
-      Serial.println("Hit detected");
     }
   }
 
@@ -51,6 +48,7 @@ void vest_loop() {
         // Update the player's health.
         memcpy(&hp, nexusPacket.payload, payloadSizePerCommand[COMMS_PLAYERHP]);
         if (lastHP > hp) {
+          // If the health has decreased, play the hit animation and update the ring.
           Ring::hit(hp);
         }
         break;
@@ -58,13 +56,16 @@ void vest_loop() {
       case COMMS_GAMESTATUS:
         // Update the game status.
         memcpy(&game_status, nexusPacket.payload, payloadSizePerCommand[COMMS_GAMESTATUS]);
+        // If the game status has changed, update the ring.
         if (prevStatus != game_status) {
           switch (game_status)
             {
               case GAME_WAITING:
+                // Load the waiting animation.
                 Ring::load1();
                 break;
               case GAME_STARTING:
+                // Load the starting animation.
                 Ring::load2();
                 break;
               case GAME_THREE:
@@ -84,7 +85,7 @@ void vest_loop() {
                 Ring::onGameStart(hp);
                 break;
               case GAME_OVER:
-                Ring::load1();
+                Ring::over();
                 break;
               
               case GAME_WON:

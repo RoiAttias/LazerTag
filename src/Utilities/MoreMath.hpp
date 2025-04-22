@@ -1,227 +1,206 @@
-#ifndef MOREMATH_HPP
-#define MOREMATH_HPP
-
-#include <Arduino.h>
-#include "vec2.hpp"
-#include "ivec2.hpp"
-
-// Precomputed constants for conversions
-constexpr float DEG_TO_RAD_FACTOR = PI / 180.0f; ///< Conversion factor from degrees to radians.
-constexpr float RAD_TO_DEG_FACTOR = 180.0f / PI; ///< Conversion factor from radians to degrees.
-
 /**
- * @brief Converts degrees to radians.
- * 
- * @param deg Angle in degrees.
- * @return Angle in radians.
- */
-inline float degToRad(float deg)
-{
-    return deg * DEG_TO_RAD_FACTOR;
-}
-
-/**
- * @brief Converts radians to degrees.
- * 
- * @param rad Angle in radians.
- * @return Angle in degrees.
- */
-inline float radToDeg(float rad)
-{
-    return rad * RAD_TO_DEG_FACTOR;
-}
-
-/**
- * @brief Clamps a value within a specified range.
- * 
- * @param value The input value to clamp.
- * @param minVal The lower bound of the range.
- * @param maxVal The upper bound of the range.
- * @return The clamped value.
- */
-inline float clamp(float value, float minVal, float maxVal)
-{
-    if (value < minVal)
-        return minVal;
-    else if (value > maxVal)
-        return maxVal;
-    else
-        return value;
-    //return (value < minVal) ? minVal : (value > maxVal ? maxVal : value);
-}
-
-/**
- * @brief Performs linear interpolation between two values.
- * 
- * @param start The starting value.
- * @param end The ending value.
- * @param t A float between 0 and 1 representing the interpolation factor.
- * @return The interpolated value.
- */
-inline float lerp(float start, float end, float t)
-{
-    return start + t * (end - start);
-}
-
-/**
- * @brief Mixes two values based on a factor. 
- * @param factor The mixing factor.
- * @param v1 The first value.
- * @param v2 The second value.
- * @return The mixed value.
- */
-inline float mix(float factor, float v1, float v2)
-{
-    return (v1 * (1.0f - factor)) + (v2 * factor);
-}
-
-/**
- * @brief Mixes two integer values based on a factor. 
- * @param factor The mixing factor.
- * @param v1 The first value.
- * @param v2 The second value.
- * @return The mixed value.
- */
-inline int mix(float factor, int v1, int v2)
-{
-    return (int)(mix(factor, (float)v1, (float)v2));
-}
-
-/**
- * @brief Mixes two byte values based on a factor. 
- * @param factor The mixing factor.
- * @param v1 The first value.
- * @param v2 The second value.
- * @return The mixed value.
- */
-inline byte mix(float factor, byte v1, byte v2)
-{
-    return (byte)(mix(factor, (float)v1, (float)v2));
-}
-
-/**
- * @brief Maps a value from one range to another range.
- * @param val The value to map.
- * @param fromMin The lower bound of the input range.
- * @param fromMax The upper bound of the input range.
- * @param toMin The lower bound of the output range.
- * @param toMax The upper bound of the output range.
- * @return The mapped value in the output range.
- */
-inline int map(int val, int fromMin, int fromMax, int toMin, int toMax)
-{
-    int distance = fromMax - fromMin;
-    val -= fromMin;
-    float factor = (float)val / distance;
-    return mix(factor, toMin, toMax);
-}
-
-/**
- * @brief Maps a value from one range to another range.
- * 
- * @param value The input value to map.
- * @param inMin The lower bound of the input range.
- * @param inMax The upper bound of the input range.
- * @param outMin The lower bound of the output range.
- * @param outMax The upper bound of the output range.
- * @return The mapped value in the output range.
- */
-inline float mapFloat(float value, float inMin, float inMax, float outMin, float outMax)
-{
-    return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
-}
-
-/**
- * @brief Wraps an angle in degrees to the range [0, 360).
- * 
- * @param angle The input angle in degrees.
- * @return The wrapped angle in degrees.
- */
-inline float wrapAngleDeg(float angle)
-{
-    while (angle >= 360.0f) angle -= 360.0f;
-    while (angle < 0.0f) angle += 360.0f;
-    return angle;
-}
-
-/**
- * @brief Wraps an angle in radians to the range [0, 2π).
- * 
- * @param angle The input angle in radians.
- * @return The wrapped angle in radians.
- */
-inline float wrapAngleRad(float angle)
-{
-    while (angle >= 2.0f * PI) angle -= 2.0f * PI;
-    while (angle < 0.0f) angle += 2.0f * PI;
-    return angle;
-}
-
-/**
- * @brief Computes the distance between two 2d points.
- * 
- * @param x1 The x-coordinate of the first point.
- * @param y1 The y-coordinate of the first point.
- * @param x2 The x-coordinate of the second point.
- * @param y2 The y-coordinate of the second point.
- */
-inline float distance(float x1, float y1, float x2, float y2)
-{
-    return sqrt(sq(x2 - x1) + sq(y2 - y1));
-}
-
-/**
- * @brief Calculates colors in RGB format based on a hue value.
+ * @file MoreMath.hpp
+ * @brief Provides a collection of common math utility functions and constants for Arduino.
  *
- * @param hue The hue value (range [0, 1]).
- * @param red Pointer to store the red component (0-255).
- * @param green Pointer to store the green component (0-255).
- * @param blue Pointer to store the blue component (0-255).
+ * Includes conversion between degrees and radians, clamping, interpolation,
+ * mapping between ranges, angle wrapping, distance calculations, and hue-to-RGB conversion.
+ * Designed for 2D graphics, signal processing, and general numeric operations on microcontrollers.
  */
-inline void hueToRgb(float hue, byte *red, byte *green, byte *blue)
-{
-    // This function converts a hue value (range [0, 1]) to an RGB color
-    // with full saturation and brightness. The resulting RGB components
-    // are scaled to the range [0, 255].
 
-    // Wrap hue to the range [0, 1] in case it exceeds 1.
-    float normalizedHue = fmod(hue, 1.0f);
-
-    // Scale hue to [0, 6) to determine its position on the color wheel.
-    float hueScaled = normalizedHue * 6.0f;
-
-    // Determine which of the 6 sectors of the color wheel the hue falls into.
-    int sectorIndex = (int) floor(hueScaled) % 6;
-
-    // Calculate the fractional part within the sector.
-    float fractionWithinSector = hueScaled - sectorIndex;
-    // Compute the complementary fraction (used for interpolation).
-    float inverseFraction = 1.0f - fractionWithinSector;
-
-    float r, g, b;
-    // Determine the RGB values based on the sector.
-    switch (sectorIndex)
-    {
-        // Red -> Yellow: red is at full intensity; green increases with fraction.
-        case 0: r = 1.0f; g = fractionWithinSector; b = 0.0f; break;
-        // Yellow -> Green: green is at full intensity; red decreases with inverse fraction.
-        case 1: r = inverseFraction; g = 1.0f; b = 0.0f; break;
-        // Green -> Cyan: green is at full intensity; blue increases with fraction.
-        case 2: r = 0.0f; g = 1.0f; b = fractionWithinSector; break;
-        // Cyan -> Blue: blue is at full intensity; green decreases with inverse fraction.
-        case 3: r = 0.0f; g = inverseFraction; b = 1.0f; break;
-        // Blue -> Magenta: blue is at full intensity; red increases with fraction.
-        case 4: r = fractionWithinSector; g = 0.0f; b = 1.0f; break;
-        // Magenta -> Red: red is at full intensity; blue decreases with inverse fraction.
-        case 5: r = 1.0f; g = 0.0f; b = inverseFraction; break;
-        default: r = 0.0f; g = 0.0f; b = 0.0f; break; // Fallback (should never occur)
-    }
-
-    // Convert the computed RGB values from [0, 1] to [0, 255]
-    *red   = (byte)(r * 255.0f);
-    *green = (byte)(g * 255.0f);
-    *blue  = (byte)(b * 255.0f);
-}
-
-
-#endif // MOREMATH_HPP
+ #ifndef MOREMATH_HPP
+ #define MOREMATH_HPP
+ 
+ #include <Arduino.h>
+ #include "vec2.hpp"
+ #include "ivec2.hpp"
+ 
+ /** @brief Factor to convert degrees to radians. */
+ constexpr float DEG_TO_RAD_FACTOR = PI / 180.0f;
+ /** @brief Factor to convert radians to degrees. */
+ constexpr float RAD_TO_DEG_FACTOR = 180.0f / PI;
+ 
+ /**
+  * @brief Converts an angle from degrees to radians.
+  *
+  * @param deg Angle in degrees.
+  * @return Angle in radians.
+  */
+ inline float degToRad(float deg) {
+     return deg * DEG_TO_RAD_FACTOR;
+ }
+ 
+ /**
+  * @brief Converts an angle from radians to degrees.
+  *
+  * @param rad Angle in radians.
+  * @return Angle in degrees.
+  */
+ inline float radToDeg(float rad) {
+     return rad * RAD_TO_DEG_FACTOR;
+ }
+ 
+ /**
+  * @brief Clamps a value between a minimum and maximum.
+  *
+  * @param value Input value to clamp.
+  * @param minVal Lower bound.
+  * @param maxVal Upper bound.
+  * @return Clamped value within [minVal, maxVal].
+  */
+ inline float clamp(float value, float minVal, float maxVal) {
+     if (value < minVal) return minVal;
+     if (value > maxVal) return maxVal;
+     return value;
+ }
+ 
+ /**
+  * @brief Performs linear interpolation between two floats.
+  *
+  * @param start Starting value.
+  * @param end Ending value.
+  * @param t  Interpolation factor in [0,1].
+  * @return Interpolated value: start + t*(end-start).
+  */
+ inline float lerp(float start, float end, float t) {
+     return start + t * (end - start);
+ }
+ 
+ /**
+  * @brief Mixes two float values by a factor.
+  *
+  * Alias for lerp, with arguments order: mix(factor, v1, v2) = lerp(v1,v2,factor).
+  *
+  * @param factor Mixing factor in [0,1].
+  * @param v1 First value.
+  * @param v2 Second value.
+  * @return Mixed value.
+  */
+ inline float mix(float factor, float v1, float v2) {
+     return v1 * (1.0f - factor) + v2 * factor;
+ }
+ 
+ /**
+  * @brief Mixes two integer values by a factor.
+  *
+  * @param factor Mixing factor in [0,1].
+  * @param v1 First integer value.
+  * @param v2 Second integer value.
+  * @return Mixed integer (rounded down).
+  */
+ inline int mix(float factor, int v1, int v2) {
+     return static_cast<int>(mix(factor, static_cast<float>(v1), static_cast<float>(v2)));
+ }
+ 
+ /**
+  * @brief Mixes two byte values by a factor.
+  *
+  * @param factor Mixing factor in [0,1].
+  * @param v1 First byte value.
+  * @param v2 Second byte value.
+  * @return Mixed byte (rounded down).
+  */
+ inline byte mix(float factor, byte v1, byte v2) {
+     return static_cast<byte>(mix(factor, static_cast<float>(v1), static_cast<float>(v2)));
+ }
+ 
+ /**
+  * @brief Maps an integer value from one range to another.
+  *
+  * @param val     Input value to map.
+  * @param fromMin Lower bound of input range.
+  * @param fromMax Upper bound of input range.
+  * @param toMin   Lower bound of output range.
+  * @param toMax   Upper bound of output range.
+  * @return Mapped integer value in [toMin, toMax].
+  */
+ inline int map(int val, int fromMin, int fromMax, int toMin, int toMax) {
+     int distance = fromMax - fromMin;
+     val -= fromMin;
+     float factor = static_cast<float>(val) / static_cast<float>(distance);
+     return mix(factor, toMin, toMax);
+ }
+ 
+ /**
+  * @brief Maps a float value from one range to another.
+  *
+  * @param value Input value to map.
+  * @param inMin Lower bound of input range.
+  * @param inMax Upper bound of input range.
+  * @param outMin Lower bound of output range.
+  * @param outMax Upper bound of output range.
+  * @return Mapped float value in [outMin, outMax].
+  */
+ inline float mapFloat(float value, float inMin, float inMax, float outMin, float outMax) {
+     return (value - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+ }
+ 
+ /**
+  * @brief Wraps an angle in degrees to the range [0,360).
+  *
+  * @param angleDeg Input angle in degrees.
+  * @return Equivalent angle in [0,360).
+  */
+ inline float wrapAngleDeg(float angleDeg) {
+     while (angleDeg >= 360.0f) angleDeg -= 360.0f;
+     while (angleDeg <    0.0f) angleDeg += 360.0f;
+     return angleDeg;
+ }
+ 
+ /**
+  * @brief Wraps an angle in radians to the range [0,2π).
+  *
+  * @param angleRad Input angle in radians.
+  * @return Equivalent angle in [0,2π).
+  */
+ inline float wrapAngleRad(float angleRad) {
+     const float twoPi = 2.0f * PI;
+     while (angleRad >= twoPi) angleRad -= twoPi;
+     while (angleRad <       0.0f) angleRad += twoPi;
+     return angleRad;
+ }
+ 
+ /**
+  * @brief Computes Euclidean distance between two 2D points.
+  *
+  * @param x1 X-coordinate of first point.
+  * @param y1 Y-coordinate of first point.
+  * @param x2 X-coordinate of second point.
+  * @param y2 Y-coordinate of second point.
+  * @return Euclidean distance between the points.
+  */
+ inline float distance(float x1, float y1, float x2, float y2) {
+     return sqrt(sq(x2 - x1) + sq(y2 - y1));
+ }
+ 
+ /**
+  * @brief Converts a normalized hue value to RGB components.
+  *
+  * Uses full saturation and brightness. Hue wraps in [0,1]
+  * across the color wheel, mapping to RGB.
+  *
+  * @param hue   Normalized hue in [0,1].
+  * @param red   Pointer to output red component (0-255).
+  * @param green Pointer to output green component (0-255).
+  * @param blue  Pointer to output blue component (0-255).
+  */
+ inline void hueToRgb(float hue, byte* red, byte* green, byte* blue) {
+     float h = fmod(hue, 1.0f);
+     float hs = h * 6.0f;
+     int sector = static_cast<int>(floor(hs)) % 6;
+     float frac = hs - sector;
+     float inv = 1.0f - frac;
+     float r, g, b;
+     switch (sector) {
+         case 0: r = 1; g = frac; b = 0; break;
+         case 1: r = inv; g = 1; b = 0; break;
+         case 2: r = 0; g = 1; b = frac; break;
+         case 3: r = 0; g = inv; b = 1; break;
+         case 4: r = frac; g = 0; b = 1; break;
+         case 5: default: r = 1; g = 0; b = inv; break;
+     }
+     *red   = static_cast<byte>(r * 255.0f);
+     *green = static_cast<byte>(g * 255.0f);
+     *blue  = static_cast<byte>(b * 255.0f);
+ }
+ 
+ #endif // MOREMATH_HPP 
