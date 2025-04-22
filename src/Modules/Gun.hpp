@@ -1,299 +1,288 @@
-#ifndef GUN_HPP
-#define GUN_HPP
-
-#include <Arduino.h>
-#include "Utilities/Countdowner.hpp"
-
 /**
- * @brief An enum representing the status of a Gun
+ * @file Gun.hpp
+ * @brief Defines the Gun class and related data structures for simulating weapon behavior.
+ *
+ * Provides:
+ *  - GunStatus enum for weapon states (NOT_READY, READY, SHOOTING, RELOADING).
+ *  - Packed GunData struct for sending/receiving gun configuration over comms.
+ *  - Gun class implementing shooting, reloading, rate-of-fire handling, and callbacks via Countdowner.
+ *  - Predefined GunData constants (Sidearm, Sidearm_2, HandCannon) for common weapon loadouts.
  */
-enum GunStatus
-{
-    NOT_READY,
-    READY,
-    SHOOTING,
-    RELOADING
-};
 
-/**
- * @brief A struct representing the data of a Gun
- * This struct is used to store the data of a Gun in a packed format to send over the comms.
- */
-struct __attribute__((packed)) GunData
-{
-    uint32_t damage; // 4 bytes
-    uint32_t magazine; // 4 bytes
-    uint32_t roundsPerMinute; // 4 bytes
-    uint32_t reloadTime; // 4 bytes
-    bool fullAuto; // 1 byte
-    uint8_t burst; // 1 byte
-    uint32_t burstInterval; // 4 bytes
+ #ifndef GUN_HPP
+ #define GUN_HPP
+ 
+ #include <Arduino.h>
+ #include "Utilities/Countdowner.hpp"  ///< Timer utility for scheduling burst shots
+ 
+ /**
+  * @enum GunStatus
+  * @brief Represents the current operational state of a Gun.
+  */
+ enum GunStatus {
+     NOT_READY,  ///< Gun is disabled or uninitialized
+     READY,      ///< Gun is ready to fire
+     SHOOTING,   ///< Gun is actively firing
+     RELOADING   ///< Gun is reloading its magazine
+ };
+ 
+ /**
+  * @struct GunData
+  * @brief Packed data structure representing a gun's configuration.
+  *
+  * Used for serialization over communication channels (e.g., Nexus). All fields
+  * are laid out without padding.
+  */
+ struct __attribute__((packed)) GunData {
+     uint32_t damage;         ///< Damage per shot
+     uint32_t magazine;       ///< Number of rounds per magazine
+     uint32_t roundsPerMinute;///< Rate of fire (RPM)
+     uint32_t reloadTime;     ///< Reload duration in milliseconds
+     bool     fullAuto;       ///< True if full-auto mode enabled
+     uint8_t  burst;          ///< Number of shots per trigger pull
+     uint32_t burstInterval;  ///< Interval between burst shots in milliseconds
+ 
+     /**
+      * @brief Get a human-readable summary of the gun configuration.
+      * @return Formatted string with all GunData fields.
+      */
+     String toString() const {
+         String str = "GunData:\n";
+         str += "  Damage: " + String(damage) + "\n";
+         str += "  Magazine: " + String(magazine) + "\n";
+         str += "  RPM: " + String(roundsPerMinute) + "\n";
+         str += "  ReloadTime: " + String(reloadTime) + "\n";
+         str += "  FullAuto: " + String(fullAuto) + "\n";
+         str += "  Burst: " + String(burst) + "\n";
+         str += "  BurstInterval: " + String(burstInterval) + "\n";
+         return str;
+     }
+ };
+ 
+ /**
+  * @class Gun
+  * @brief Simulates a firearm with ammo, firing rate, and reload mechanics.
+  *
+  * Manages internal state transitions between READY, SHOOTING, and RELOADING.
+  * Supports single shot, burst fire, and full-auto based on configuration.
+  * Uses Countdowner to schedule burst intervals.
+  */
+ class Gun {
+ public:
+     // Configuration parameters
+     uint32_t damage;             ///< Base damage per shot
+     uint32_t magazine;           ///< Magazine capacity
+     uint32_t roundsPerMinute;    ///< Fire rate in RPM
+     uint32_t reloadTime;         ///< Reload duration (ms)
+     bool     fullAuto;           ///< Full-auto mode flag
+     uint8_t  burst;              ///< Shots per burst (1 = single shot)
+     uint32_t burstInterval;      ///< Delay between burst shots (ms)
+ 
+     // Runtime variables
+     uint32_t ammo;               ///< Current ammo in magazine
+     uint32_t lastShot;           ///< Timestamp of last shot (ms)
+     uint32_t lastReload;         ///< Timestamp when reload started (ms)
+     GunStatus status;            ///< Current gun status
+ 
+     // Event callbacks
+     void (*onReloadFinish)(Gun *gun) = nullptr; ///< Called when reload completes
+     void (*countdowner_shoot)(int) = nullptr;   ///< Called by Countdowner for burst shots
+ 
+     // Modifiers
+     float damageMultiplier = 1.0f;      ///< Multiplies base damage
+     float fireRateMultiplier = 1.0f;    ///< Multiplies fire rate
+     float reloadTimeMultiplier = 1.0f;  ///< Multiplies reload duration
+ 
+     /**
+      * @brief Construct a Gun with explicit parameters.
+      *
+      * @param damage            Damage per shot
+      * @param magazine          Magazine size
+      * @param roundsPerMinute   Rate of fire (RPM)
+      * @param reloadTime        Reload duration (ms)
+      * @param fullAuto          Enable full-auto mode
+      * @param burst             Burst shot count
+      * @param burstInterval     Interval between burst shots (ms)
+      * @param countdownerShoot  Callback for scheduled burst shots
+      * @param onReloadFinish    Callback when reload completes
+      */
+     Gun(uint32_t damage, uint32_t magazine, uint32_t roundsPerMinute, uint32_t reloadTime,
+         bool fullAuto = false, uint8_t burst = 1, uint32_t burstInterval = 0,
+         void (*countdownerShoot)(int) = nullptr, void (*onReloadFinishFunc)(Gun *gun) = nullptr)
+       : damage(damage),
+         magazine(magazine),
+         roundsPerMinute(roundsPerMinute),
+         reloadTime(reloadTime),
+         fullAuto(fullAuto),
+         ammo(0),
+         lastShot(0),
+         lastReload(0),
+         status(NOT_READY),
+         countdowner_shoot(countdownerShoot),
+         onReloadFinish(onReloadFinishFunc) {}
+ 
+     /**
+      * @brief Construct a Gun from a GunData struct.
+      *
+      * @param data               GunData instance
+      * @param countdownerShoot   Callback for scheduled burst shots
+      * @param onReloadFinishFunc Callback when reload completes
+      */
+     Gun(const GunData& data, void (*countdownerShoot)(int) = nullptr,
+         void (*onReloadFinishFunc)(Gun *gun) = nullptr)
+       : Gun(data.damage, data.magazine, data.roundsPerMinute, data.reloadTime,
+             data.fullAuto, data.burst, data.burstInterval,
+             countdownerShoot, onReloadFinishFunc) {}
+ 
+     /**
+      * @brief Update method; advances state based on timers.
+      *
+      * - If SHOOTING and interval elapsed: set READY
+      * - If RELOADING and reloadTime elapsed: refill ammo, set READY, invoke callback
+      */
+     void loop() {
+         uint32_t now = millis();
+         if (status == SHOOTING) {
+             uint32_t interval = 60000u / uint32_t(roundsPerMinute * fireRateMultiplier);
+             if (now - lastShot >= interval) status = READY;
+         } else if (status == RELOADING) {
+             if (now - lastReload >= uint32_t(reloadTime * reloadTimeMultiplier)) {
+                 ammo = magazine;
+                 status = READY;
+                 if (onReloadFinish) onReloadFinish(this);
+             }
+         }
+     }
+ 
+     /**
+      * @brief Attempt to fire the gun.
+      *
+      * If READY and ammo available, transitions to SHOOTING, records timestamp,
+      * triggers immediate callback, and schedules subsequent burst shots.
+      */
+     void shoot() {
+         if (status == READY && ammo > 0) {
+             uint32_t now = millis();
+             uint32_t interval = 60000u / (roundsPerMinute * fireRateMultiplier);
+             if (now - lastShot >= interval) {
+                 status = SHOOTING;
+                 lastShot = now;
+                 if (countdowner_shoot) {
+                     countdowner_shoot(0);  // immediate shot
+                     for (int i = 1; i < burst; ++i) {
+                         countdowner->addEvent(i * burstInterval, countdowner_shoot, i);
+                     }
+                 }
+             }
+         }
+     }
+ 
+     /**
+      * @brief Decrease ammo by one (floor at zero).
+      */
+     void decreaseAmmo() {
+         if (ammo > 0) --ammo;
+     }
+ 
+     /**
+      * @brief Cancel shooting state and return to READY.
+      */
+     void release() {
+         if (status == SHOOTING) status = READY;
+     }
+ 
+     /**
+      * @brief Begin reload sequence if READY and magazine not full.
+      * @return True if reload started, false otherwise
+      */
+     bool reload() {
+         if (status == READY && ammo < magazine) {
+             status = RELOADING;
+             lastReload = millis();
+             return true;
+         }
+         return false;
+     }
+ 
+     // -------------------------------------------------------------------------
+     // Getters and Setters
+     // -------------------------------------------------------------------------
+     /** @brief Enable or disable the gun (sets status accordingly).
+      *  @return The new enable state
+      */
+     bool enable(bool newState) {
+         status = newState ? READY : NOT_READY;
+         return newState;
+     }
+ 
+     /** @brief Set gun status to READY.
+      */
+     void start() { status = READY; }
+ 
+     /** @brief Set gun status to NOT_READY.
+      */
+     void end()   { status = NOT_READY; }
+ 
+     /** @brief Get current ammo count. */
+     uint32_t getAmmo() const { return ammo; }
+ 
+     /** @brief Get magazine capacity. */
+     uint32_t getMagazine() const { return magazine; }
+ 
+     /** @brief Get current gun status. */
+     GunStatus getStatus() const { return status; }
+ 
+     /** @brief Get effective damage (with multiplier). */
+     uint32_t getDamage() const { return uint32_t(damage * damageMultiplier); }
+ 
+     /**
+      * @brief Set callbacks for reload finish and burst scheduling.
+      */
+     void setCountdownerShootCallback(void (*callback)(int)) { countdowner_shoot = callback; }
+     void setOnReloadFinishCallback(void (*callback)(Gun *)) { onReloadFinish = callback; }
+ };
 
-    String toString() {
-        String str = "GunData: ";
-        str += "Damage: " + String(damage) + "\n";
-        str += "Magazine: " + String(magazine) + "\n";
-        str += "Rounds per minute: " + String(roundsPerMinute) + "\n";
-        str += "Reload time: " + String(reloadTime) + "\n";
-        str += "Full auto: " + String(fullAuto) + "\n";
-        str += "Burst: " + String(burst) + "\n";
-        str += "Burst interval: " + String(burstInterval) + "\n";
-        return str;
-    }
-};
-
-class Gun;
-
-/**
- * @brief A base class representing a Gun
- * This class initializes a gun with specific attributes and provides methods to shoot and reload the gun.
- */
-class Gun
-{
-public:
-    // Constants
-    uint32_t damage;
-    uint32_t magazine;
-    uint32_t roundsPerMinute;
-    uint32_t reloadTime;
-    bool fullAuto;
-    uint8_t burst = 1;
-    uint32_t burstInterval = 0;
-
-    // Variables
-    uint32_t ammo;
-    uint32_t lastShot;
-    uint32_t lastReload;
-    GunStatus status;
-
-    // Events
-    void (*onReloadFinish)(Gun *gun) = nullptr;
-    void (*countdowner_shoot)(int) = nullptr;
-
-    // Multipliers
-    float damageMultiplier = 1.0f;
-    float fireRateMultiplier = 1.0f;
-    float reloadTimeMultiplier = 1.0f;
-
-    // Constructor
-    /**
-     * @brief Construct a new Gun object
-     * @param damage The damage of the gun
-     * @param magazine The magazine size of the gun
-     * @param roundsPerMinute The rounds per minute of the gun
-     * @param reloadTime The reload time of the gun in milliseconds
-     * @param fullAuto Whether the gun is full auto or not, default is false
-     * @param burst The number of shots to fire in a burst, default is 1
-     * @param burstInterval The interval between shots in a burst, default is 0
-     * @param countdownerShootFunc The function to call when the gun is shot
-     * @param onReloadFinishFunc The function to call when the gun is reloaded
-    */
-    Gun(uint32_t damage, uint32_t magazine, uint32_t roundsPerMinute, uint32_t reloadTime, bool fullAuto = false,
-        uint8_t burst = 1, uint32_t burstInterval = 0,
-        void (*countdownerShootFunc)(int) = nullptr, void (*onReloadFinishFunc)(Gun *gun) = nullptr):
-        damage(damage),
-        magazine(magazine),
-        roundsPerMinute(roundsPerMinute),
-        reloadTime(reloadTime),
-        fullAuto(fullAuto),
-        ammo(0),
-        lastShot(0),
-        lastReload(0),
-        status(NOT_READY),
-        countdowner_shoot(countdownerShootFunc),
-        onReloadFinish(onReloadFinishFunc)
-    {}
-
-    /**
-     * @brief Construct a new Gun object
-     * @param data The GunData object containing the data of the gun
-     * @param countdownerShootFunc The function to call when the gun is shot
-     * @param onReloadFinishFunc The function to call when the gun is reloaded
-    */
-    Gun(GunData data, void (*countdownerShootFunc)(int) = nullptr, void (*onReloadFinishFunc)(Gun *gun) = nullptr)
-        : Gun(data.damage, data.magazine, data.roundsPerMinute, data.reloadTime, data.fullAuto, data.burst, data.burstInterval,
-        countdownerShootFunc, onReloadFinishFunc){}
-
-    // Loop
-    /**
-     * @brief The loop function for the gun
-     * This function is used to update the status of the gun
-     * based on the time passed since the last shot or reload
-     */
-    void loop() {
-        uint32_t currentMillis = millis();
-        if (status == SHOOTING) {
-            uint32_t timeBetweenShots = 60000 / uint32_t(roundsPerMinute * fireRateMultiplier);
-            if (currentMillis - lastShot >= timeBetweenShots) {
-                status = READY;
-            }
-        } else if (status == RELOADING) {
-            if (currentMillis - lastReload >= uint32_t(reloadTime * reloadTimeMultiplier)) {
-                ammo = magazine;
-                status = READY;
-
-                if (onReloadFinish) {
-                    onReloadFinish(this);
-                }
-            }
-        }
-    }
-
-    void setCountdownerShootCallback(void (*callback)(int)) {
-        countdowner_shoot = callback;
-    }
-
-    void setOnReloadFinishCallback(void (*callback)(Gun *gun)) {
-        onReloadFinish = callback;
-    }    
-
-    GunData getData() {
-        GunData data = {
-            damage,
-            magazine,
-            roundsPerMinute,
-            reloadTime,
-            fullAuto,
-            burst,
-            burstInterval
-        };
-        return data;
-    }
-
-    void setData(GunData data) {
-        damage = data.damage;
-        magazine = data.magazine;
-        roundsPerMinute = data.roundsPerMinute;
-        reloadTime = data.reloadTime;
-        fullAuto = data.fullAuto;
-        burst = data.burst;
-        burstInterval = data.burstInterval;
-    }
-
-    uint32_t getAmmo() {
-        return ammo;
-    }
-
-    uint32_t getMagazine() {
-        return magazine;
-    }
-
-    GunStatus getStatus() {
-        return status;
-    }
-
-    uint32_t getDamage() {
-        return uint32_t(damage * damageMultiplier);
-    }
-
-    // Setters
-    bool enable(bool newState) {
-        if (newState && status == NOT_READY) {
-            status = READY;
-        } else {
-            status = NOT_READY;
-        }
-        return newState;
-    }
-
-    // Methods
-    /**
-     * @brief Start the gun by setting the status to READY
-     */
-    void start() {
-        status = READY;
-    }
-
-    /**
-     * @brief End the gun by setting the status to NOT_READY
-     */
-    void end() {
-        status = NOT_READY;
-    }
-
-    /**
-     * @brief Shoot the gun
-     */
-    void shoot() {
-        if (status == READY && ammo > 0) {
-            uint32_t currentMillis = millis();
-            uint32_t timeBetweenShots = 60000 / (roundsPerMinute * fireRateMultiplier);
-            if (currentMillis - lastShot >= timeBetweenShots) {
-                status = SHOOTING;
-                lastShot = currentMillis;
-
-                if (countdowner_shoot) {
-                    countdowner_shoot(0); // Call the shoot function immediately
-                    for (int i = 1; i < burst; i++) {
-                        countdowner->addEvent(i * burstInterval, countdowner_shoot, i);
-                    }
-                }
-            }
-        }
-    }
-
-    void decreaseAmmo() {
-        if (ammo > 0) {
-            ammo--;
-        } else {
-            ammo = 0;
-        }
-    }
-
-    void release() {
-        if (status == SHOOTING) {
-            status = READY;
-        }
-    }
-
-    /**
-     * @brief Reload the gun
-     * @return Whether the gun was able to reload or not
-     */
-    bool reload() {
-        uint32_t currentMillis = millis();
-        if (status == READY && ammo < magazine) {
-            status = RELOADING;
-            lastReload = currentMillis;
-            return true;
-        }
-        return false;
-    }
-};
-
-/**
- * Name: Sidearm
- * Damage: 13
- * Magazine: 18
- * Rounds per minute: 100
- * Reload time: 1800ms
- * Full auto: true
- * Burst: 3
- * Burst interval: 100ms
- */
-const GunData Sidearm = {10, 18, 60, 1800, true, 3, 100};
-/**
- * Name: Sidearm 2
- * Damage: 26
- * Magazine: 13
- * Rounds per minute: 300
- * Reload time: 1500ms
- * Full auto: true
- * Burst: 1
- * Burst interval: 0ms
- */
+// --------------------------------------------------------------------------
+// Gun Setups
+// --------------------------------------------------------------------------
+ 
+ /**
+  * @brief Predefined loadout: "Sidearm" burst pistol (Stinger).
+  *
+  * Statistics:
+  *  - Damage: 10
+  *  - Magazine: 18 rounds
+  *  - Rate: 60 RPM
+  *  - Reload: 1800 ms
+  *  - Mode: 3-shot burst
+  *  - Burst Interval: 100 ms
+  */
+const GunData Sidearm = {10, 18, 60, 1800, false, 3, 100};
+ 
+ /**
+  * @brief Predefined loadout: "Sidearm_2" full-auto pistol (Ghost).
+  *
+  * Statistics:
+  *  - Damage: 20
+  *  - Magazine: 13 rounds
+  *  - Rate: 300 RPM
+  *  - Reload: 1500 ms
+  *  - Mode: Full-auto (1-shot per trigger)
+  *  - Burst Interval: 0 ms
+  */
 const GunData Sidearm_2 = {20, 13, 300, 1500, true, 1, 0};
-
-/**
- * Name: Hand Cannon
- * Damage: 42
- * Magazine: 8
- * Rounds per minute: 150
- * Reload time: 3000ms
- * Full auto: false
- * Burst: 1
- * Burst interval: 0ms
- */
+ 
+ /**
+  * @brief Predefined loadout: "HandCannon" heavy single-shot pistol (Hammerfall).
+  *
+  * Statistics:
+  *  - Damage: 30
+  *  - Magazine: 8 rounds
+  *  - Rate: 150 RPM
+  *  - Reload: 3000 ms
+  *  - Mode: Single-shot
+  *  - Burst Interval: 0 ms
+  */
 const GunData HandCannon = {30, 8, 150, 3000, false, 1, 0};
-
+ 
 #endif // GUN_HPP
