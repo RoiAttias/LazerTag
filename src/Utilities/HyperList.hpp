@@ -1,5 +1,5 @@
 /**
- * @file hyper_list.hpp
+ * @file HyperList.hpp
  * @brief Defines the HyperList template, a doubly linked list implementation for Arduino.
  *
  * Provides a generic, efficient doubly linked list supporting operations

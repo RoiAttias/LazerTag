@@ -1,5 +1,5 @@
 /**
- * @file macaddress.hpp
+ * @file MacAddress.hpp
  * @brief Defines the MacAddress struct for representing and manipulating 6-byte MAC addresses.
  *
  * Provides constructors, string conversion, element access, comparison, and buffer utilities

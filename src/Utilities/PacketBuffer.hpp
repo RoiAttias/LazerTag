@@ -1,5 +1,5 @@
 /**
- * @file packetbuffer.hpp
+ * @file PacketBuffer.hpp
  * @brief Defines the PacketBuffer template, a simple fixed-size FIFO queue.
  *
  * Provides enqueue and dequeue operations with capacity limits.

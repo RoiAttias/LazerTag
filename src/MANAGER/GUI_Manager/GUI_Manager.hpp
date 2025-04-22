@@ -48,15 +48,13 @@ enum GUI_Manager_Activity : uint8_t {
 #include "Message.hpp"
 #include "ReadySetGo.hpp"
 #include "Gameplay.hpp"
-#include "Dashboard.hpp"
 
 Activity * GUI_Manager_Activities[] = {
     activation,
     scanner,
     playerSetup,
     readySetGoMessage,
-    gameplay,
-    new Dashboard(),
+    gameplay
 };
 
 namespace GUI {

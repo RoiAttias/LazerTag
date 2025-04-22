@@ -57,7 +57,7 @@ public:
         // Collect multiple samples to average touch coordinates
         // Stop when the required number of valid samples is collected or max attempts are reached
         for (int attempt = 0; attempt < maxAttempts && validSampleCount < sampleCount; ++attempt) {
-            LuminaUI::tft_instance->getTouchRaw(&rawTouch[0],&rawTouch[1]);
+            LuminaUI::tft_instance->getTouch(&rawTouch[0], &rawTouch[1]);
             currentTouch = ivec2(rawTouch[0], rawTouch[1]);
 
             // Initialize first sample as reference

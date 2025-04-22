@@ -1,5 +1,5 @@
 /**
- * @file hyper_map.hpp
+ * @file HyperMap.hpp
  * @brief Defines the HyperMap template, a simple key-value store built on HyperList.
  *
  * HyperMap uses two HyperList instances to maintain parallel lists of keys and values.

@@ -73,22 +73,11 @@ namespace LuminaUI
 #include "Line.hpp"
 #include "Polygon.hpp"
 
-// Layout Elements
-#include "Table.hpp"
-
 // Combined Elements
 #include "Textbox.hpp"
 
 // Overriden Elements
 #include "Button.hpp"
 #include "Circle.hpp"
-/*
-shape
-image
-polygon
-progress bar
-table(pointer of grid, pointer to list of grids)
-*/
-//#include "Shape.hpp"
 
 #endif // TFT_ESPI_ELEMENTS_HPP
