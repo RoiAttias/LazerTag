@@ -139,7 +139,7 @@ Gameplay* gameplay = new Gameplay();
 
 void againButtonCallback(ivec2 point, TouchStatus status) {
     if (status == TouchStatus_RELEASE) {
-        ESP.restart();
+        GUI::selectActivity(GUI_Manager_Activity::ACTIVATION);
     }
     else if (status == TouchStatus_PRESS) {
         // Change the button color when pressed
