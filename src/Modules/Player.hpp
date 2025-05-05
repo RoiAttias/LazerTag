@@ -86,8 +86,11 @@
         const char* getGunNameRaw() const { return gunName; }
         /** @brief Set the name of the gun. */
         void setGunName(const char* name) {
-            gunName = {0}; // Clear the array
-            strncpy(gunName, name, MAX_GUN_NAME_LENGTH); // Copy the name
+            // clear the array first - memset sets all bytes to 0
+            memset(gunName, 0, sizeof(gunName));
+             // Copy the name - strncpy copies up to MAX_GUN_NAME_LENGTH bytes
+                // and null-terminates the string
+            strncpy(gunName, name, MAX_GUN_NAME_LENGTH);
         }
  
      // -------------------------------------------------------------------------

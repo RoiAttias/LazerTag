@@ -48,6 +48,8 @@
      ivec2      deviceBoxOrigin;  ///< Top-left origin for first box
      ivec2      deviceBoxSize;    ///< Width/height of each box
      ivec2      deviceBoxSpacing; ///< Horizontal/vertical spacing between boxes
+
+     bool NextButtonPressed = false; ///< Flag to track Next button state
  
      /**
       * @brief Construct a Scanner activity.
@@ -141,6 +143,17 @@
                  GUI::gameDevices.addend(addr);
              }
          }
+
+         if (!canNext()) {
+            nextButton.background.fillColor = TFT_DARKGREY;
+            nextButton.background.borderColor = TFT_BLACK;
+            nextButton.text.textColor = TFT_BLACK;
+         } else if (canNext() && !NextButtonPressed) {
+            nextButton.background.fillColor = TFT_ORANGE;
+            nextButton.background.borderColor = TFT_BLACK;
+            nextButton.text.textColor = TFT_BLACK;
+         }
+
          return Activity::render(viewport);
      }
  
@@ -153,7 +166,7 @@
      virtual void updateScannedDevices() {
          for (int i = 0; i < 9; i++) {
              if (i < Nexus::devices.size()) {
-                 auto &d = Nexus::devices[i];
+                 NexusAddress d = Nexus::devices[i];
                  deviceBoxes[i]->updateInformation(d.deviceID, d.groups);
                  deviceBoxes[i]->setSelected(false);
                  deviceBoxes[i]->visible = true;
@@ -178,25 +191,25 @@
   * - RELEASE: call Nexus::scan() and update button appearance
   * - READY: restore color to green if scan complete
   */
- void onScanButtonTouch(ivec2, TouchStatus status) {
+ void onScanButtonTouch(ivec2 point, TouchStatus status) {
      switch (status) {
          case TouchStatus_PRESS:
              scanner->scanButton.background.fillColor = TFT_DARKGREEN;
-             scanner->scanButton.borderColor        = TFT_WHITE;
+             scanner->scanButton.background.borderColor = TFT_BLACK;
              scanner->scanButton.text.textColor     = TFT_WHITE;
              scanner->scanButton.callRender();
              break;
          case TouchStatus_RELEASE:
              Nexus::scan();
              scanner->scanButton.background.fillColor = TFT_DARKGREY;
-             scanner->scanButton.borderColor        = TFT_BLACK;
+             scanner->scanButton.background.borderColor = TFT_BLACK;
              scanner->scanButton.text.textColor     = TFT_BLACK;
              scanner->scanButton.callRender();
              break;
          case TouchStatus_READY:
              scanner->scanButton.background.fillColor = Nexus::isScanComplete ? TFT_GREEN : TFT_DARKGREY;
-             scanner->scanButton.borderColor        = TFT_BLACK;
-             scanner->scanButton.text.textColor     = TFT_BLACK;
+             scanner->scanButton.background.borderColor = TFT_BLACK;
+             scanner->scanButton.text.textColor = TFT_BLACK;
              scanner->scanButton.callRender();
              break;
          default:
@@ -209,33 +222,40 @@
   * - Only active once a gun & vest are selected (canNext())
   * - PRESS/RELEASE: tint button, on RELEASE advance to PlayerSetup
   */
- void onNextButtonTouch(ivec2, TouchStatus status) {
+ void onNextButtonTouch(ivec2 point, TouchStatus status) {
+    // Set the NextButtonPressed flag to true when the button is pressed
+
+    scanner->NextButtonPressed = false;
+    // Show button is disabled if no gun/vest selected
      if (!scanner->canNext()) {
          scanner->nextButton.background.fillColor = TFT_DARKGREY;
-         scanner->nextButton.borderColor          = TFT_BLACK;
-         scanner->nextButton.text.textColor       = TFT_BLACK;
+         scanner->nextButton.background.borderColor = TFT_BLACK;
+         scanner->nextButton.text.textColor = TFT_BLACK;
          scanner->nextButton.callRender();
          return;
      }
+
+     // Change button color based o
      switch (status) {
          case TouchStatus_PRESS:
+             scanner->NextButtonPressed = true;
              scanner->nextButton.background.fillColor = TFT_MAROON;
-             scanner->nextButton.borderColor          = TFT_YELLOW;
-             scanner->nextButton.text.textColor       = TFT_YELLOW;
+             scanner->nextButton.background.borderColor = TFT_YELLOW;
+             scanner->nextButton.text.textColor = TFT_YELLOW;
              scanner->nextButton.callRender();
              break;
          case TouchStatus_RELEASE:
              scanner->nextButton.background.fillColor = TFT_ORANGE;
-             scanner->nextButton.borderColor          = TFT_BLACK;
-             scanner->nextButton.text.textColor       = TFT_BLACK;
+             scanner->nextButton.background.borderColor = TFT_BLACK;
+             scanner->nextButton.text.textColor = TFT_BLACK;
              scanner->nextButton.callRender();
              GUI::selectActivity(GUI_Manager_Activity::PLAYERSETUP);
              playerSetup->init();
              break;
          case TouchStatus_READY:
              scanner->nextButton.background.fillColor = TFT_ORANGE;
-             scanner->nextButton.borderColor          = TFT_BLACK;
-             scanner->nextButton.text.textColor       = TFT_BLACK;
+             scanner->nextButton.background.borderColor = TFT_BLACK;
+             scanner->nextButton.text.textColor = TFT_BLACK;
              scanner->nextButton.callRender();
              break;
          default:

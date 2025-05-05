@@ -20,6 +20,7 @@
  #include "Common/Constants_Common.h"
  #include "Components/Nexus/Nexus.hpp"
  #include "Common/LazerTagPacket.hpp"
+ #include "Scanner.hpp"
  
  // Forward declarations
  void onGunSwitchButtonTouch(ivec2, TouchStatus);
@@ -122,18 +123,26 @@
      void init() {
          Game::reset();
          int g=0, v=0;
-         for (auto &addr : GUI::gameDevices) {
+         NexusAddress addr;
+         for (int i = 0; i < GUI::gameDevices.size(); i++) {
+            addr = GUI::gameDevices[i];
              if (addr.groups == NEXUS_GROUP_GUN) {
-                 (g++==0
-                     ? Game::player1.setGunAddress(addr)
-                     : Game::player2.setGunAddress(addr)
-                 );
+                if (g == 0) {
+                    Game::player1.setGunAddress(addr);
+                    g++;
+                } else {
+                    Game::player2.setGunAddress(addr);
+                    g++;
+                }
              }
-             if (addr.groups == NEXUS_GROUP_VEST) {
-                 (v++==0
-                     ? Game::player1.setVestAddress(addr)
-                     : Game::player2.setVestAddress(addr)
-                 );
+             else if (addr.groups == NEXUS_GROUP_VEST) {
+                if (v == 0) {
+                    Game::player1.setVestAddress(addr);
+                    v++;
+                } else {
+                    Game::player2.setVestAddress(addr);
+                    v++;
+                }
              }
          }
          // Enable Next only if both players have both devices
@@ -195,28 +204,105 @@
  static PlayerSetup *playerSetup = new PlayerSetup();
  
  // Touch handlers:
+    /**
+    * @brief Touch event handler for the Gun switch button.
+    */
  void onGunSwitchButtonTouch(ivec2, TouchStatus status) {
      if (status == TouchStatus_PRESS) playerSetup->switchGuns();
  }
+
+    /**
+     * @brief Touch event handler for the Vest switch button.
+     */
  void onVestSwitchButtonTouch(ivec2, TouchStatus status) {
      if (status == TouchStatus_PRESS) playerSetup->switchVests();
  }
- void onPlayerSetupBackButtonTouch(ivec2, TouchStatus status) {
-     if (status == TouchStatus_RELEASE) {
-         playerSetup->backButton.background.fillColor = TFT_CYAN;
-         GUI::selectActivity(GUI_Manager_Activity::SCANNER);
-     }
- }
- void onPlayerSetupNextButtonTouch(ivec2, TouchStatus status) {
-     if (playerSetup->canNext() && status == TouchStatus_RELEASE) {
-         GUI::selectActivity(GUI_Manager_Activity::READYSETGO);
-         Game::start();
-         Nexus::sendData(COMMS_GAMESTATUS,
-                         payloadSizePerCommand[COMMS_GAMESTATUS],
-                         (uint8_t *)&Game::status,
-                         NexusAddress{NEXUS_PROJECT_ID, 0xff, 0xff});
-     }
- }
+    /**
+    * @brief Touch event handler for the Back button.
+    */
+ void onPlayerSetupBackButtonTouch(ivec2 point, TouchStatus status) {
+    switch (status) {
+        case TouchStatus::TouchStatus_RELEASE:
+            playerSetup->backButton.background.fillColor = TFT_CYAN;
+            playerSetup->backButton.background.borderColor = TFT_BLACK;
+            playerSetup->backButton.text.textColor = TFT_BLACK;
+            playerSetup->backButton.callRender();
+
+            // Go back to the previous activity
+            GUI::selectActivity(GUI_Manager_Activity::SCANNER);
+            GUI::screen.executeTouch(
+                scanner->scanButton.getPosition(),
+                TouchStatus::TouchStatus_RELEASE
+            );
+            break;
+
+        case TouchStatus::TouchStatus_PRESS:
+            // Change the button color when pressed
+            playerSetup->backButton.background.fillColor = TFT_BLUE;
+            playerSetup->backButton.background.borderColor = TFT_WHITE;
+            playerSetup->backButton.text.textColor = TFT_WHITE;
+            playerSetup->backButton.callRender();
+            break;
+
+        case TouchStatus::TouchStatus_READY:
+            // Change the button color back when released
+            playerSetup->backButton.background.fillColor = TFT_CYAN;
+            playerSetup->backButton.background.borderColor = TFT_BLACK;
+            playerSetup->backButton.text.textColor = TFT_BLACK;
+            playerSetup->backButton.callRender();
+            break;
+
+        default:
+            break;
+    }
+}
+
+/**
+ * @brief Touch event handler for the Next button.
+ */
+void onPlayerSetupNextButtonTouch(ivec2 point, TouchStatus status) {
+    if (playerSetup->canNext()) {
+        switch (status) {
+            case TouchStatus::TouchStatus_RELEASE:
+                playerSetup->nextButton.background.fillColor = TFT_ORANGE;
+                playerSetup->nextButton.background.borderColor = TFT_BLACK;
+                playerSetup->nextButton.text.textColor = TFT_BLACK;
+                playerSetup->nextButton.callRender();
+
+                // Proceed to the next step
+                GUI::selectActivity(GUI_Manager_Activity::READYSETGO);
+                Game::start();
+                Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
+                    (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
+                break;
+
+            case TouchStatus::TouchStatus_PRESS:
+                // Change the button color when pressed
+                playerSetup->nextButton.background.fillColor = TFT_MAROON;
+                playerSetup->nextButton.background.borderColor = TFT_YELLOW;
+                playerSetup->nextButton.text.textColor = TFT_YELLOW;
+                playerSetup->nextButton.callRender();
+                break;
+
+            case TouchStatus::TouchStatus_READY:
+                // Change the button color back when released
+                playerSetup->nextButton.background.fillColor = TFT_ORANGE;
+                playerSetup->nextButton.background.borderColor = TFT_BLACK;
+                playerSetup->nextButton.text.textColor = TFT_BLACK;
+                playerSetup->nextButton.callRender();
+                break;
+             
+            default:
+                break;
+        }
+    } else {
+        // Change the button color to indicate it cannot be pressed
+        playerSetup->nextButton.background.fillColor = TFT_DARKGREY;
+        playerSetup->nextButton.background.borderColor = TFT_BLACK;
+        playerSetup->nextButton.text.textColor = TFT_BLACK;
+        playerSetup->nextButton.callRender();
+    }
+}
 
 void onPlayer1TitleTouch(ivec2, TouchStatus status) {
     if (status == TouchStatus_PRESS) {

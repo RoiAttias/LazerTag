@@ -18,6 +18,17 @@
  #include "Components/LuminaUI/LuminaUI.hpp"
  #include "Components/Nexus/Nexus.hpp"
  
+ //=== GUI screens enumeration ===
+ enum GUI_Manager_Activity : uint8_t {
+    ACTIVATION,    ///< Device activation / wake-up screen
+    SCANNER,       ///< Scans for remote devices
+    PLAYERSETUP,   ///< Configures player parameters (addresses, weapon)
+    READYSETGO,    ///< Countdown messages (Ready, Set, Go)
+    GAMEPLAY,      ///< Live dashboard (HP bars, device status)
+    GUI_Manager_Activity_size
+};
+
+
  namespace GUI {
      //=== Hardware interfaces ===
      extern TFT_eSPI tft;               ///< TFT display driver instance
@@ -59,16 +70,6 @@
       */
      void loop();
  }
- 
- //=== GUI screens enumeration ===
- enum GUI_Manager_Activity : uint8_t {
-     ACTIVATION,    ///< Device activation / wake-up screen
-     SCANNER,       ///< Scans for remote devices
-     PLAYERSETUP,   ///< Configures player parameters (addresses, weapon)
-     READYSETGO,    ///< Countdown messages (Ready, Set, Go)
-     GAMEPLAY,      ///< Live dashboard (HP bars, device status)
-     GUI_Manager_Activity_size
- };
  
  //=== GUI Element includes ===
  #include "Elements/DeviceBox.hpp"   ///< Displays a discovered device

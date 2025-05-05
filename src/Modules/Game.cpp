@@ -54,9 +54,14 @@
  
      bool canStart() {
          // Both players must have a gun assigned and the other’s vest reachable
-         bool p1Ready = player1.hasGun() && player2.hasVest();
-         bool p2Ready = player2.hasGun() && player1.hasVest();
-         return p1Ready || p2Ready;
+         bool case1Ready = player1.hasGun() && player2.hasVest();
+         bool case2Ready = player2.hasGun() && player1.hasVest();
+         if ( case1Ready || case2Ready) {
+                // Ensure that the guns and vests are not the same
+             return player1.getGunAddress() != player2.getGunAddress() &&
+                    player1.getVestAddress() != player2.getVestAddress();
+         }
+        return false;
      }
  
      bool shouldEnd() {
@@ -67,8 +72,8 @@
      void reset() {
          status = GAME_WAITING;
          // Restore default weapon for both players
-         player1.setGunData(Sidearm);
-         player2.setGunData(Sidearm);
+         player1.setGunData(Stinger);
+         player2.setGunData(Stinger);
      }
  
      void start() {

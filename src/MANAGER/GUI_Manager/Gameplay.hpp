@@ -191,6 +191,32 @@ public:
     }
 };
 
+/**
+ * @brief Global instance of the Gameplay activity.
+ *        Used by GUI_Manager to switch screens.
+ */
+Gameplay* gameplay = new Gameplay();
+
+void againButtonCallback(ivec2 point, TouchStatus status) {
+    if (status == TouchStatus_RELEASE) {
+        GUI::selectActivity(GUI_Manager_Activity::ACTIVATION);
+    }
+    else if (status == TouchStatus_PRESS) {
+        // Change the button color when pressed
+        gameplay->againButton.background.fillColor = TFT_MAROON;
+        gameplay->againButton.background.borderColor = TFT_YELLOW;
+        gameplay->againButton.text.textColor = TFT_YELLOW;
+        gameplay->againButton.callRender();
+    }
+    else if (status == TouchStatus_READY) {
+        // Change the button color back when released
+        gameplay->againButton.background.fillColor = TFT_BLACK;
+        gameplay->againButton.background.borderColor = TFT_YELLOW;
+        gameplay->againButton.text.textColor = TFT_YELLOW;
+        gameplay->againButton.callRender();
+    }
+}
+
 void onPlayer1NameTouch(ivec2, TouchStatus status) {
     if (status == TouchStatus_PRESS) {
         if (Game::player1.hasGun()) {
@@ -216,11 +242,5 @@ void onPlayer2NameTouch(ivec2, TouchStatus status) {
         }
     }
 }
-
-/**
- * @brief Global instance of the Gameplay activity.
- *        Used by GUI_Manager to switch screens.
- */
-Gameplay* gameplay = new Gameplay();
 
 #endif // GAMEPLAY_HPP

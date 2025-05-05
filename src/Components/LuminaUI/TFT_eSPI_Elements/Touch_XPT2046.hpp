@@ -72,7 +72,7 @@
          const int noiseThresh = 50;
  
          for (int i = 0; i < maxAttempts && valid < sampleCount; ++i) {
-             LuminaUI::tft_instance->getTouch(&raw[0], &raw[1]);
+             LuminaUI::tft_instance->getTouchRaw(&raw[0],&raw[1]);
              curr = ivec2(raw[0], raw[1]);
              if (!valid) prev = curr;
              ivec2 delta = curr - prev;
@@ -100,6 +100,7 @@
              default: result = m;
          }
          lastPoint = result;
+         Serial.println("Touch point: " + result.toString());
          return result;
      }
  

@@ -11,4 +11,4 @@ Changes:
 - the gun name command is send to each gun device when the game begin
 
 5/5
-- 
+- updated game start conditions: now ensures that guns are different and vest are different
