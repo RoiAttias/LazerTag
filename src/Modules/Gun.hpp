@@ -15,6 +15,8 @@
  #include <Arduino.h>
  #include "Utilities/Countdowner.hpp"  ///< Timer utility for scheduling burst shots
  
+#define MAX_GUN_NAME_LENGTH 32  ///< Maximum length for gun name strings
+
  /**
   * @enum GunStatus
   * @brief Represents the current operational state of a Gun.
@@ -247,42 +249,57 @@
 // --------------------------------------------------------------------------
  
  /**
-  * @brief Predefined loadout: "Sidearm" burst pistol (Stinger).
+  * @brief Predefined loadout: "Stinger" burst pistol.
   *
   * Statistics:
   *  - Damage: 10
   *  - Magazine: 18 rounds
   *  - Rate: 60 RPM
   *  - Reload: 1800 ms
-  *  - Mode: 3-shot burst
+  *  - Full-auto: false
+  *  - Burst: 3 shots
   *  - Burst Interval: 100 ms
   */
-const GunData Sidearm = {10, 18, 60, 1800, false, 3, 100};
+const GunData Stinger = {10, 18, 60, 1800, false, 3, 100};
  
  /**
-  * @brief Predefined loadout: "Sidearm_2" full-auto pistol (Ghost).
+  * @brief Predefined loadout: "Ghost" full-auto pistol.
   *
   * Statistics:
   *  - Damage: 20
   *  - Magazine: 13 rounds
   *  - Rate: 300 RPM
   *  - Reload: 1500 ms
-  *  - Mode: Full-auto (1-shot per trigger)
+  *  - Full-auto: true
+  *  - Burst: 1 (single shot)
   *  - Burst Interval: 0 ms
   */
-const GunData Sidearm_2 = {20, 13, 300, 1500, true, 1, 0};
+const GunData Ghost = {20, 13, 300, 1500, true, 1, 0};
  
  /**
-  * @brief Predefined loadout: "HandCannon" heavy single-shot pistol (Hammerfall).
+  * @brief Predefined loadout: "Hammerfall" heavy single-shot pistol.
   *
   * Statistics:
   *  - Damage: 30
   *  - Magazine: 8 rounds
   *  - Rate: 150 RPM
   *  - Reload: 3000 ms
-  *  - Mode: Single-shot
+  *  - Full-auto: false
+  * - Burst: 1 (single shot)
   *  - Burst Interval: 0 ms
   */
-const GunData HandCannon = {30, 8, 150, 3000, false, 1, 0};
- 
+const GunData Hammerfall = {30, 8, 150, 3000, false, 1, 0};
+
+const GunData gunDataArray[] = {
+    Stinger,
+    Ghost,
+    Hammerfall
+};
+constexpr int gunDataArraySize = sizeof(gunDataArray) / sizeof(GunData);
+const char gunDataNameArray[gunDataArraySize][MAX_GUN_NAME_LENGTH] = {
+    "Stinger",
+    "Ghost",
+    "Hammerfall"
+};
+
 #endif // GUN_HPP

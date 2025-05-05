@@ -25,6 +25,7 @@
      NexusAddress vestAddress;   ///< Network address of the player's vest module
      int          hp;            ///< Current health points (0 = dead)
      GunData      gunData;       ///< Current weapon configuration data
+     char         gunName[MAX_GUN_NAME_LENGTH]; ///< Name of the gun (up to 32 characters)
  
      /**
       * @brief Construct a Player with default health and Sidearm loadout.
@@ -40,7 +41,8 @@
          gunAddress(gunAddr),
          vestAddress(vestAddr),
          hp(100),
-         gunData(Sidearm) {}       
+         gunData(Stinger),
+         gunName("Unknown") {}       
  
      // -------------------------------------------------------------------------
      // Identification
@@ -77,6 +79,16 @@
      GunData getGunData() const { return gunData; }
      /** @brief Update the player’s weapon configuration. */
      void setGunData(const GunData& data) { gunData = data; }
+     
+        /** @brief Get the name of the gun. */
+        String getGunName() const { return String(gunName); }
+        /** @brief Get the name of the gun. */
+        const char* getGunNameRaw() const { return gunName; }
+        /** @brief Set the name of the gun. */
+        void setGunName(const char* name) {
+            gunName = {0}; // Clear the array
+            strncpy(gunName, name, MAX_GUN_NAME_LENGTH); // Copy the name
+        }
  
      // -------------------------------------------------------------------------
      // Nexus Addresses

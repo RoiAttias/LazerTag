@@ -26,6 +26,26 @@
 void againButtonCallback(ivec2 point, TouchStatus touchStatus);
 
 /**
+ * @brief Touch handler for Player 1 name label.
+ *
+ * If pressed, sends a "mark" packet to the respective device.
+ *
+ * @param point      The touch coordinates.
+ * @param touchStatus The type of touch event (PRESS, RELEASE, READY, etc.).
+ */
+void onPlayer1NameTouch(ivec2 point, TouchStatus touchStatus);
+
+/**
+ * @brief Touch handler for Player 2 name label.
+ *
+ * If pressed, sends a "mark" packet to the respective device.
+ *
+ * @param point      The touch coordinates.
+ * @param touchStatus The type of touch event (PRESS, RELEASE, READY, etc.).
+ */
+void onPlayer2NameTouch(ivec2 point, TouchStatus touchStatus);
+
+/**
  * @class Gameplay
  * @brief A LuminaUI Activity showing the running game dashboard for the manager.
  *
@@ -87,6 +107,12 @@ public:
         // Enable touch for the restart button and assign its handler
         againButton.OnTouch_setHandler(againButtonCallback);
         againButton.OnTouch_setEnable(true);
+
+        // Enable touch for player name labels and assign their handlers
+        player1Title.OnTouch_setHandler(onPlayer1NameTouch);
+        player1Title.OnTouch_setEnable(true);
+        player2Title.OnTouch_setHandler(onPlayer2NameTouch);
+        player2Title.OnTouch_setEnable(true);
 
         // Add all elements to the activity's rendering list
         Element* elems[] = {
@@ -164,6 +190,32 @@ public:
         return Activity::render(viewport);
     }
 };
+
+void onPlayer1NameTouch(ivec2, TouchStatus status) {
+    if (status == TouchStatus_PRESS) {
+        if (Game::player1.hasGun()) {
+            Nexus::sendData(COMMS_MARK, 0, nullptr,
+                        Game::player1.getGunAddress());
+        }
+        if (Game::player1.hasVest()) {
+            Nexus::sendData(COMMS_MARK, 0, nullptr,
+                        Game::player1.getVestAddress());
+        }
+    }
+}
+
+void onPlayer2NameTouch(ivec2, TouchStatus status) {
+    if (status == TouchStatus_PRESS) {
+        if (Game::player2.hasGun()) {
+            Nexus::sendData(COMMS_MARK, 0, nullptr,
+                        Game::player2.getGunAddress());
+        }
+        if (Game::player2.hasVest()) {
+            Nexus::sendData(COMMS_MARK, 0, nullptr,
+                        Game::player2.getVestAddress());
+        }
+    }
+}
 
 /**
  * @brief Global instance of the Gameplay activity.

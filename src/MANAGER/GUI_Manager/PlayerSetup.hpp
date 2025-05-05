@@ -26,6 +26,8 @@
  void onVestSwitchButtonTouch(ivec2, TouchStatus);
  void onPlayerSetupBackButtonTouch(ivec2, TouchStatus);
  void onPlayerSetupNextButtonTouch(ivec2, TouchStatus);
+ void onPlayer1TitleTouch(ivec2, TouchStatus);
+ void onPlayer2TitleTouch(ivec2, TouchStatus);
  
  class PlayerSetup : public Activity {
  public:
@@ -86,7 +88,7 @@
            &FreeMono24pt7b, true, true
          )
      {
-         // Configure switch & nav buttons
+         // Configure switch & nav & title buttons
          gunSwitchButton.OnTouch_setHandler(onGunSwitchButtonTouch);
          gunSwitchButton.OnTouch_setEnable(true);
          vestSwitchButton.OnTouch_setHandler(onVestSwitchButtonTouch);
@@ -96,6 +98,11 @@
          backButton.OnTouch_setEnable(true);
          nextButton.OnTouch_setHandler(onPlayerSetupNextButtonTouch);
          nextButton.OnTouch_setEnable(true);
+
+         player1Title.OnTouch_setHandler(onPlayer1TitleTouch);
+         player1Title.OnTouch_setEnable(true);
+         player2Title.OnTouch_setHandler(onPlayer2TitleTouch);
+         player2Title.OnTouch_setEnable(true);
  
          // Add all children
          Element* elems[] = {
@@ -210,5 +217,31 @@
                          NexusAddress{NEXUS_PROJECT_ID, 0xff, 0xff});
      }
  }
+
+void onPlayer1TitleTouch(ivec2, TouchStatus status) {
+    if (status == TouchStatus_PRESS) {
+        if (Game::player1.hasGun()) {
+            Nexus::sendData(COMMS_MARK, 0, nullptr,
+                        Game::player1.getGunAddress());
+        }
+        if (Game::player1.hasVest()) {
+            Nexus::sendData(COMMS_MARK, 0, nullptr,
+                        Game::player1.getVestAddress());
+        }
+    }
+}
+
+void onPlayer2TitleTouch(ivec2, TouchStatus status) {
+    if (status == TouchStatus_PRESS) {
+        if (Game::player2.hasGun()) {
+            Nexus::sendData(COMMS_MARK, 0, nullptr,
+                        Game::player2.getGunAddress());
+        }
+        if (Game::player2.hasVest()) {
+            Nexus::sendData(COMMS_MARK, 0, nullptr,
+                        Game::player2.getVestAddress());
+        }
+    }
+}
  
  #endif // PLAYERSETUP_HPP 

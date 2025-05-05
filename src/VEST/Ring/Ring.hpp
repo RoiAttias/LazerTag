@@ -15,10 +15,11 @@
  #include "Utilities/MoreMath.hpp"      ///< clamp(), distance(), mix()
  
  // Hue definitions for HSV color wheel
- #define HUE_RED    0
- #define HUE_GREEN  (0xFFFF / 3)
- #define HUE_BLUE   (HUE_GREEN * 2)
- #define HUE_YELLOW (HUE_GREEN / 2)
+ #define HUE_RED    0                // 0 degrees
+ #define HUE_GREEN  (0xFFFF / 3)     // 120 degrees
+ #define HUE_BLUE   (HUE_GREEN * 2)  // 240 degrees
+ #define HUE_YELLOW (HUE_GREEN / 2)  // 60 degrees
+ #define HUE_PURPLE ((HUE_YELLOW / 2) + HUE_BLUE) // 270 degrees
  
  namespace Ring {
      extern int      hp;           ///< Current health percentage (0–100)
@@ -179,6 +180,12 @@
          flashingHue = HUE_YELLOW;
          visualizer.addAnimation(markedAnimation);
      }
+
+     /** @brief Brief purple mark effect. */
+     void demark() {
+        flashingHue = HUE_PURPLE;
+        visualizer.addAnimation(markedAnimation);
+    }
  
      /** @brief Show game-over loading effect (red). */
      void over() {

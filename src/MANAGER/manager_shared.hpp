@@ -46,6 +46,11 @@
          payloadSizePerCommand[COMMS_GUNPARAMS],
          (uint8_t*)&Game::player1.gunData,
          Game::player1.getGunAddress());
+     Nexus::sendData(
+        COMMS_GUNNAME,
+        payloadSizePerCommand[COMMS_GUNNAME],
+        (uint8_t*)Game::player1.gunName,
+        Game::player1.getGunAddress());
  
      // Player 2 initialization
      Nexus::sendData(
@@ -68,6 +73,11 @@
          payloadSizePerCommand[COMMS_GUNPARAMS],
          (uint8_t*)&Game::player2.gunData,
          Game::player2.getGunAddress());
+     Nexus::sendData(
+        COMMS_GUNNAME,
+        payloadSizePerCommand[COMMS_GUNNAME],
+        (uint8_t*)Game::player2.gunName,
+        Game::player2.getGunAddress());
  
      // Change game state and GUI
      Game::run();

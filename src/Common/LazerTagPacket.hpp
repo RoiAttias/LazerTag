@@ -34,7 +34,9 @@
      COMMS_GUNPARAMS,  ///< Gun configuration parameters
      COMMS_FIRECODE,   ///< Fire event identifier
      COMMS_GAMESTATUS, ///< Game status update
-     COMMS_MARK,       ///< Hit marker (no payload)
+     COMMS_MARK,       ///< Mark marker (no payload)
+     COMMS_DEMARK,     ///< Demark marker (no payload)
+     COMMS_GUNNAME,    ///< Gun name (32 characters)
      COMMS_size        ///< Total number of commands
  };
  
@@ -45,11 +47,13 @@
   * of its associated payload. For COMMS_MARK (no payload), size is 0.
   */
  static const int payloadSizePerCommand[COMMS_size] = {
-     sizeof(int),       ///< COMMS_PLAYERHP
-     sizeof(GunData),   ///< COMMS_GUNPARAMS
-     sizeof(uint32_t),  ///< COMMS_FIRECODE
-     sizeof(GameStatus),///< COMMS_GAMESTATUS
-     0                  ///< COMMS_MARK
+     sizeof(int),           ///< COMMS_PLAYERHP
+     sizeof(GunData),       ///< COMMS_GUNPARAMS
+     sizeof(uint32_t),      ///< COMMS_FIRECODE
+     sizeof(GameStatus),    ///< COMMS_GAMESTATUS
+     0,                     ///< COMMS_MARK
+     0,                     ///< COMMS_DEMARK
+     MAX_GUN_NAME_LENGTH    ///< COMMS_GUNNAME
  };
  
  #endif // LAZERTAGPACKET_HPP 

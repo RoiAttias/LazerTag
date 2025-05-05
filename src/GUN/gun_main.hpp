@@ -41,8 +41,10 @@ void gun_Shoot_callback(int parameter);
 void gun_OnReloadFinish_callback(Gun* gun);
 
 //-----------------------------------------------------------------------------
-// Animation callbacks
+// Animations
 //-----------------------------------------------------------------------------
+
+bool isDemarked = false; ///< Flag to indicate if the gun is demarked instead of marked
 
 /**
  * @brief Fire animation for the LED strip.
@@ -96,7 +98,12 @@ void markAnimationFunc(Adafruit_NeoPixel* strip,
         uint8_t brightness = uint8_t(clamp(1.0f - 2.0f * dist,
                                            0.0f, 1.0f) * 255);
         // Fixed hue: 1/7th of the color wheel (yellow-ish)
-        uint16_t hue = (0xFFFF / 7);
+        uint16_t hue = (0xFFFF / 12); // 360/12 = 30 degrees
+        if (isDemarked) {
+            hue *= 9; // 270 degrees (Purple)
+        } else {
+            hue *= 2; // 60 degrees (Yellow)
+        }
         strip->setPixelColor(
             startIndex + i,
             strip->ColorHSV(hue, 255, brightness)
@@ -280,7 +287,7 @@ void gun_loop() {
             callRender = true;
         }
         // Manual fire
-        if (trigger.hasPressed() || trigger.isPressed()) {
+        if (trigger.hasPressed() || (trigger.isPressed() && gun.fullAuto)) {
             gun.shoot();
         }
     }
@@ -356,6 +363,14 @@ void gun_loop() {
                 break;
 
             case COMMS_MARK:
+                // Play mark animation
+                isDemarked = false;
+                visualizer.addAnimation(markAnimation);
+                break;
+            
+            case COMMS_DEMARK:
+                // Play demark animation
+                isDemarked = true;
                 visualizer.addAnimation(markAnimation);
                 break;
 

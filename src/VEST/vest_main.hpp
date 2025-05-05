@@ -103,6 +103,11 @@
          // Play a brief "mark" animation (e.g. yellow flash)
          Ring::mark();
          break;
+        
+       case COMMS_DEMARK:
+         // Play a brief "demark" animation (e.g. purple flash)
+         Ring::demark();
+         break;
  
        default:
          // Unknown command: ignore

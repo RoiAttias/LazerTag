@@ -254,14 +254,18 @@
          auto *box = scanner->deviceBoxes[i];
          if (box->visible && box->inRange(point)) {
              box->invertSelected();
-             if (box->selected) {
-                 uint8_t g = box->deviceGroup;
-                 if (g == NEXUS_GROUP_GUN || g == NEXUS_GROUP_VEST) {
-                     NexusAddress addr{NEXUS_PROJECT_ID, g, (uint8_t)box->deviceId};
-                     Nexus::sendData(COMMS_MARK, 0, nullptr, addr);
-                 } else {
-                     box->setSelected(false);
-                 }
+             uint8_t g = box->deviceGroup;
+             if (g == NEXUS_GROUP_GUN || g == NEXUS_GROUP_VEST) {
+                NexusAddress addr{NEXUS_PROJECT_ID, g, (uint8_t)box->deviceId};
+                if (box->selected) {
+                    // Send a mark packet to the selected device
+                    Nexus::sendData(COMMS_MARK, 0, nullptr, addr);
+                } else {
+                    // Send a demark packet to the unselected device
+                    Nexus::sendData(COMMS_DEMARK, 0, nullptr, addr);
+                }
+             } else {
+                box->setSelected(false);
              }
              break;
          }

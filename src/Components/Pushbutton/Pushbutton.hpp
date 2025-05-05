@@ -114,6 +114,14 @@
      void enableReleaseEvent(bool enable) {
          enableRelease = enable;
      }
+
+     /**
+      * @brief Clear the press and release event flags.
+      */
+     void clear() {
+         _hasPressed = false;
+         _hasReleased = false;
+     }
  
      /**
       * @brief Query and clear the press event flag.
