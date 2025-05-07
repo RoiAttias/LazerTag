@@ -14,5 +14,7 @@ Changes:
 - updated game start conditions: now ensures that guns are different and vest are different
 - fixed ui problems
 
-6/5
-- 
+7/5
+- going back from PlayerSetup to Scanner trigger scan automatically
+- added parameter to Gradient element
+- added Gun Setup activities

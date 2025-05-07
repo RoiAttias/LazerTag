@@ -21,9 +21,6 @@
  void onScanButtonTouch(ivec2 point, TouchStatus status);
  void onNextButtonTouch(ivec2 point, TouchStatus status);
  void onDeviceBoxTouch(ivec2 point, TouchStatus status);
-
- // Forward declaration for scanner trigger function
- void triggerScanner();
  
  /**
   * @class Scanner

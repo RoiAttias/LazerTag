@@ -30,20 +30,34 @@
       * @brief RGB color at the left edge of the gradient.
       * Stored as three bytes: { R, G, B }.
       */
-     uint8_t colorLeft[3] = {0,   0, 255};  
+     uint8_t colorLeft[3] = {0, 0, 255};  
  
      /**
       * @brief RGB color at the right edge of the gradient.
       * Stored as three bytes: { R, G, B }.
       */
-     uint8_t colorRight[3] = {255, 0,   0};  
+     uint8_t colorRight[3] = {255, 0, 0};
+
+     bool isHorizontal = false; ///< Flag to indicate horizontal gradient
  
      /**
       * @brief Construct a new Gradient element.
       * @param element Base element defining position and size; defaults to auto.
+      * @param lr1 Left color red component (default 0).
+      * @param lg1 Left color green component (default 0).
+      * @param lb1 Left color blue component (default 255).
+      * @param lr2 Right color red component (default 255).
+      * @param lg2 Right color green component (default 0).
+      * @param lb2 Right color blue component (default 0).
+      * @param horizontal If true, draw a horizontal gradient (default false).
       */
-     Gradient(Element element = Element()) 
-         : Element(element) {}
+     Gradient(Element element = Element(),
+        uint8_t lr1 = 0, uint8_t lg1 = 0, uint8_t lb1 = 255,
+        uint8_t lr2 = 255, uint8_t lg2 = 0, uint8_t lb2 = 0,
+        bool horizontal = false)
+        : colorLeft{lr1, lg1, lb1}, colorRight{lr2, lg2, lb2},
+          isHorizontal(horizontal),
+          Element(element) {}
  
      /**
       * @brief Render the gradient into its viewport.
@@ -71,18 +85,34 @@
              gradViewport.scale.y
          );
  
-         // Draw a vertical line for each column
-         for (int x = 0; x < gradViewport.scale.x; x++) {
-             float factor = float(x) / float(gradViewport.scale.x - 1);
- 
-             // Interpolate each channel
-             byte r = mix(factor, colorLeft[0],  colorRight[0]);
-             byte g = mix(factor, colorLeft[1],  colorRight[1]);
-             byte b = mix(factor, colorLeft[2],  colorRight[2]);
- 
-             // Convert to 16-bit and draw
-             uint16_t col = LuminaUI::tft_instance->color565(r, g, b);
-             LuminaUI::tft_instance->drawFastVLine(x, 0, gradViewport.scale.y, col);
+        if (isHorizontal) {
+             // Draw an horizontal line for each column
+            for (int y = 0; y < gradViewport.scale.y; y++) {
+                float factor = float(y) / float(gradViewport.scale.y - 1);
+    
+                // Interpolate each channel
+                byte r = mix(factor, colorLeft[0],  colorRight[0]);
+                byte g = mix(factor, colorLeft[1],  colorRight[1]);
+                byte b = mix(factor, colorLeft[2],  colorRight[2]);
+    
+                // Convert to 16-bit and draw
+                uint16_t col = LuminaUI::tft_instance->color565(r, g, b);
+                LuminaUI::tft_instance->drawFastHLine(0, y, gradViewport.scale.x, col);
+            }
+         } else {
+            // Draw a vertical line for each column
+            for (int x = 0; x < gradViewport.scale.x; x++) {
+                float factor = float(x) / float(gradViewport.scale.x - 1);
+    
+                // Interpolate each channel
+                byte r = mix(factor, colorLeft[0],  colorRight[0]);
+                byte g = mix(factor, colorLeft[1],  colorRight[1]);
+                byte b = mix(factor, colorLeft[2],  colorRight[2]);
+    
+                // Convert to 16-bit and draw
+                uint16_t col = LuminaUI::tft_instance->color565(r, g, b);
+                LuminaUI::tft_instance->drawFastVLine(x, 0, gradViewport.scale.y, col);
+            }
          }
  
          // Restore full-screen drawing

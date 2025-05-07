@@ -23,6 +23,8 @@
     ACTIVATION,    ///< Device activation / wake-up screen
     SCANNER,       ///< Scans for remote devices
     PLAYERSETUP,   ///< Configures player parameters (addresses, weapon)
+    PLAYER1GUNSETUP, ///< Configures player 1 gun parameters
+    PLAYER2GUNSETUP, ///< Configures player 2 gun parameters
     READYSETGO,    ///< Countdown messages (Ready, Set, Go)
     GAMEPLAY,      ///< Live dashboard (HP bars, device status)
     GUI_Manager_Activity_size
@@ -80,6 +82,7 @@
  #include "Activation.hpp"           ///< Activation screen Activity
  #include "Scanner.hpp"              ///< Device scanner Activity
  #include "PlayerSetup.hpp"          ///< Player setup Activity
+ #include "GunSetup.hpp"             ///< Gun setup Activity
  #include "Message.hpp"              ///< Simple message Activity
  #include "ReadySetGo.hpp"           ///< Countdown Activity
  #include "Gameplay.hpp"             ///< Gameplay dashboard Activity
@@ -99,6 +102,8 @@
          activation,
          scanner,
          playerSetup,
+         player1GunSetup,
+         player2GunSetup,
          readySetGoMessage,
          gameplay
      };
