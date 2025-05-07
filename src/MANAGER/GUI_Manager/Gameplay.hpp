@@ -156,31 +156,42 @@ public:
         player1HpBar.setValue(player1Hp);
         player2HpBar.setValue(player2Hp);
 
-        // Update the narration based on current health dynamics
+        // Narration for key game events with added dynamic sentences
         if (maxHP == 100 && leadingPlayer == 0) {
-            narratorText.content = "Game Started! Let the duel commence...";
+            narratorText.content =  
+                "Game Started! Let the duel commence. Prepare for an epic showdown on the laser taggin' battlefield!";
+            /** Another options:
+             * "As the two competitors arrives .The arena is charged with anticipation as they prepare for the ultimate showdown!"
+             * "The arena is alive with energy! Both players are at full health, ready to unleash their skills in this electrifying duel!"
+             */
         } else if (minHP == 0 && leadingPlayer != 0) {
-            titleText.content    = "Player " + String(leadingPlayer) + " wins!";
-            narratorText.content = "Game's Over! Player " + String(leadingPlayer)
-                                  + " emerges victorious!";
-            againButton.visible  = true;
+            titleText.content =  
+                "Player " + String(leadingPlayer) + " wins!";
+            narratorText.content =  "Game's Over! Player " + String(leadingPlayer)
+                + " wins! What an electrifying duel that kept us on the edge of our seats!";
         } else if (minHP == 0 && leadingPlayer == 0) {
-            titleText.content    = "It's a tie!";
-            narratorText.content = "Both down! It's a draw!";
-            againButton.visible  = true;
-        } else if (minHP > 60 && leadingPlayer != 0) {
-            narratorText.content = "Player " + String(leadingPlayer)
-                                  + " leads strongly!";
+            titleText.content =  
+                "It's a tie!";
+            narratorText.content =  
+                "It's a tie! Both players fought valiantly, but the arena has claimed them both!";
+        } else if (maxHP == 100 && leadingPlayer != 0) {
+            narratorText.content =  
+                "Player " + String(leadingPlayer) + " is blazing ahead! With lightning-fast moves, the arena ignites with energy!";
+        } else if (minHP > 60 && minHP < 100 && leadingPlayer != 0) {
+            narratorText.content =  
+                "Player " + String(leadingPlayer) + " is in the lead! The tension is palpable as the duel intensifies!";
         } else if (minHP <= 60 && minHP > 30) {
-            narratorText.content = "The duel is heating up!";
+            narratorText.content =  
+                "The duel is heating up!";
         } else if (minHP <= 30 && minHP > 15) {
-            narratorText.content = "High tension! Every shot counts!";
+            narratorText.content =  
+                "The stakes are high! One wrong move could turn the tide of battle!";
         } else if (minHP <= 15 && leadingPlayer != 0) {
-            narratorText.content = "Player "
-                                  + String((leadingPlayer % 2) + 1)
-                                  + " is on the edge!";
+            narratorText.content =  
+                "Player " + String((leadingPlayer % 2) + 1) + " is hanging by a thread! One more hit could change everything!";
         } else {
-            narratorText.content = "The duel rages on...";
+            narratorText.content =  
+                "The duel rages on... Every shot is a heartbeat, and the tension is lighting up the arena!";
         }
 
         // Show or hide the restart button based on game over

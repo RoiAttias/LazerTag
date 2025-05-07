@@ -21,6 +21,9 @@
  void onScanButtonTouch(ivec2 point, TouchStatus status);
  void onNextButtonTouch(ivec2 point, TouchStatus status);
  void onDeviceBoxTouch(ivec2 point, TouchStatus status);
+
+ // Forward declaration for scanner trigger function
+ void triggerScanner();
  
  /**
   * @class Scanner
@@ -120,7 +123,7 @@
      bool canNext() {
          int guns = 0, vests = 0;
          for (int i = 0; i < 9; i++) {
-             if (!deviceBoxes[i]->selected) continue;
+             if ((!deviceBoxes[i]->selected) || (!deviceBoxes[i]->visible)) continue;
              if (deviceBoxes[i]->deviceGroup == NEXUS_GROUP_GUN)  guns++;
              if (deviceBoxes[i]->deviceGroup == NEXUS_GROUP_VEST) vests++;
          }
@@ -291,6 +294,22 @@
          }
      }
      GUI::callRender();
+ }
+
+ /**
+  * @brief Simulate a touch on the scanner button.
+  * - Used to trigger a scan from the main loop
+  */
+ void triggerScanner() {
+    GUI::screen.executeTouch(
+        scanner->scanButton.getPosition()
+        , TouchStatus::TouchStatus_RELEASE
+    );
+
+    for (int i = 0; i < 9; i++) {
+        scanner->deviceBoxes[i]->visible = false;
+        scanner->deviceBoxes[i]->setSelected(false);
+    }
  }
  
  #endif // SCANNER_HPP 

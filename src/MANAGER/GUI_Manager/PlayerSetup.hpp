@@ -29,6 +29,10 @@
  void onPlayerSetupNextButtonTouch(ivec2, TouchStatus);
  void onPlayer1TitleTouch(ivec2, TouchStatus);
  void onPlayer2TitleTouch(ivec2, TouchStatus);
+
+ // A function from Scanner.hpp
+
+ //void triggerScanner(); ///< Forward declaration for scanner trigger function
  
  class PlayerSetup : public Activity {
  public:
@@ -230,10 +234,7 @@
 
             // Go back to the previous activity
             GUI::selectActivity(GUI_Manager_Activity::SCANNER);
-            GUI::screen.executeTouch(
-                scanner->scanButton.getPosition(),
-                TouchStatus::TouchStatus_RELEASE
-            );
+            triggerScanner();
             break;
 
         case TouchStatus::TouchStatus_PRESS:

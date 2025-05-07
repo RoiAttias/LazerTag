@@ -12,3 +12,7 @@ Changes:
 
 5/5
 - updated game start conditions: now ensures that guns are different and vest are different
+- fixed ui problems
+
+6/5
+- 
