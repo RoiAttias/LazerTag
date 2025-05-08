@@ -4,27 +4,29 @@
  #include "GUI_Manager.hpp"
  #include "Components/Nexus/Nexus.hpp"
  #include "Common/LazerTagPacket.hpp"
+ #include "ReadySetGo.hpp"
 
  
  // Forward declarations
- void onPlayer1PrevGunButtonTouch(ivec2, TouchStatus);
- void onPlayer1NextGunButtonTouch(ivec2, TouchStatus);
- void onPlayer1GunSetupBackButtonTouch(ivec2, TouchStatus);
- void onPlayer1GunSetupNextButtonTouch(ivec2, TouchStatus);
+ void onPlayer1PrevGunButtonTouch(ivec2, TouchStatus status);
+ void onPlayer1NextGunButtonTouch(ivec2, TouchStatus status);
+ void onPlayer1GunSetupBackButtonTouch(ivec2, TouchStatus status);
+ void onPlayer1GunSetupNextButtonTouch(ivec2, TouchStatus status);
 
-    void onPlayer2PrevGunButtonTouch(ivec2, TouchStatus);
-    void onPlayer2NextGunButtonTouch(ivec2, TouchStatus);
-    void onPlayer2GunSetupBackButtonTouch(ivec2, TouchStatus);
-    void onPlayer2GunSetupNextButtonTouch(ivec2, TouchStatus);
+    void onPlayer2PrevGunButtonTouch(ivec2, TouchStatus status);
+    void onPlayer2NextGunButtonTouch(ivec2, TouchStatus status);
+    void onPlayer2GunSetupBackButtonTouch(ivec2, TouchStatus status);
+    void onPlayer2GunSetupNextButtonTouch(ivec2, TouchStatus status);
 
 /**
  * @brief Function to start the game and transition to the ReadySetGo activity.
- *
+ * - Resets the RSG message to its initial state.
  * - Sets the game status to STARTING.
  * - Sends the game status to all devices.
  * - Calls Game::start() to initialize the game.
  */
 void moveToRSG() {
+    resetRSG();
     GUI::selectActivity(GUI_Manager_Activity::READYSETGO);
     Game::start();
     Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
@@ -37,7 +39,7 @@ void moveToRSG() {
      Text     titleText;     ///< “Player1 - Gun Setup” header
     
      Polygon prevTriangle; ///< Previous gun triangle
-     Text gunName;    ///< Gun name text box
+     Textbox gunName;    ///< Gun name text box
      Polygon nextTriangle; ///< Next gun triangle
  
      Text descriptionTitle; ///< Gun description title
@@ -57,7 +59,7 @@ void moveToRSG() {
             true),
          titleText(
            Element(ivec2(0,10), LuminaUI_AUTO, ivec2(480,50)),
-           "Gun Setup - Player " + playerNumber, TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold24pt7b
+           String("Player ") + playerNumber + String(" Setup"), TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold18pt7b
          ),
         prevTriangle(
             Element(ivec2(20,70), LuminaUI_AUTO, ivec2(40,50)),
@@ -69,8 +71,18 @@ void moveToRSG() {
             vec2(0.0f, 0.0f),vec2(1.0f, 1.0f)
         ),
         gunName(
-            Element(ivec2(70,70), LuminaUI_AUTO, ivec2(150,50)),
-            String("Gun Name"), TFT_WHITE, 1, TC_DATUM, 1.1f, &FreeMono9pt7b
+            Element(ivec2(70,70), LuminaUI_AUTO, ivec2(150,40)),
+            "Gun Name",     // content
+            TFT_WHITE,             // textColor
+            TFT_BLACK,             // fillColor
+            TFT_WHITE,             // borderColor
+            1,                     // textSize
+            MC_DATUM,              // textDatum
+            1.0f,                  // lineSpacing
+            10,                    // cornerRadius
+            &FreeMonoBold12pt7b,        // freeFont
+            true,                  // renderFill
+            true                   // renderBorder
         ),
         nextTriangle(
             Element(ivec2(230,70), LuminaUI_AUTO, ivec2(40,50)),
@@ -82,8 +94,8 @@ void moveToRSG() {
             vec2(0.0f, 0.0f),vec2(1.0f, 1.0f)
         ),
         descriptionTitle(
-            Element(ivec2(280,70), LuminaUI_AUTO, ivec2(150,30)),
-            "Description:", TFT_WHITE, 1, TC_DATUM, 0, &FreeMonoBold12pt7b
+            Element(ivec2(280,70), LuminaUI_AUTO, ivec2(200,30)),
+            "Description:", TFT_WHITE, 1, TL_DATUM, 0, &FreeMonoBold12pt7b
         ),
         gunDescription(
             Element(ivec2(280,100), LuminaUI_AUTO, ivec2(200,200)),
@@ -155,7 +167,7 @@ void moveToRSG() {
                 return Viewport(ivec2(0, 0), ivec2(0, 0));
             }
         }
-        gunName.content = String(gunDataNameArray[gunIndex]);
+        gunName.text.content = String(gunDataNameArray[gunIndex]);
         return Activity::render(vp);
     }
  };
@@ -168,21 +180,25 @@ static GunSetup *player2GunSetup = new GunSetup(2);
  /**
   * @brief Touch event handler for the Previous gun button - Player 1.
   */
- void onPlayer1PrevGunButtonTouch(ivec2, TouchStatus)
+ void onPlayer1PrevGunButtonTouch(ivec2, TouchStatus status)
  {
+    if (status == TouchStatus::TouchStatus_RELEASE) {
      // Decrement gun index and wrap around if necessary
      player1GunSetup->gunIndex = (player1GunSetup->gunIndex - 1 + gunDataArraySize) % gunDataArraySize;
      player1GunSetup->callRender();
+    }
  }
 
     /**
     * @brief Touch event handler for the Next gun button - Player 1.
     */
-void onPlayer1NextGunButtonTouch(ivec2, TouchStatus)
+void onPlayer1NextGunButtonTouch(ivec2, TouchStatus status)
 {
-    // Increment gun index and wrap around if necessary
-    player1GunSetup->gunIndex = (player1GunSetup->gunIndex + 1) % gunDataArraySize;
-    player1GunSetup->callRender();
+    if (status == TouchStatus::TouchStatus_RELEASE) {
+        // Increment gun index and wrap around if necessary
+        player1GunSetup->gunIndex = (player1GunSetup->gunIndex + 1) % gunDataArraySize;
+        player1GunSetup->callRender();
+    }
 }
 
     /**
@@ -197,6 +213,7 @@ void onPlayer1NextGunButtonTouch(ivec2, TouchStatus)
             player1GunSetup->backButton.callRender();
 
             // Go back to the previous activity
+            playerSetup->init();
             GUI::selectActivity(GUI_Manager_Activity::PLAYERSETUP);
             break;
 
@@ -262,20 +279,24 @@ void onPlayer1GunSetupNextButtonTouch(ivec2 point, TouchStatus status) {
 /**
  * @brief Touch event handler for the Previous gun button - Player 2.
  */
-void onPlayer2PrevGunButtonTouch(ivec2, TouchStatus)
+void onPlayer2PrevGunButtonTouch(ivec2, TouchStatus status)
 {
-    // Decrement gun index and wrap around if necessary
-    player2GunSetup->gunIndex = (player2GunSetup->gunIndex - 1 + gunDataArraySize) % gunDataArraySize;
-    player2GunSetup->callRender();
+    if (status == TouchStatus::TouchStatus_RELEASE) {
+        // Decrement gun index and wrap around if necessary
+        player2GunSetup->gunIndex = (player2GunSetup->gunIndex - 1 + gunDataArraySize) % gunDataArraySize;
+        player2GunSetup->callRender();
+    }
 }
 /**
  * @brief Touch event handler for the Next gun button - Player 2.
  */
-void onPlayer2NextGunButtonTouch(ivec2, TouchStatus)
+void onPlayer2NextGunButtonTouch(ivec2, TouchStatus status)
 {
-    // Increment gun index and wrap around if necessary
-    player2GunSetup->gunIndex = (player2GunSetup->gunIndex + 1) % gunDataArraySize;
-    player2GunSetup->callRender();
+    if (status == TouchStatus::TouchStatus_RELEASE) {
+        // Increment gun index and wrap around if necessary
+        player2GunSetup->gunIndex = (player2GunSetup->gunIndex + 1) % gunDataArraySize;
+        player2GunSetup->callRender();
+    }
 }
 /**
  * @brief Touch event handler for the Back button - Player 2.

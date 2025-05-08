@@ -11,6 +11,7 @@
  #define READYSETGO_HPP
  
  #include "GUI_Manager.hpp"
+ #include "Message.hpp"
  #include "Utilities/Countdowner.hpp"
  #include "MANAGER/manager_shared.hpp"
  
@@ -53,6 +54,17 @@
      TFT_YELLOW,           // Text color
      TFT_BLACK             // Button background/text secondary color
  );
+
+ void resetRSG() {
+     // Reset the message to its initial state
+     readySetGoMessage->setMessage("");
+     readySetGoMessage->setButtonVisible(true);
+     readySetGoMessage->okButton.OnTouch_setEnable(true);
+     readySetGoMessage->okButton.background.fillColor  = TFT_YELLOW;
+     readySetGoMessage->okButton.background.borderColor = TFT_BLACK;
+     readySetGoMessage->okButton.text.textColor        = TFT_BLACK;
+     GUI::callRender();
+ }
  
  /** @brief The sequence of strings shown at each countdown step. */
  String readySetGoText[] = {

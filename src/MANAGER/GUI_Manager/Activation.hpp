@@ -13,6 +13,10 @@
  #include "GUI_Manager.hpp"
  #include "Utilities/Countdowner.hpp"
  #include "Utilities/MoreMath.hpp"
+ #include "MANAGER/manager_shared.hpp"
+
+ // From Scanner.hpp
+ void triggerScanner(); ///< Forward declaration for scanner trigger function
  
  /**
   * @class Activation
@@ -30,8 +34,9 @@
      Text text2;               ///< Displays "LazerTag"
      Text text3;               ///< Displays "PRESS ANYWHERE TO PLAY"
      Text text4;               ///< Displays "Made by Roi Attias"
+     Text text5;               ///< Displays version in pormat "vX.Y.Z"
  
-     uint32_t countdownTime = 500;  ///< Delay before transitioning to scanner (ms)
+     uint32_t countdownTime = 400;  ///< Delay before transitioning to scanner (ms)
  
      /**
       * @brief Construct the Activation Activity.
@@ -56,12 +61,16 @@
            String("PRESS ANYWHERE TO PLAY"), TFT_WHITE, 1, TC_DATUM, 0.0f, &FreeMono12pt7b
          ),
          text4(
-           Element(ivec2(0, 260), LuminaUI_AUTO, ivec2(480,  50)),
+           Element(ivec2(0, 250), LuminaUI_AUTO, ivec2(480,  50)),
            String("Made by Roi Attias"), TFT_WHITE, 1, TC_DATUM, 0.0f, &FreeMonoBold12pt7b
+         ),
+         text5(
+           Element(ivec2(0, 290), LuminaUI_AUTO, ivec2(480,  30)),
+           SYSTEM_VERSION_STRING + "\0", TFT_WHITE, 1, MC_DATUM, 0.0f, &FreeMono9pt7b
          )
      {
          // Register all elements in the Activity's element list
-         Element* elems[] = { &background, &text1, &text2, &text3, &text4 };
+         Element* elems[] = { &background, &text1, &text2, &text3, &text4 , &text5 };
          elements.addFromArray(elems, sizeof(elems) / sizeof(Element*));
      }
  
@@ -102,6 +111,13 @@
                (uint8_t *)&Game::status,
                NexusAddress(NEXUS_PROJECT_ID, 0xFF, 0xFF)
              );
+              // Trigger the scanner to start scanning if not the first scan
+              //    and set the flag for the next scans
+             if (notTheFirstScan) {
+              triggerScanner();
+             } else {
+                 notTheFirstScan = true;
+             }
          }
      }
  };

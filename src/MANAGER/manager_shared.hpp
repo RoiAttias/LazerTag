@@ -14,6 +14,8 @@
  #include "Components/Nexus/Nexus.hpp"
  #include "Common/LazerTagPacket.hpp"
  #include "Modules/Game.hpp"
+
+ bool notTheFirstScan = false; ///< Flag to indicate if this is not the first scan
  
  /**
   * @brief Broadcasts game start data to both players and switches GUI.

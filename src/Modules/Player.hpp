@@ -110,6 +110,12 @@
      bool hasGun() const { return gunAddress != NexusAddress(); }
      /** @brief Check if a valid vest address is assigned. */
      bool hasVest() const { return vestAddress != NexusAddress(); }
+    
+     /** @brief Clear the gun address. */
+     void clearGun() { gunAddress = NexusAddress(); }
+     /** @brief Clear the vest address. */
+     void clearVest() { vestAddress = NexusAddress(); }
+
  };
  
  #endif // PLAYER_HPP 

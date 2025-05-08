@@ -200,6 +200,7 @@
              scanner->scanButton.callRender();
              break;
          case TouchStatus_RELEASE:
+             GUI::gameDevices.clear();
              Nexus::scan();
              scanner->scanButton.background.fillColor = TFT_DARKGREY;
              scanner->scanButton.background.borderColor = TFT_BLACK;
@@ -249,8 +250,8 @@
              scanner->nextButton.background.borderColor = TFT_BLACK;
              scanner->nextButton.text.textColor = TFT_BLACK;
              scanner->nextButton.callRender();
-             GUI::selectActivity(GUI_Manager_Activity::PLAYERSETUP);
              playerSetup->init();
+             GUI::selectActivity(GUI_Manager_Activity::PLAYERSETUP);
              break;
          case TouchStatus_READY:
              scanner->nextButton.background.fillColor = TFT_ORANGE;

@@ -20,10 +20,16 @@
  /// Minor version of the system
  #define SYSTEM_VERSION_MINOR 0
  /// Patch version of the system
- #define SYSTEM_VERSION_PATCH 0
+ #define SYSTEM_VERSION_PATCH 1
  
  /// Combined version as an array: {major, minor, patch}
  #define SYSTEM_VERSION {SYSTEM_VERSION_MAJOR, SYSTEM_VERSION_MINOR, SYSTEM_VERSION_PATCH}
+
+// Combined version as a string: "vX.Y.Z"  
+#define SYSTEM_VERSION_STRING \
+String("v") + SYSTEM_VERSION_MAJOR + "." + \
+SYSTEM_VERSION_MINOR + "." + \
+SYSTEM_VERSION_PATCH
  
  // -----------------------------------------------------------------------------
  // Device Types

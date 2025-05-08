@@ -17,7 +17,7 @@
  
  // ---------------------- CONSTANTS ----------------------
  /** Interval (ms) between automatic network scans. */
- #define NEXUS_SCAN_INTERVAL 2000
+ #define NEXUS_SCAN_INTERVAL 500
  /** Capacity of the incoming packet buffer. */
  #define NEXUS_BUFFER_SIZE 64
  /** Header length (bytes) for a NexusPacket. */

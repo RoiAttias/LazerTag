@@ -127,6 +127,12 @@
          Game::reset();
          int g=0, v=0;
          NexusAddress addr;
+         
+         Game::player1.clearGun();
+         Game::player1.clearVest();
+            Game::player2.clearGun();
+            Game::player2.clearVest();
+
          for (int i = 0; i < GUI::gameDevices.size(); i++) {
             addr = GUI::gameDevices[i];
              if (addr.groups == NEXUS_GROUP_GUN) {

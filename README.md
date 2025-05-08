@@ -18,3 +18,10 @@ Changes:
 - going back from PlayerSetup to Scanner trigger scan automatically
 - added parameter to Gradient element
 - added Gun Setup activities
+
+8/5
+- Scanner now automatically scans if its not the first time switching to Scanner
+- anded version to activation screen
+- changed nexus scan time from 2000ms to 500ms
+- added clear address functions in player, one for gun address and one for vest address
+- fixed player setup error of devicebox multiplication

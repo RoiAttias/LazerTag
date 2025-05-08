@@ -132,6 +132,7 @@
  
      void selectActivity(int activity) {
          screen.selectActivity(activity);
+         callRender();
      }
  
      void callRender() {
