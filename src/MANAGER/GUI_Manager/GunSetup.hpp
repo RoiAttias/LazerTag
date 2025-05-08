@@ -5,7 +5,6 @@
  #include "Components/Nexus/Nexus.hpp"
  #include "Common/LazerTagPacket.hpp"
  #include "ReadySetGo.hpp"
-
  
  // Forward declarations
  void onPlayer1PrevGunButtonTouch(ivec2, TouchStatus status);
@@ -17,6 +16,24 @@
     void onPlayer2NextGunButtonTouch(ivec2, TouchStatus status);
     void onPlayer2GunSetupBackButtonTouch(ivec2, TouchStatus status);
     void onPlayer2GunSetupNextButtonTouch(ivec2, TouchStatus status);
+
+bool forward = true; ///< Flag to indicate the direction of auto switching activities
+uint32_t trianglePressColor = TFT_ORANGE; ///< Color for the triangle when pressed
+
+// Polygon Data
+// Polygon vertex list for a single triangle.
+static vec2 triangle_vertices[] = {
+    {0.0f, 0.5f}, {1.0f, 0.0f}, {1.0f, 1.0f}
+};
+// Number of vertices
+static const uint triangle_vertices_count = sizeof(triangle_vertices) / sizeof(vec2);
+
+// triangle index list for the triangle (3 indices for 1 triangle)
+static uint triangle_triangles[] = {
+    0, 1, 2
+};
+// Number of indices
+static const uint triangle_triangles_count = sizeof(triangle_triangles) / sizeof(uint);
 
 /**
  * @brief Function to start the game and transition to the ReadySetGo activity.
@@ -38,9 +55,13 @@ void moveToRSG() {
      Gradient background;    ///< Gradient fill background
      Text     titleText;     ///< “Player1 - Gun Setup” header
     
+     Text    nameTitle;    ///< Gun name title
      Polygon prevTriangle; ///< Previous gun triangle
      Textbox gunName;    ///< Gun name text box
      Polygon nextTriangle; ///< Next gun triangle
+
+     Text    parametersTitle; ///< Gun parameters title
+     Textbox gunParameters; ///< Gun parameters text box
  
      Text descriptionTitle; ///< Gun description title
      Textbox gunDescription; ///< Gun description text box
@@ -58,20 +79,22 @@ void moveToRSG() {
             0, 0, 0,
             true),
          titleText(
-           Element(ivec2(0,10), LuminaUI_AUTO, ivec2(480,50)),
+           Element(ivec2(0,0), LuminaUI_AUTO, ivec2(480,45)),
            String("Player ") + playerNumber + String(" Setup"), TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold18pt7b
          ),
+        nameTitle(
+            Element(ivec2(20,45), LuminaUI_AUTO, ivec2(200,25)),
+            "Gun:", TFT_WHITE, 1, TL_DATUM, 0, &FreeMonoBold12pt7b
+        ),
         prevTriangle(
-            Element(ivec2(20,70), LuminaUI_AUTO, ivec2(40,50)),
-            polygon_vertices_example,
-            polygon_vertices_example_count,
-            polygon_triangles_example,
-            polygon_triangles_example_count, 
+            Element(ivec2(10,70), LuminaUI_AUTO, ivec2(45,50)),
+            triangle_vertices, triangle_vertices_count,
+            triangle_triangles, triangle_triangles_count,
             TFT_WHITE, TFT_BLACK, true, true,
-            vec2(0.0f, 0.0f),vec2(1.0f, 1.0f)
+            vec2(0.0f, 0.0f), vec2(1.0f, 1.0f)
         ),
         gunName(
-            Element(ivec2(70,70), LuminaUI_AUTO, ivec2(150,40)),
+            Element(ivec2(60,70), LuminaUI_AUTO, ivec2(150,50)),
             "Gun Name",     // content
             TFT_WHITE,             // textColor
             TFT_BLACK,             // fillColor
@@ -85,32 +108,50 @@ void moveToRSG() {
             true                   // renderBorder
         ),
         nextTriangle(
-            Element(ivec2(230,70), LuminaUI_AUTO, ivec2(40,50)),
-            polygon_vertices_example,
-            polygon_vertices_example_count,
-            polygon_triangles_example,
-            polygon_triangles_example_count, 
+            Element(ivec2(215,70), LuminaUI_AUTO, ivec2(45,50)),
+            triangle_vertices, triangle_vertices_count,
+            triangle_triangles, triangle_triangles_count,
             TFT_WHITE, TFT_BLACK, true, true,
-            vec2(0.0f, 0.0f),vec2(1.0f, 1.0f)
+            vec2(1.0f, 0.0f), vec2(-1.0f, 1.0f)
+        ),
+        parametersTitle(
+            Element(ivec2(275,45), LuminaUI_AUTO, ivec2(200,25)),
+            "Parameters:", TFT_WHITE, 1, TL_DATUM, 0, &FreeMonoBold12pt7b
+        ),
+        gunParameters(
+            Element(ivec2(270,70), LuminaUI_AUTO, ivec2(200,160)),
+            "Gun Data",     // content
+            TFT_WHITE,             // textColor
+            TFT_BLACK,             // fillColor
+            TFT_WHITE,             // borderColor
+            1,                     // textSize
+            TL_DATUM,              // textDatum
+            0.95f,                  // lineSpacing
+            10,                    // cornerRadius
+            &FreeMono9pt7b,        // freeFont
+            true,                  // renderFill
+            true,                  // renderBorder
+            ivec2(5,5)             // textOffset
         ),
         descriptionTitle(
-            Element(ivec2(280,70), LuminaUI_AUTO, ivec2(200,30)),
+            Element(ivec2(20,125), LuminaUI_AUTO, ivec2(200,25)),
             "Description:", TFT_WHITE, 1, TL_DATUM, 0, &FreeMonoBold12pt7b
         ),
         gunDescription(
-            Element(ivec2(280,100), LuminaUI_AUTO, ivec2(200,200)),
+            Element(ivec2(10,150), LuminaUI_AUTO, ivec2(250,80)),
             "Gun Description",     // content
             TFT_WHITE,             // textColor
             TFT_BLACK,             // fillColor
             TFT_WHITE,             // borderColor
             1,                     // textSize
-            TC_DATUM,              // textDatum
-            1.0f,                  // lineSpacing
+            TL_DATUM,              // textDatum
+            0.8f,                  // lineSpacing
             10,                    // cornerRadius
-            &FreeMono9pt7b,        // freeFont
+            &FreeSerif9pt7b,        // freeFont
             true,                  // renderFill
-            true                   // renderBorder
-        ),        
+            true,                  // renderBorder
+            ivec2(5,5)             // textOffset
+        ),  
          backButton(
            Element(ivec2(20,240), LuminaUI_AUTO, ivec2(200,70)),
            String("Back"), TFT_BLACK, TFT_CYAN, TFT_BLACK, 20,1, 0.0f,
@@ -142,11 +183,15 @@ void moveToRSG() {
             nextButton.OnTouch_setHandler(onPlayer2GunSetupNextButtonTouch);
             nextButton.OnTouch_setEnable(true);
          }
+
+         Activity::renderAlways = true; // Always render this activity
+         Activity::OnTouch_enable = true; // Enable touch events for this activity
  
          // Add all children
          Element* elems[] = {
                 &background, &titleText,
-                &prevTriangle, &gunName, &nextTriangle,
+                &nameTitle,&prevTriangle, &gunName, &nextTriangle,
+                &parametersTitle, &gunParameters,
                 &descriptionTitle, &gunDescription,
                 &backButton, &nextButton
          };
@@ -157,17 +202,29 @@ void moveToRSG() {
         if (playerNumber == 1) {
             if (Game::player1.hasGun() == false)
             {
-                GUI::selectActivity(GUI_Manager_Activity::PLAYER2GUNSETUP);
+                if (forward) {
+                    GUI::selectActivity(GUI_Manager_Activity::PLAYER2GUNSETUP);
+                } else {
+                    GUI::selectActivity(GUI_Manager_Activity::PLAYERSETUP);
+                }
+                forward = !forward;
                 return Viewport(ivec2(0, 0), ivec2(0, 0));
             }
         } else if (playerNumber == 2) {
             if (Game::player2.hasGun() == false)
             {
-                moveToRSG();
+                if (forward) {
+                    moveToRSG();
+                } else {
+                    GUI::selectActivity(GUI_Manager_Activity::PLAYER1GUNSETUP);
+                }
+                forward = !forward;
                 return Viewport(ivec2(0, 0), ivec2(0, 0));
             }
         }
         gunName.text.content = String(gunDataNameArray[gunIndex]);
+        gunParameters.text.content = gunDataArray[gunIndex].toString();
+        gunDescription.text.content = String(gunDataDescriptionArray[gunIndex]);
         return Activity::render(vp);
     }
  };
@@ -182,10 +239,17 @@ static GunSetup *player2GunSetup = new GunSetup(2);
   */
  void onPlayer1PrevGunButtonTouch(ivec2, TouchStatus status)
  {
-    if (status == TouchStatus::TouchStatus_RELEASE) {
+    if (status == TouchStatus::TouchStatus_PRESS) {
      // Decrement gun index and wrap around if necessary
      player1GunSetup->gunIndex = (player1GunSetup->gunIndex - 1 + gunDataArraySize) % gunDataArraySize;
-     player1GunSetup->callRender();
+     GUI::callRender();
+        // Change the button color when pressed
+        player1GunSetup->prevTriangle.fillColor = trianglePressColor;
+        player1GunSetup->prevTriangle.callRender();
+    } else if (status == TouchStatus::TouchStatus_READY || status == TouchStatus_RELEASE) {
+        // Change the button color back when released
+        player1GunSetup->prevTriangle.fillColor = TFT_WHITE;
+        player1GunSetup->prevTriangle.callRender();
     }
  }
 
@@ -194,10 +258,17 @@ static GunSetup *player2GunSetup = new GunSetup(2);
     */
 void onPlayer1NextGunButtonTouch(ivec2, TouchStatus status)
 {
-    if (status == TouchStatus::TouchStatus_RELEASE) {
+    if (status == TouchStatus::TouchStatus_PRESS) {
         // Increment gun index and wrap around if necessary
         player1GunSetup->gunIndex = (player1GunSetup->gunIndex + 1) % gunDataArraySize;
-        player1GunSetup->callRender();
+        GUI::callRender();
+        // Change the button color when pressed
+        player1GunSetup->nextTriangle.fillColor = trianglePressColor;
+        player1GunSetup->nextTriangle.callRender();
+    } else if (status == TouchStatus::TouchStatus_READY || status == TouchStatus_RELEASE) {
+        // Change the button color back when released
+        player1GunSetup->nextTriangle.fillColor = TFT_WHITE;
+        player1GunSetup->nextTriangle.callRender();
     }
 }
 
@@ -281,10 +352,17 @@ void onPlayer1GunSetupNextButtonTouch(ivec2 point, TouchStatus status) {
  */
 void onPlayer2PrevGunButtonTouch(ivec2, TouchStatus status)
 {
-    if (status == TouchStatus::TouchStatus_RELEASE) {
+    if (status == TouchStatus::TouchStatus_PRESS) {
         // Decrement gun index and wrap around if necessary
         player2GunSetup->gunIndex = (player2GunSetup->gunIndex - 1 + gunDataArraySize) % gunDataArraySize;
-        player2GunSetup->callRender();
+        GUI::callRender();
+        // Change the button color when pressed
+        player2GunSetup->prevTriangle.fillColor = trianglePressColor;
+        player2GunSetup->prevTriangle.callRender();
+    } else if (status == TouchStatus::TouchStatus_READY || status == TouchStatus_RELEASE) {
+        // Change the button color back when released
+        player2GunSetup->prevTriangle.fillColor = TFT_WHITE;
+        player2GunSetup->prevTriangle.callRender();
     }
 }
 /**
@@ -292,10 +370,17 @@ void onPlayer2PrevGunButtonTouch(ivec2, TouchStatus status)
  */
 void onPlayer2NextGunButtonTouch(ivec2, TouchStatus status)
 {
-    if (status == TouchStatus::TouchStatus_RELEASE) {
+    if (status == TouchStatus::TouchStatus_PRESS) {
         // Increment gun index and wrap around if necessary
         player2GunSetup->gunIndex = (player2GunSetup->gunIndex + 1) % gunDataArraySize;
-        player2GunSetup->callRender();
+        GUI::callRender();
+        // Change the button color when pressed
+        player2GunSetup->nextTriangle.fillColor = trianglePressColor;
+        player2GunSetup->nextTriangle.callRender();
+    } else if (status == TouchStatus::TouchStatus_READY || status == TouchStatus_RELEASE) {
+        // Change the button color back when released
+        player2GunSetup->nextTriangle.fillColor = TFT_WHITE;
+        player2GunSetup->nextTriangle.callRender();
     }
 }
 /**

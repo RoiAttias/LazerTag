@@ -26,14 +26,14 @@
 void againButtonCallback(ivec2 point, TouchStatus touchStatus);
 
 /**
- * @brief Touch handler for Player 1 name label.
+ * @brief Touch handler for Player 1 name label and HP bar.
  *
  * If pressed, sends a "mark" packet to the respective device.
  *
  * @param point      The touch coordinates.
  * @param touchStatus The type of touch event (PRESS, RELEASE, READY, etc.).
  */
-void onPlayer1NameTouch(ivec2 point, TouchStatus touchStatus);
+void markPlayer1(ivec2 point, TouchStatus touchStatus);
 
 /**
  * @brief Touch handler for Player 2 name label.
@@ -43,7 +43,7 @@ void onPlayer1NameTouch(ivec2 point, TouchStatus touchStatus);
  * @param point      The touch coordinates.
  * @param touchStatus The type of touch event (PRESS, RELEASE, READY, etc.).
  */
-void onPlayer2NameTouch(ivec2 point, TouchStatus touchStatus);
+void markPlayer2(ivec2 point, TouchStatus touchStatus);
 
 /**
  * @class Gameplay
@@ -108,11 +108,15 @@ public:
         againButton.OnTouch_setHandler(againButtonCallback);
         againButton.OnTouch_setEnable(true);
 
-        // Enable touch for player name labels and assign their handlers
-        player1Title.OnTouch_setHandler(onPlayer1NameTouch);
+        // Enable touch for player name labels and HP bars, and assign their handlers
+        player1Title.OnTouch_setHandler(markPlayer1);
         player1Title.OnTouch_setEnable(true);
-        player2Title.OnTouch_setHandler(onPlayer2NameTouch);
+        player2Title.OnTouch_setHandler(markPlayer2);
         player2Title.OnTouch_setEnable(true);
+        player1HpBar.OnTouch_setHandler(markPlayer1);
+        player1HpBar.OnTouch_setEnable(true);
+        player2HpBar.OnTouch_setHandler(markPlayer2);
+        player2HpBar.OnTouch_setEnable(true);
 
         // Add all elements to the activity's rendering list
         Element* elems[] = {
@@ -228,7 +232,7 @@ void againButtonCallback(ivec2 point, TouchStatus status) {
     }
 }
 
-void onPlayer1NameTouch(ivec2, TouchStatus status) {
+void markPlayer1(ivec2, TouchStatus status) {
     if (status == TouchStatus_PRESS) {
         if (Game::player1.hasGun()) {
             Nexus::sendData(COMMS_MARK, 0, nullptr,
@@ -241,7 +245,7 @@ void onPlayer1NameTouch(ivec2, TouchStatus status) {
     }
 }
 
-void onPlayer2NameTouch(ivec2, TouchStatus status) {
+void markPlayer2(ivec2, TouchStatus status) {
     if (status == TouchStatus_PRESS) {
         if (Game::player2.hasGun()) {
             Nexus::sendData(COMMS_MARK, 0, nullptr,

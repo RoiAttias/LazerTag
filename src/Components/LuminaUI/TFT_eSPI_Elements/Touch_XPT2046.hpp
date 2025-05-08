@@ -100,7 +100,6 @@
              default: result = m;
          }
          lastPoint = result;
-         Serial.println("Touch point: " + result.toString());
          return result;
      }
  

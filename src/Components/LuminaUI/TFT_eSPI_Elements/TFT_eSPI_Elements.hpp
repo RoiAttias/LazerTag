@@ -7,14 +7,8 @@
 namespace LuminaUI
 {
     TFT_eSPI * tft_instance;
-    TFT_eSprite * img_instance;
 
-    void push_TFT_eSprite()
-    {
-        img_instance->pushSprite(0,0);
-    }
-
-    void drawTriangles(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, int triangleCount, uint32_t color)
+    void drawTriangles(ivec2 * vertices, uint vertexCount, uint *triangles, int triangleCount, uint32_t color)
     {
         ivec2 triangleVertices[3];
         int selectedVertex;
@@ -29,14 +23,14 @@ namespace LuminaUI
                 }
                 triangleVertices[j] = vertices[selectedVertex];
             }
-            tftptr->drawTriangle(triangleVertices[0].x, triangleVertices[0].y,
+            tft_instance->drawTriangle(triangleVertices[0].x, triangleVertices[0].y,
                                     triangleVertices[1].x, triangleVertices[1].y,
                                     triangleVertices[2].x, triangleVertices[2].y,
                                     color);
         }
     }
 
-    void fillPolygon(TFT_eSPI *tftptr, ivec2 * vertices, uint vertexCount, uint *triangles, uint triangleCount, uint32_t color)
+    void fillPolygon(ivec2 * vertices, uint vertexCount, uint *triangles, uint triangleCount, uint32_t color)
     {
         ivec2 triangleVertices[3];
         int selectedVertex;
@@ -51,7 +45,7 @@ namespace LuminaUI
                 }
                 triangleVertices[j] = vertices[selectedVertex];
             }
-            tftptr->fillTriangle(triangleVertices[0].x, triangleVertices[0].y,
+            tft_instance->fillTriangle(triangleVertices[0].x, triangleVertices[0].y,
                                         triangleVertices[1].x, triangleVertices[1].y,
                                         triangleVertices[2].x, triangleVertices[2].y,
                                         color);

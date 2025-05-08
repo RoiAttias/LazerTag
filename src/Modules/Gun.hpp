@@ -6,7 +6,7 @@
  *  - GunStatus enum for weapon states (NOT_READY, READY, SHOOTING, RELOADING).
  *  - Packed GunData struct for sending/receiving gun configuration over comms.
  *  - Gun class implementing shooting, reloading, rate-of-fire handling, and callbacks via Countdowner.
- *  - Predefined GunData constants (Sidearm, Sidearm_2, HandCannon) for common weapon loadouts.
+ *  - Predefined GunData constants (Stinger, Ghost, Hammerfall) for common weapon loadouts.
  */
 
  #ifndef GUN_HPP
@@ -16,6 +16,7 @@
  #include "Utilities/Countdowner.hpp"  ///< Timer utility for scheduling burst shots
  
 #define MAX_GUN_NAME_LENGTH 32  ///< Maximum length for gun name strings
+#define MAX_GUN_DESCRIPTION_LENGTH 256  ///< Maximum length for gun description strings
 
  /**
   * @enum GunStatus
@@ -49,14 +50,14 @@
       * @return Formatted string with all GunData fields.
       */
      String toString() const {
-         String str = "GunData:\n";
-         str += "  Damage: " + String(damage) + "\n";
-         str += "  Magazine: " + String(magazine) + "\n";
-         str += "  RPM: " + String(roundsPerMinute) + "\n";
-         str += "  ReloadTime: " + String(reloadTime) + "\n";
-         str += "  FullAuto: " + String(fullAuto) + "\n";
-         str += "  Burst: " + String(burst) + "\n";
-         str += "  BurstInterval: " + String(burstInterval) + "\n";
+         String str = "";
+         str += "Damage: " + String(damage) + "\n";
+         str += "Magazine: " + String(magazine) + "\n";
+         str += "RPM: " + String(roundsPerMinute) + "\n";
+         str += "ReloadTime: " + String(reloadTime) + "ms\n";
+         str += "FullAuto: " + (fullAuto ? String("True") : String("False")) + "\n";
+         str += "Burst: " + String(burst) + "\n";
+         str += "BurstInterval: " + String(burstInterval) + "ms\n";
          return str;
      }
  };
@@ -198,7 +199,7 @@
       * @return True if reload started, false otherwise
       */
      bool reload() {
-         if (status == READY && ammo < magazine) {
+         if (status == READY && ammo != magazine) {
              status = RELOADING;
              lastReload = millis();
              return true;
@@ -254,33 +255,33 @@
   * Statistics:
   *  - Damage: 10
   *  - Magazine: 18 rounds
-  *  - Rate: 60 RPM
+  *  - Rate: 80 RPM
   *  - Reload: 1800 ms
   *  - Full-auto: false
   *  - Burst: 3 shots
-  *  - Burst Interval: 100 ms
+  *  - Burst Interval: 80 ms
   */
-const GunData Stinger = {10, 18, 60, 1800, false, 3, 100};
+const GunData Stinger = {10, 18, 80, 1800, false, 3, 80};
  
  /**
   * @brief Predefined loadout: "Ghost" full-auto pistol.
   *
   * Statistics:
-  *  - Damage: 20
+  *  - Damage: 7
   *  - Magazine: 13 rounds
-  *  - Rate: 300 RPM
+  *  - Rate: 500 RPM
   *  - Reload: 1500 ms
   *  - Full-auto: true
   *  - Burst: 1 (single shot)
   *  - Burst Interval: 0 ms
   */
-const GunData Ghost = {20, 13, 300, 1500, true, 1, 0};
+const GunData Ghost = {7, 13, 500, 1500, true, 1, 0};
  
  /**
-  * @brief Predefined loadout: "Hammerfall" heavy single-shot pistol.
+  * @brief Predefined loadout: "Hammerfall" heavy pistol.
   *
   * Statistics:
-  *  - Damage: 30
+  *  - Damage: 26
   *  - Magazine: 8 rounds
   *  - Rate: 150 RPM
   *  - Reload: 3000 ms
@@ -288,7 +289,7 @@ const GunData Ghost = {20, 13, 300, 1500, true, 1, 0};
   * - Burst: 1 (single shot)
   *  - Burst Interval: 0 ms
   */
-const GunData Hammerfall = {30, 8, 150, 3000, false, 1, 0};
+const GunData Hammerfall = {26, 8, 150, 3000, false, 1, 0};
 
 const GunData gunDataArray[] = {
     Stinger,
@@ -301,5 +302,22 @@ const char gunDataNameArray[gunDataArraySize][MAX_GUN_NAME_LENGTH] = {
     "Ghost",
     "Hammerfall"
 };
+const char gunDataDescriptionArray[gunDataArraySize][MAX_GUN_DESCRIPTION_LENGTH] = {
+    "A 3-shot burst pistol.\n\"Ta! Ta! Ta! [Taking breath] Ta! Ta! Ta! [Taking breath] Ta! Ta! Ta!\"",
+    "A full-auto pistol.\n\"Spray and pray! Ha Ha Ha!\"\nYou\'re gonna love this one.",
+    "A heavy pistol dealing a lot of damage, in the costs of low RPM and slow reload time.\n\"KA-BOOM!\""
+};
+ 
+ /**
+  * @brief Get the GunData for a specific gun index.
+  * @param index Index of the gun in the array
+  * @return GunData instance
+  */
+ inline const GunData& getGunData(int index) {
+     if (index < 0 || index >= gunDataArraySize) {
+         return gunDataArray[0]; // Return default if out of bounds
+     }
+     return gunDataArray[index];
+ }
 
 #endif // GUN_HPP

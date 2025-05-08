@@ -29,6 +29,7 @@
  public:
      Rectangle background;  ///< Background rectangle styling
      Text text;             ///< Text content element
+     ivec2 textOffset; ///< Offset for text within the background
  
      /**
       * @brief Construct a Textbox element with combined background and text.
@@ -45,6 +46,7 @@
       * @param freeFont       GFX FreeFont pointer (default FF1)
       * @param renderFill     Enable background fill (default true)
       * @param renderBorder   Enable background border (default true)
+      * @param textOffset     Offset for text within the background (default 0,0)
       */
      Textbox(
          const Element& element,
@@ -58,8 +60,9 @@
          int cornerRadius = 0,
          const GFXfont* freeFont = FF1,
          bool renderFill = true,
-         bool renderBorder = true)
-       : Element(element)
+         bool renderBorder = true,
+         ivec2 textOffset = ivec2(0, 0))
+       : Element(element), textOffset(textOffset)
        , background(element, fillColor, borderColor, renderFill, renderBorder, cornerRadius)
        , text(element, content, textColor, textSize, textDatum, lineSpacing, freeFont) {}
  
@@ -76,8 +79,12 @@
          Viewport tbVP = Element::render(viewport);
          // Draw background first
          tbVP = background.render(tbVP);
+         // Adjust text position with offset
+         Viewport textVP = {
+             tbVP.position + textOffset,
+             tbVP.scale - textOffset};
          // Draw text on top
-         text.render(tbVP);
+         text.render(textVP);
          return tbVP;
      }
  };

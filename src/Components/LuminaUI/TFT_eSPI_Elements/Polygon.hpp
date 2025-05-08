@@ -82,28 +82,21 @@
       * @param polygon_position Relative offset inside Viewport (default 0,0)
       * @param polygon_scale   Relative scale inside Viewport (default 1,1)
       */
-     Polygon(
-         const Element& element,
-         vec2* vertices = polygon_vertices_example,
-         uint vertexCount = polygon_vertices_example_count,
-         uint* triangles = polygon_triangles_example,
-         uint triangleCount = polygon_triangles_example_count,
-         uint32_t fillColor = TFT_WHITE,
-         uint32_t lineColor = TFT_BLACK,
-         bool renderFill = true,
-         bool renderLines = false,
-         vec2 polygon_position = vec2(0.0f, 0.0f),
-         vec2 polygon_scale = vec2(1.0f, 1.0f))
-       : Element(element)
-       , fillColor(fillColor)
-       , lineColor(lineColor)
-       , renderFill(renderFill)
-       , renderLines(renderLines)
-       , polygon_position(polygon_position)
-       , polygon_scale(polygon_scale) {
-         this->vertices.addFromArray(vertices, vertexCount);
-         this->triangles.addFromArray(triangles, triangleCount);
-     }
+     Polygon(const Element &element, 
+        vec2 * vertices = polygon_vertices_example,
+        uint vertexCount = polygon_vertices_example_count,
+        uint * triangles = polygon_triangles_example,
+        uint triangleCount = polygon_triangles_example_count,
+        uint32_t fillColor = TFT_WHITE, uint32_t lineColor = TFT_BLACK,
+        bool renderFill = true, bool renderLines = false,
+        vec2 polygon_position = vec2(0.0f, 0.0f), vec2 polygon_scale = vec2(1.0f, 1.0f))
+        : Element(element), fillColor(fillColor), lineColor(lineColor),
+        renderFill(renderFill), renderLines(renderLines),
+        polygon_position(polygon_position), polygon_scale(polygon_scale)
+    {
+        this->vertices.addFromArray(vertices, vertexCount);
+        this->triangles.addFromArray(triangles, triangleCount);
+    }
  
      /**
       * @brief Transform relative vertices into absolute pixel positions.
@@ -115,14 +108,15 @@
      void calculateVertices(const Viewport& viewport) {
          verticesCalculated.clear();
          for (int i = 0; i < vertices.size(); ++i) {
-             vec2 v = vertices.get(i);
-             // Apply relative scaling and translation
-             v = v.multiply(polygon_scale) + polygon_position;
-             // Map into viewport coordinates
-             vec2 abs = vec2(viewport.position) + v.multiply(viewport.scale);
-             // Convert to integer pixel positions
-             ivec2 iv = ivec2((int)abs.x, (int)abs.y);
-             verticesCalculated.addend(iv);
+
+            vec2 vertex = vertices[i];
+            // Apply relative scaling and translation
+            vertex = vertex.multiply(polygon_scale) + polygon_position;
+            // Map into viewport coordinates
+            vertex = vertex.multiply(viewport.scale);
+            // Convert to integer pixel positions
+            ivec2 calculatedVertex = ivec2((int)vertex.x, (int)vertex.y);
+            verticesCalculated.addend(calculatedVertex);
          }
      }
  
@@ -152,13 +146,11 @@
          triangles.storeToArray(triBuf, triangles.size());
          // Draw fill and/or outlines
          if (renderFill) {
-             LuminaUI::fillPolygon(LuminaUI::tft_instance,
-                 vertBuf, verticesCalculated.size(),
+             LuminaUI::fillPolygon(vertBuf, verticesCalculated.size(),
                  triBuf, triangles.size(), fillColor);
          }
          if (renderLines) {
-             LuminaUI::drawTriangles(LuminaUI::tft_instance,
-                 vertBuf, verticesCalculated.size(),
+             LuminaUI::drawTriangles(vertBuf, verticesCalculated.size(),
                  triBuf, triangles.size(), lineColor);
          }
          free(vertBuf);

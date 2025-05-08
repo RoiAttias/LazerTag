@@ -100,6 +100,11 @@
          // Configure font and rendering settings
          LuminaUI::tft_instance->setTextDatum(textDatum);
          LuminaUI::tft_instance->setTextSize(textSize);
+         if (freeFont == nullptr || freeFont == NULL) {
+             LuminaUI::tft_instance->setTextFont(GLCD);
+         } else {
+             LuminaUI::tft_instance->setFreeFont(freeFont);
+         }
          LuminaUI::tft_instance->setFreeFont(freeFont);
          if (renderBackground) {
              LuminaUI::tft_instance->setTextColor(textColor, backgroundColor);

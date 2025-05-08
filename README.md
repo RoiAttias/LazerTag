@@ -25,3 +25,8 @@ Changes:
 - changed nexus scan time from 2000ms to 500ms
 - added clear address functions in player, one for gun address and one for vest address
 - fixed player setup error of devicebox multiplication
+- in gameplay activity, now both player title and hp bar sends mark command to the player devices
+- fixed pregame reloading for cases with the gun having more bullets that the magazine
+- added textOffset to Textbox
+- fixed polygon element's vertex mapping
+- finished GunSetup activities
