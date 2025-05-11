@@ -30,3 +30,7 @@ Changes:
 - added textOffset to Textbox
 - fixed polygon element's vertex mapping
 - finished GunSetup activities
+10/5
+- Increased gun neopixel brightness from 20 to 100
+- fixed again gradient background to gameplay activity
+- fixed calling render when switching from gun setup activity

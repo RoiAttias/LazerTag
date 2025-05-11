@@ -231,7 +231,7 @@
          strip.clear();
          for (uint8_t layer = 0; layer < MAX_LAYERS; ++layer) {
              for (int i = 0; i < animations.size(); ++i) {
-                 Animation& anim = animations[i];
+                 Animation anim = animations[i];
                  if (anim.layer == layer && anim.shouldRun(currentTime)) {
                      float factor = anim.run(currentTime);
                      anim.animationFunc(&strip, anim.startIndex, anim.length, factor);

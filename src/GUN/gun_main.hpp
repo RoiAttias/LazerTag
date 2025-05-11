@@ -165,7 +165,7 @@ Visualizer visualizer(
 
 /// Gun instance wrapping GunData & logic
 Gun gun(
-    Sidearm,                   ///< initial parameters
+    Stinger,                   ///< initial parameters
     gun_Shoot_callback,        ///< on shot
     gun_OnReloadFinish_callback///< on reload complete
 );
@@ -310,7 +310,7 @@ void gun_loop() {
                 memcpy(&newParams,
                        packet.payload,
                        payloadSizePerCommand[COMMS_GUNPARAMS]);
-                gun.setData(newParams);
+                gun.setGunData(newParams);
                 break;
 
             case COMMS_FIRECODE:

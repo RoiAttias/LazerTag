@@ -54,7 +54,11 @@
  
      PlayerSetup()
        : Activity(),
-         background(),
+         background(Element(ivec2(0,0), LuminaUI_AUTO, ivec2(480,320), true, true),
+                    0, 0, 255,
+                    255, 0, 0, 
+                    false
+        ),
          titleText(
            Element(ivec2(0,10), LuminaUI_AUTO, ivec2(480,50)),
            "Player Setup", TFT_WHITE, 1, MC_DATUM, 0, &FreeMonoBold24pt7b

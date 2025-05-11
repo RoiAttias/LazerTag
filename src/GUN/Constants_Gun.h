@@ -39,6 +39,6 @@ static const uint8_t stripLength = 10;
 /// Minimum frame interval (in ms) between consecutive strip updates.
 static const uint8_t stripFrameIntervalMS = 30;
 /// Default brightness level for the strip (0–255).
-static const uint8_t stripBrightness = 20;
+static const uint8_t stripBrightness = 100;
 
 #endif // CONSTANTS_GUN_H

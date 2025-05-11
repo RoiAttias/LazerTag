@@ -231,6 +231,7 @@
  void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
      NexusPacket packet;
      memcpy(&packet, data, len);
+     int randomNum = millis() % 5;
      if (packet.version != NEXUS_VERSION) return;
  
      bool toThis = (packet.destination.projectID == Nexus::THIS_ADDRESS.projectID)
@@ -246,8 +247,11 @@
              }
          } else if (packet.length == 0) {
              if (Nexus::onThisScanned && !Nexus::onThisScanned(packet.source)) return;
-             Nexus::outgoingPackets.addend(NexusPacket(Nexus::THIS_ADDRESS, packet.source, ++packet.sequenceNum, NEXUS_COMMAND_SCAN, 1, nullptr));
-         }
+             for (size_t i = 0; i < NEXUS_SCAN_RESPONSE_REPEAT; i++) {  
+                delay(randomNum + 5);
+                Nexus::outgoingPackets.addend(NexusPacket(Nexus::THIS_ADDRESS, packet.source, ++packet.sequenceNum, NEXUS_COMMAND_SCAN, 1, nullptr));
+             }
+            }
      } else {
          if (Nexus::onPacketReceived) {
              Nexus::onPacketReceived(packet);

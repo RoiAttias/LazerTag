@@ -210,6 +210,17 @@
      // -------------------------------------------------------------------------
      // Getters and Setters
      // -------------------------------------------------------------------------
+     void setGunData(const GunData& data) {
+         damage = data.damage;
+         magazine = data.magazine;
+         roundsPerMinute = data.roundsPerMinute;
+         reloadTime = data.reloadTime;
+         fullAuto = data.fullAuto;
+         burst = data.burst;
+         burstInterval = data.burstInterval;
+     }
+
+
      /** @brief Enable or disable the gun (sets status accordingly).
       *  @return The new enable state
       */

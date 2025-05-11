@@ -58,7 +58,7 @@ void markPlayer2(ivec2 point, TouchStatus touchStatus);
  */
 class Gameplay : public Activity {
 public:
-    Background background;   ///< Gradient background element
+    Gradient background;   ///< Gradient background element
     Text       titleText;    ///< Static title at the top
     Text       narratorText; ///< Dynamic narration text
 
@@ -85,7 +85,7 @@ public:
      */
     Gameplay()
       : Activity(),
-        background(), 
+        background(Element()),
         titleText(Element(ivec2(0, 10), LuminaUI_AUTO, ivec2(480, 50)),
                   String("Game is running!"), TFT_WHITE, 1, MC_DATUM, 0.0f, &FreeMonoBold24pt7b),
         narratorText(Element(ivec2(0, 70), LuminaUI_AUTO, ivec2(480, 70)),

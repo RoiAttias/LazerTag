@@ -51,13 +51,12 @@
       * @param lb2 Right color blue component (default 0).
       * @param horizontal If true, draw a horizontal gradient (default false).
       */
-     Gradient(Element element = Element(),
+     Gradient(const Element element,
         uint8_t lr1 = 0, uint8_t lg1 = 0, uint8_t lb1 = 255,
         uint8_t lr2 = 255, uint8_t lg2 = 0, uint8_t lb2 = 0,
         bool horizontal = false)
-        : colorLeft{lr1, lg1, lb1}, colorRight{lr2, lg2, lb2},
-          isHorizontal(horizontal),
-          Element(element) {}
+        : Element(element), colorLeft{lr1, lg1, lb1}, colorRight{lr2, lg2, lb2},
+          isHorizontal(horizontal){}
  
      /**
       * @brief Render the gradient into its viewport.

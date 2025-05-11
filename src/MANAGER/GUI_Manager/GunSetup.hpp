@@ -48,6 +48,7 @@ void moveToRSG() {
     Game::start();
     Nexus::sendData(COMMS_GAMESTATUS, payloadSizePerCommand[COMMS_GAMESTATUS],
         (uint8_t *)&Game::status, NexusAddress(NEXUS_PROJECT_ID, 0xff, 0xff));
+    GUI::callRender();
 }
  
  class GunSetup : public Activity {
@@ -286,6 +287,7 @@ void onPlayer1NextGunButtonTouch(ivec2, TouchStatus status)
             // Go back to the previous activity
             playerSetup->init();
             GUI::selectActivity(GUI_Manager_Activity::PLAYERSETUP);
+            GUI::callRender();
             break;
 
         case TouchStatus::TouchStatus_PRESS:
@@ -323,6 +325,7 @@ void onPlayer1GunSetupNextButtonTouch(ivec2 point, TouchStatus status) {
                 // Proceed to the next step
                 Game::player1.setGunData(gunDataArray[player1GunSetup->gunIndex]);
                 GUI::selectActivity(GUI_Manager_Activity::PLAYER2GUNSETUP);
+                GUI::callRender();
                 break;
 
             case TouchStatus::TouchStatus_PRESS:
@@ -396,6 +399,7 @@ void onPlayer2GunSetupBackButtonTouch(ivec2 point, TouchStatus status) {
 
             // Go back to the previous activity
             GUI::selectActivity(GUI_Manager_Activity::PLAYER1GUNSETUP);
+            GUI::callRender();
             break;
 
         case TouchStatus::TouchStatus_PRESS:
@@ -433,6 +437,7 @@ void onPlayer2GunSetupNextButtonTouch(ivec2 point, TouchStatus status) {
             // Proceed to the next step
             Game::player2.setGunData(gunDataArray[player2GunSetup->gunIndex]);
             moveToRSG();
+            GUI::callRender();
             break;
 
         case TouchStatus::TouchStatus_PRESS:

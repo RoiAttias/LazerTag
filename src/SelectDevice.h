@@ -30,10 +30,11 @@
   *   3 - Vest 1
   *   4 - Gun 2
   *   5 - Vest 2
+  *   6 - Manager 2
   */
  
  /// @brief Specify which device this firmware is built for
- #define DEVICE_TYPE DEVICE_MANAGER
+ #define DEVICE_TYPE  DEVICE_MANAGER
  
  /// @brief Unique identifier for this device instance
  #define DEVICE_ID   1
