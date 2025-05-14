@@ -22,6 +22,9 @@
  void onNextButtonTouch(ivec2 point, TouchStatus status);
  void onDeviceBoxTouch(ivec2 point, TouchStatus status);
  
+ void initScanner(); ///< Forward declaration for scanner initialization
+ void triggerScanner(); ///< Forward declaration for scanner trigger function
+
  /**
   * @class Scanner
   * @brief Activity that lets the manager discover and select game devices.
@@ -106,6 +109,7 @@
       * @brief Initialize DeviceBoxes: hide them and set touch callbacks.
       */
      void init() {
+        GUI::gameDevices.clear();
          for (int i = 0; i < 9; i++) {
              deviceBoxes[i]->visible = false;
              deviceBoxes[i]->OnTouch_setHandler(onDeviceBoxTouch);
@@ -134,16 +138,6 @@
       * - Draws all child elements
       */
      Viewport render(const Viewport &viewport) override {
-         GUI::gameDevices.clear();
-         for (int i = 0; i < 9; i++) {
-             if (!deviceBoxes[i]->selected) break;
-             uint8_t g = deviceBoxes[i]->deviceGroup;
-             if (g == NEXUS_GROUP_GUN || g == NEXUS_GROUP_VEST) {
-                 NexusAddress addr{ NEXUS_PROJECT_ID, g, (uint8_t)deviceBoxes[i]->deviceId };
-                 GUI::gameDevices.addend(addr);
-             }
-         }
-
          if (!canNext()) {
             nextButton.background.fillColor = TFT_DARKGREY;
             nextButton.background.borderColor = TFT_BLACK;
@@ -181,10 +175,10 @@
          nextButton.background.fillColor = canNext() ? TFT_ORANGE : TFT_DARKGREY;
      }
  };
- 
- /** Global Scanner instance **/
- static Scanner *scanner = new Scanner();
- 
+
+
+ Scanner* scanner = new Scanner(); ///< Pointer to the scanner instance
+
  /** 
   * @brief Handler for Scan button touches.
   * - PRESS: darken button
@@ -250,6 +244,15 @@
              scanner->nextButton.background.borderColor = TFT_BLACK;
              scanner->nextButton.text.textColor = TFT_BLACK;
              scanner->nextButton.callRender();
+
+             GUI::gameDevices.clear();
+            for (int i = 0; i < 9; i++) {
+                uint8_t g = scanner->deviceBoxes[i]->deviceGroup;
+                if ((g == NEXUS_GROUP_GUN || g == NEXUS_GROUP_VEST) && scanner->deviceBoxes[i]->selected) {
+                    NexusAddress addr = { NEXUS_PROJECT_ID, g, (uint8_t)scanner->deviceBoxes[i]->deviceId };
+                    GUI::gameDevices.addend(addr);
+                }
+            }
              playerSetup->init();
              GUI::selectActivity(GUI_Manager_Activity::PLAYERSETUP);
              break;
@@ -293,6 +296,10 @@
      }
      GUI::callRender();
  }
+
+ void initScanner() {
+    scanner->init();
+} 
 
  /**
   * @brief Simulate a touch on the scanner button.

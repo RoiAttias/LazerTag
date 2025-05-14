@@ -14,8 +14,10 @@
  #include "Utilities/Countdowner.hpp"
  #include "Utilities/MoreMath.hpp"
  #include "MANAGER/manager_shared.hpp"
+ #include "Scanner.hpp"  // For scanner instance
 
  // From Scanner.hpp
+ void initScanner(); ///< Forward declaration for scanner initialization
  void triggerScanner(); ///< Forward declaration for scanner trigger function
  
  /**
@@ -98,6 +100,7 @@
       */
      void OnTouch_execute(ivec2 point, TouchStatus touchStatus) override {
          if (touchStatus == TouchStatus_PRESS) {
+             initScanner();  // Initialize the scanner
              // After delay, switch to Scanner screen
              countdowner->addEvent(
                countdownTime,

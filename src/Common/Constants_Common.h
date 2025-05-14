@@ -20,7 +20,7 @@
  /// Minor version of the system
  #define SYSTEM_VERSION_MINOR 0
  /// Patch version of the system
- #define SYSTEM_VERSION_PATCH 1
+ #define SYSTEM_VERSION_PATCH 2
  
  /// Combined version as an array: {major, minor, patch}
  #define SYSTEM_VERSION {SYSTEM_VERSION_MAJOR, SYSTEM_VERSION_MINOR, SYSTEM_VERSION_PATCH}

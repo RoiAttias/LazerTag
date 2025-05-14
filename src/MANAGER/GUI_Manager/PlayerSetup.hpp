@@ -21,7 +21,7 @@
  #include "Components/Nexus/Nexus.hpp"
  #include "Common/LazerTagPacket.hpp"
  #include "Scanner.hpp"
- 
+
  // Forward declarations
  void onGunSwitchButtonTouch(ivec2, TouchStatus);
  void onVestSwitchButtonTouch(ivec2, TouchStatus);
@@ -31,6 +31,7 @@
  void onPlayer2TitleTouch(ivec2, TouchStatus);
 
  // A function from Scanner.hpp
+ void initScanner(); ///< Forward declaration for scanner initialization
  void triggerScanner(); ///< Forward declaration for scanner trigger function
  
  class PlayerSetup : public Activity {
@@ -242,6 +243,7 @@
             playerSetup->backButton.callRender();
 
             // Go back to the previous activity
+            initScanner();
             GUI::selectActivity(GUI_Manager_Activity::SCANNER);
             triggerScanner();
             break;

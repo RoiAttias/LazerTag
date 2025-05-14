@@ -81,7 +81,16 @@
   */
  void hpAnimationFunc(Adafruit_NeoPixel* strip, uint16_t start, uint16_t len, float factor) {
      uint16_t hue = mix(Ring::hp / 100.0f, HUE_RED, HUE_GREEN);
-     int count = int(len * Ring::hp / 100.0f);
+     int count;
+     if (Ring::hp == 100)
+     {
+        count = len;
+     }
+     else
+     {
+        count = int(len * Ring::hp / 100.0f);
+     }
+     
      for (int i = 0; i < count; ++i) {
          uint8_t bri = uint8_t(mix(
            clamp(1 - 2 * fabs(distance(factor,0,0.5f,0)), 0, 1),
@@ -100,6 +109,70 @@
          strip->setPixelColor(start + i, strip->ColorHSV(Ring::flashingHue, 255, bri));
      }
  }
+
+ /**
+  * @brief "win" effect.
+  */
+ void winAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
+    float fac = factor * 6;
+    int current = (int)(factor * 6);
+    if (current >= 0 && current < 3) {
+        int repeats = 5;
+        int curr = (int)fmod(fac * repeats, 3);
+        for (uint16_t i = 0; i < length; i++) { // Loop through each LED
+            strip->setPixelColor(startIndex + i, strip->ColorHSV(HUE_GREEN, 255, 255 * (i % 3 == curr)));
+        }
+    } else if (current == 3) {
+        for (uint16_t i = 0; i < length*(factor*6 - 3); i++) { // Loop through each LED
+            strip->setPixelColor(startIndex + i, strip->ColorHSV(HUE_GREEN, 255, 255));
+        }
+    } else if (current == 4) {
+        for (uint16_t i = length; i > length*(1-(factor*6 - 4)); i--) { // Loop through each LED
+            strip->setPixelColor(startIndex + i, strip->Color(0,0,0));
+        }
+    }
+    else if (current == 5 || current == 6) {
+        for (uint16_t i = 0; i < length; i++) { // Loop through each LED
+            float calcFact = (factor*6 - 5) / 2;
+            uint8_t brightness = (uint8_t)(clamp(1.0f - 2*(distance(calcFact,0,0.5f,0)), 0.0f, 1.0f) * 255); // Calculate the color
+            strip->setPixelColor(startIndex + i, strip->ColorHSV(HUE_GREEN, 255, brightness)); // Set the LED color
+        }
+    }
+}
+
+/**
+ * @brief “lose” effect.
+ */
+void loseAnimationFunc(Adafruit_NeoPixel* strip, uint16_t startIndex, uint16_t length, float factor) {
+    int current = (int)(factor * 6);
+    if (current == 0 || current == 1) {
+        int point1 = length / 4;
+        int point2 = length * 3 / 4;
+        float dist1, dist2, minDist, conDist;
+        for (uint16_t i = 0; i < length; i++) { // Loop through each LED
+            dist1 = distance(i,0, point1,0);
+            dist2 = distance(i,0, point2,0);
+            minDist = min(dist1, dist2);
+            conDist = current == 0 ? mix(factor * 6, 0, length/2) : mix(factor * 6 - 1, length/2, 0);
+            strip->setPixelColor(startIndex + i, strip->ColorHSV(HUE_RED, 255, 255 * (minDist < conDist)));
+        }
+    } else if (current == 3) {
+        for (uint16_t i = 0; i < length*(factor*6 - 3); i++) { // Loop through each LED
+            strip->setPixelColor(startIndex + i, strip->ColorHSV(HUE_RED, 255, 255));
+        }
+    } else if (current == 4) {
+        for (uint16_t i = length; i > length*(1-(factor*6 - 4)); i--) { // Loop through each LED
+            strip->setPixelColor(startIndex + i, strip->Color(0,0,0));
+        }
+    }
+    else if (current == 5 || current == 6) {
+        for (uint16_t i = 0; i < length; i++) { // Loop through each LED
+            float calcFact = (factor*6 - 5);
+            uint8_t brightness = (uint8_t)(clamp(1.0f - 2*(distance(calcFact,0,0.5f,0)), 0.0f, 1.0f) * 255); // Calculate the color
+            strip->setPixelColor(startIndex + i, strip->ColorHSV(HUE_RED, 255, brightness)); // Set the LED color
+        }
+    }
+}
  
  // Additional animations (win/lose) omitted for brevity…
  
@@ -111,6 +184,8 @@
  static Animation hitAnimation     (hitAnimationFunc,     2, 0, stripLength,  100, false);
  static Animation hpAnimation      (hpAnimationFunc,      0, 0, stripLength, 1000, true);
  static Animation markedAnimation  (markedAnimationFunc,  2, 0, stripLength, 1000, false);
+ static Animation winAnimation     (winAnimationFunc,     1, 0, stripLength, 5000, true);
+ static Animation loseAnimation    (loseAnimationFunc,    1, 0, stripLength, 5000, true);
  
  //----------------------------
  // Ring namespace API
@@ -120,6 +195,7 @@
      int hp = 0;
      uint16_t flashingHue;
      uint16_t load2Hue;
+     bool renderAlways = false;
  
      /** @brief Initialize the NeoPixel ring. */
      void init() {
@@ -165,12 +241,14 @@
      /** @brief Flash hit animation and update HP for hue mapping. */
      void hit(int newHP) {
          hp = newHP;
+         renderAlways = false;
          visualizer.addAnimation(hitAnimation);
      }
  
      /** @brief Display HP bar at the start of the game. */
      void onGameStart(int newHP) {
          hp = newHP;
+         renderAlways = true;
          visualizer.clearAnimations();
          visualizer.addAnimation(hpAnimation);
      }

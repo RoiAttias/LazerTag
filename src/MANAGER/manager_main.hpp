@@ -134,9 +134,10 @@
  
              // If either player has 0 HP, end the game
              if (Game::shouldEnd()) {
+                 delay(10);
                  // Transition game state to GAME_OVER
                  Game::end();
- 
+                 delay(10);
                  // Broadcast GAME_OVER to all participants (Gun & Vest)
                  Nexus::sendData(
                      COMMS_GAMESTATUS,

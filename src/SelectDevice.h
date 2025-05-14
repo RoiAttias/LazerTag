@@ -34,9 +34,9 @@
   */
  
  /// @brief Specify which device this firmware is built for
- #define DEVICE_TYPE  DEVICE_MANAGER
+ #define DEVICE_TYPE  1
  
  /// @brief Unique identifier for this device instance
- #define DEVICE_ID   1
+ #define DEVICE_ID   6
  
  #endif // SELECT_DEVICE_H

@@ -74,34 +74,49 @@
       * - Uses `receivedFireSignals` to debounce repeats within NEC_VALID_TIME_MS.
       */
      void loop() {
-         for (size_t i = 0; i < irReceiversCount; ++i) {
-             if (!irReceivers[i].available()) continue;
-             NEC_DATA code = irReceivers[i].read();
- 
-             // Already queued? skip
-             if (hits.contains(code)) continue;
- 
-             bool skip = false;
-             // Debounce: check if we saw this code recently
-             for (size_t j = 0; j < receivedFireSignals.size(); ++j) {
-                 auto &entry = receivedFireSignals[j];
-                 if (entry.data == code) {
-                     if (entry.shouldStore()) {
-                         entry.lastTime = millis();
-                         skip = false;
-                     } else {
-                         skip = true;
-                     }
-                     break;
-                 }
-             }
-             if (skip) continue;
- 
-             // New hit: enqueue and record timestamp
-             hits.addend(code);
-             receivedFireSignals.addend({code, millis()});
-         }
-     }
+        bool skip = false, receivedContains = false;
+        for (int i = 0; i < irReceiversCount; i++) {
+            if (irReceivers[i].available()) {
+                NEC_DATA receivedData = irReceivers[i].read();
+
+                if (!hits.contains(receivedData)) {
+
+                    for (int j = 0; j < receivedFireSignals.size(); j++) {
+                        if (receivedFireSignals[j].data == receivedData) {
+                            receivedContains = true;
+
+                            if (receivedFireSignals[j].shouldStore()) {
+                                ReceivedFireSignal temp = receivedFireSignals[j];
+                                temp.lastTime = millis();
+                                receivedFireSignals.remove(j);
+                                receivedFireSignals.insert(j, temp);
+                                skip = false;
+                            } else {
+                                skip = true;
+                            }
+
+                        }
+                        else {
+                            skip = false;
+                            receivedContains = false;
+                        }
+                    }
+
+
+                    if (skip) {
+                        continue;
+                    }
+                    else {
+                        hits.addend(receivedData);
+                        if (!receivedContains) {
+                            ReceivedFireSignal fireSignal = {receivedData, millis()};
+                            receivedFireSignals.addend(fireSignal);
+                        }
+                    }
+                }
+            }
+        }
+    }
  
      /**
       * @brief Number of pending hits.
