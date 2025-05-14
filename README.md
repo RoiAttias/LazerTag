@@ -1,36 +1,63 @@
-Changes:
-4/5
-- added clear function in pushbutton class
-- fixed in issue when all guns shot full auto, now only those that full auto enabled can do that
-- added demark animation for gun and vest (ring subsystem)
-- added commands "COMMS_DEMARK" and "COMMS_GUNNAME"
-- manager now sends the demark command when user deselect devices in the scanner activity
-- manager now sends the mark command when user presses on the player1/2 title in the PlayerSetup and Gameplay activities
-- put guns in array and added gun name array
-- gunName is saved inside player class
-- the gun name command is send to each gun device when the game begin
+Project LazerTag v1.0.1 - Made By Roi Attias
 
-5/5
-- updated game start conditions: now ensures that guns are different and vest are different
-- fixed ui problems
+📝 Enhancements and Fixes:
 
-7/5
-- going back from PlayerSetup to Scanner trigger scan automatically
-- added parameter to Gradient element
-- added Gun Setup activities
+Added clear function in the Pushbutton class.
 
-8/5
-- Scanner now automatically scans if its not the first time switching to Scanner
-- anded version to activation screen
-- changed nexus scan time from 2000ms to 500ms
-- added clear address functions in player, one for gun address and one for vest address
-- fixed player setup error of devicebox multiplication
-- in gameplay activity, now both player title and hp bar sends mark command to the player devices
-- fixed pregame reloading for cases with the gun having more bullets that the magazine
-- added textOffset to Textbox
-- fixed polygon element's vertex mapping
-- finished GunSetup activities
-10/5
-- Increased gun neopixel brightness from 20 to 100
-- fixed again gradient background to gameplay activity
-- fixed calling render when switching from gun setup activity
+Fixed an issue causing all guns to shoot in full auto; now only guns explicitly configured for full auto will behave accordingly.
+
+Introduced Demark animation for Gun and Vest subsystems (Ring subsystem).
+
+Added new communication commands: COMMS_DEMARK and COMMS_GUNNAME.
+
+Manager now sends a Demark command upon device deselection in the Scanner activity.
+
+Manager sends a Mark command when the user selects Player1/2 titles in PlayerSetup and Gameplay activities.
+
+Guns are organized into an array with corresponding gun names.
+
+Gun names are now stored within the Player class.
+
+Gun names are communicated to each gun device at game start.
+
+Game start conditions updated to ensure unique guns and vests for each player.
+
+UI fixes and improvements implemented.
+
+Automatic scanning triggered when returning from PlayerSetup to Scanner.
+
+Added a new parameter to the Gradient element.
+
+Implemented Gun Setup activities.
+
+Scanner automatically initiates scanning after initial usage.
+
+Version information added to the Activation screen.
+
+Nexus scan duration optimized from 2000ms to 500ms.
+
+Introduced clear address functions within the Player class for gun and vest addresses.
+
+Resolved a device box duplication error in PlayerSetup.
+
+Gameplay activity now sends a Mark command when interacting with player titles and HP bars.
+
+Corrected pregame reload logic for guns with more bullets than magazine capacity.
+
+Added textOffset parameter to the Textbox element.
+
+Polygon element vertex mapping fixed.
+
+Completed GunSetup activities implementation.
+
+Increased Gun NeoPixel brightness from 20 to 100.
+
+Gradient background issue fixed in Gameplay activity.
+
+Rendering call fixed when transitioning from the second GunSetup activity.
+
+🐞 Known Issues:
+
+Manager: Rendering issue when transitioning to/from Player 1 Gun Setup activity.
+
+Vest: HP animation does not trigger at the start of the game.
